@@ -1,15 +1,71 @@
-# Python virtual environment & cache
-.venv/
+# ============================================================
+# DBXV2 Build Forge - .gitignore
+# ============================================================
+
+# --- Python bytecode & caches ---
 __pycache__/
+*.py[cod]
+*$py.class
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
 
-# Nuitka / PyInstaller build outputs
-build/
-main.build/
-main.onefile-build/
-main.dist/
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
 
-# Local backups & crash reports
-*.bak
+# --- Packaging / build artifacts ---
+# Panduan build (build/nuitka_build.md) tetap dilacak
+build/*
+!build/nuitka_build.md
+dist/
+*.egg-info/
+*.spec
+
+# --- Nuitka ---
+*.build/
+*.dist/
+*.onefile-build/
 nuitka-crash-report.xml
-backups/
+
+# --- Compiled binaries & installer output ---
+# Distribusikan via GitHub Releases, bukan lewat git
+*.exe
+*.msi
+Output/
+
+# --- Runtime user data (jangan commit data pribadi) ---
+build_forge_data.json
+build_forge_data.json.bak
+build_forge_data.json.tmp
+*.bak
+*.tmp
+# Sample data tetap dilacak
+!build_forge_data.sample.json
+
+# --- Exported files (hasil ekspor XLSX/CSV) ---
+exports/
+*.xlsx
+*.csv
+
+# --- Logs & coverage ---
+*.log
+logs/
+.coverage
+coverage.xml
+htmlcov/
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini

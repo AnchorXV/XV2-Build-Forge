@@ -1,0 +1,1149 @@
+{
+  "characters": [
+    {
+      "code": "SGJ",
+      "name": "Super Garlic Jr.",
+      "is_playable": true
+    },
+    {
+      "code": "WHL",
+      "name": "Dr. Wheelo",
+      "is_playable": true
+    },
+    {
+      "code": "TLS",
+      "name": "Turles",
+      "is_playable": true
+    },
+    {
+      "code": "SLG",
+      "name": "Lord Slug",
+      "is_playable": true
+    },
+    {
+      "code": "CO4",
+      "name": "Cooler (Fourth Form)",
+      "is_playable": true
+    },
+    {
+      "code": "CO5",
+      "name": "Cooler (Final Form)",
+      "is_playable": true
+    },
+    {
+      "code": "MCL",
+      "name": "Meta-Cooler",
+      "is_playable": true
+    },
+    {
+      "code": "G13",
+      "name": "Android #13",
+      "is_playable": true
+    },
+    {
+      "code": "F13",
+      "name": "Fusion Android #13",
+      "is_playable": true
+    },
+    {
+      "code": "BRZ",
+      "name": "Broly (Restrained)",
+      "is_playable": true
+    },
+    {
+      "code": "BRL",
+      "name": "Broly (Legendary Super Saiyan)",
+      "is_playable": true
+    },
+    {
+      "code": "BJK",
+      "name": "Bojack",
+      "is_playable": true
+    },
+    {
+      "code": "BJF",
+      "name": "Bojack (Full Power)",
+      "is_playable": true
+    },
+    {
+      "code": "ZNG",
+      "name": "Zangya",
+      "is_playable": true
+    },
+    {
+      "code": "JNB",
+      "name": "Super Janemba",
+      "is_playable": true
+    },
+    {
+      "code": "TPN",
+      "name": "Tapion",
+      "is_playable": true
+    },
+    {
+      "code": "BRZ",
+      "name": "God of Destruction Beerus",
+      "is_playable": true
+    },
+    {
+      "code": "FRG",
+      "name": "Golden Frieza",
+      "is_playable": true
+    }
+  ],
+  "character_ids": [],
+  "costume_names": [],
+  "super_skills": [
+    {
+      "name": "Maximum Charge",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death impact",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Dance",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Smash",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Madness Cannon",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Energy Wave Combo",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Super Explosive Wave",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Full Power Energy Wave",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Kill Driver",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Sudden Storm",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Force Explosion",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Calamity Blaster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Fruit of the Tree of Might",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Darkness Blaster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Darkness Eye Beam",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Darkness Twin Star",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Meteor Crash",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Flash",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Beam",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Destructive Ray",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Crasher",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Shadow Crusher",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Wave",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Death Chaser",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Feint Crash",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Lock-On Buster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Finger Blitz Barrage",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Handy Blaster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Handy Cannon",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Data Input",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Abyss Impact",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Abyss Revolver",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "S. S. Deadly Bomber",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Gigantic Charge",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Gigantic Cluster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Eraser Cannon",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Rising Rage",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Eraser Blow",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Blaster Shell",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Trap Shooter",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Cosmic Bomber",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Reverse Launcher",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Grand Smasher",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Shoot Blaster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Psycho Thread",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Psycho Dance",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Marauder Crush",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Hell Gate",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Rakshasa's Claw",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Dimensional Hole",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Hero's Flute",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Brave Cannon",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Brave Sword Slash",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "God of Destruction's Anger",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "God of Destruction's Wrath",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "God of Destruction's Rampage",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Emperor's Edge",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Emperor's Blast",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Emperor's Cannon",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Ultimate Charge",
+      "is_cac": false,
+      "note": ""
+    }
+  ],
+  "ultimate_skills": [
+    {
+      "name": "Dead Zone",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Planet Geyser",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Meteor Burst",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Darkness Rush",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Full Power Energy Wave",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Full Power Energy Blast Volley",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Supernova",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Atomic Supernova",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Metallic Supernova",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "S. S. Deadly Bomber",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "S. S. Deadly Hammer",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Gigantic Explosion",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Gigantic Meteor",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Grand Smasher",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Dirty Criminal",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Galactic Buster",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Sky Zapper",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Dimension Ray",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Dimension Sword Attack",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Brave Sword Attack",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Sphere of Destruction",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Emperor's Death Beam",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Emperor's Death Crusher",
+      "is_cac": false,
+      "note": ""
+    }
+  ],
+  "awoken_skills": [
+    {
+      "name": "Great Namekian",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Super Saiyan",
+      "is_cac": false,
+      "note": ""
+    }
+  ],
+  "evasive_skills": [
+    {
+      "name": "Break Strike",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Gigantic Bomber",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Explosive Wave",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Fake Blast",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Hyper Movement",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Instant Rise",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Blaster Meteor",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Powered Shell",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Psycho Barrier",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Super Back Jump",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Angry Shout",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Headshot",
+      "is_cac": false,
+      "note": ""
+    },
+    {
+      "name": "Spread Shot Retreat",
+      "is_cac": false,
+      "note": ""
+    }
+  ],
+  "super_souls": [
+    {
+      "name": "I told you! I will never die!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "May you and the rest of Earth become space dust!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "Come and get me!!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "You thought I was strong before... Watch this!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "About time to wrap this up!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "I got back my youth and vigor!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "You'll be the first and last one to witness this form!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "I'm the Strongest in the Universe!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "I am the great destroyer! The taker of life!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "This is how it should be when you die.",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "I can't believe you're catchin' an ass whoopin'!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "Goku...!!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "This place will be your grave!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "What? Finished already?",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "This should be fun...",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "Now, give your father a message for me.",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "There's no point in resisting me, so don't even try to show off.",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "Janemba! Janemba!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "It was an honor to know you.",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "Before creation comes destruction...",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    },
+    {
+      "name": "Wake up! Torture's no fun if I can't hear you scream!",
+      "effect_1": "",
+      "effect_2": "",
+      "note": ""
+    }
+  ],
+  "table_names": [
+    "Super Garlic Jr.",
+    "Dr. Wheelo",
+    "Turles",
+    "Lord Slug",
+    "Cooler (Fourth Form)",
+    "Cooler (Final Form)",
+    "Meta-Cooler",
+    "Android #13",
+    "Fusion Android #13",
+    "Broly (Restrained)",
+    "Broly (Legendary Super Saiyan)",
+    "Bojack",
+    "Bojack (Full Power)",
+    "Zangya",
+    "Super Janemba",
+    "Tapion",
+    "God of Destruction Beerus",
+    "Golden Frieza"
+  ],
+  "settings": {
+    "language": "en",
+    "theme": "light",
+    "recent_sheets": [
+      "God of Destruction Beerus",
+      "Bojack (Full Power)",
+      "Bojack",
+      "Fusion Android #13",
+      "Meta-Cooler"
+    ]
+  },
+  "rosters": {
+    "Super Garlic Jr.": [
+      {
+        "entry_id": "3282662c-0dca-4a26-aa97-d3f52b2f3173",
+        "Character Name": "Super Garlic Jr.",
+        "Character ID": "SGJ",
+        "Costume Name": "Makyan Clothes 1",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Death impact",
+        "Super Skill 2": "Death Dance",
+        "Super Skill 3": "Death Smash",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Dead Zone",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Break Strike",
+        "Super Soul": "I told you! I will never die!"
+      }
+    ],
+    "Dr. Wheelo": [
+      {
+        "entry_id": "9b2b9662-3066-46d0-a23e-2e705a09b1bb",
+        "Character Name": "Dr. Wheelo",
+        "Character ID": "WHL",
+        "Costume Name": "Cyborg Exoskeleton",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Madness Cannon",
+        "Super Skill 2": "Energy Wave Combo",
+        "Super Skill 3": "Super Explosive Wave",
+        "Super Skill 4": "Full Power Energy Wave",
+        "Ultimate Skill 1": "",
+        "Ultimate Skill 2": "Planet Geyser",
+        "Awoken Skill": "",
+        "Evasive Skill": "Gigantic Bomber",
+        "Super Soul": "May you and the rest of Earth become space dust!"
+      }
+    ],
+    "Turles": [
+      {
+        "entry_id": "6da6b29a-1327-485c-a2df-bb8e896df5f1",
+        "Character Name": "Turles",
+        "Character ID": "TLS",
+        "Costume Name": "Battle Armor 1",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Kill Driver",
+        "Super Skill 2": "Sudden Storm",
+        "Super Skill 3": "Force Explosion",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Meteor Burst",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Break Strike",
+        "Super Soul": "Come and get me!!"
+      },
+      {
+        "entry_id": "da211d80-0387-4a0e-a77b-a710d136feeb",
+        "Character Name": "Turles",
+        "Character ID": "TLS",
+        "Costume Name": "Battle Armor 2",
+        "Costume Index": 1,
+        "Model Preset": "0",
+        "Super Skill 1": "Sudden Storm",
+        "Super Skill 2": "Calamity Blaster",
+        "Super Skill 3": "Fruit of the Tree of Might",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Meteor Burst",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "",
+        "Evasive Skill": "Break Strike",
+        "Super Soul": "You thought I was strong before... Watch this!"
+      }
+    ],
+    "Lord Slug": [
+      {
+        "entry_id": "c43db3c7-5af9-42a1-9749-b8d92393749d",
+        "Character Name": "Lord Slug",
+        "Character ID": "SLG",
+        "Costume Name": "Evil Namekian Clothes 1",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Darkness Blaster",
+        "Super Skill 2": "Darkness Eye Beam",
+        "Super Skill 3": "Darkness Twin Star",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Darkness Rush",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "Great Namekian",
+        "Evasive Skill": "Break Strike",
+        "Super Soul": "About time to wrap this up!"
+      },
+      {
+        "entry_id": "6e11ddb7-c3d4-4dbc-bca9-55761702067c",
+        "Character Name": "Lord Slug",
+        "Character ID": "SLG",
+        "Costume Name": "Evil Namekian Clothes 2",
+        "Costume Index": 1,
+        "Model Preset": "0",
+        "Super Skill 1": "Meteor Crash",
+        "Super Skill 2": "Darkness Eye Beam",
+        "Super Skill 3": "Darkness Twin Star",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Darkness Rush",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "Great Namekian",
+        "Evasive Skill": "Explosive Wave",
+        "Super Soul": "I got back my youth and vigor!"
+      }
+    ],
+    "Cooler (Fourth Form)": [
+      {
+        "entry_id": "7c1b4c2c-1c5e-4e45-8188-d797002b6a63",
+        "Character Name": "Cooler (Fourth Form)",
+        "Character ID": "CO4",
+        "Costume Name": "Fourth Form",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Death Flash",
+        "Super Skill 2": "Death Beam",
+        "Super Skill 3": "Destructive Ray",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Supernova",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Break Strike",
+        "Super Soul": "You'll be the first and last one to witness this form!"
+      }
+    ],
+    "Cooler (Final Form)": [
+      {
+        "entry_id": "54707de2-a4a8-4968-9f90-ed628e1d5b6b",
+        "Character Name": "Cooler (Final Form)",
+        "Character ID": "CO5",
+        "Costume Name": "Final Form 1",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Death Beam",
+        "Super Skill 2": "Death Crasher",
+        "Super Skill 3": "Shadow Crusher",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Supernova",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "",
+        "Evasive Skill": "Fake Blast",
+        "Super Soul": "I'm the Strongest in the Universe!"
+      },
+      {
+        "entry_id": "e85b7ab7-d602-4544-bc29-a06034b58101",
+        "Character Name": "Cooler (Final Form)",
+        "Character ID": "CO5",
+        "Costume Name": "Final Form 2",
+        "Costume Index": 0,
+        "Model Preset": "1",
+        "Super Skill 1": "Death Wave",
+        "Super Skill 2": "Death Chaser",
+        "Super Skill 3": "Shadow Crusher",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Atomic Supernova",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "",
+        "Evasive Skill": "Fake Blast",
+        "Super Soul": "I am the great destroyer! The taker of life!"
+      }
+    ],
+    "Meta-Cooler": [
+      {
+        "entry_id": "395f70e9-479d-42c9-b719-0d3d07bf1df4",
+        "Character Name": "Meta-Cooler",
+        "Character ID": "MCL",
+        "Costume Name": "Metal Form",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Feint Crash",
+        "Super Skill 2": "Lock-On Buster",
+        "Super Skill 3": "Finger Blitz Barrage",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Metallic Supernova",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Hyper Movement",
+        "Super Soul": "This is how it should be when you die."
+      }
+    ],
+    "Android #13": [
+      {
+        "entry_id": "6f952f20-383f-4e1c-8631-5b74faa2a616",
+        "Character Name": "Android #13",
+        "Character ID": "G13",
+        "Costume Name": "Android Clothes 1",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Handy Blaster",
+        "Super Skill 2": "Handy Cannon",
+        "Super Skill 3": "Data Input",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "S. S. Deadly Bomber",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Instant Rise",
+        "Super Soul": "I can't believe you're catchin' an ass whoopin'!"
+      }
+    ],
+    "Fusion Android #13": [
+      {
+        "entry_id": "4ca8ddba-4580-4280-8f26-6bb84bea7d43",
+        "Character Name": "Fusion Android #13",
+        "Character ID": "F13",
+        "Costume Name": "Android Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Abyss Impact",
+        "Super Skill 2": "Abyss Revolver",
+        "Super Skill 3": "S. S. Deadly Bomber",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "S. S. Deadly Hammer",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "",
+        "Evasive Skill": "Break Strike",
+        "Super Soul": "Goku...!!"
+      }
+    ],
+    "Broly (Restrained)": [
+      {
+        "entry_id": "c9509ddc-8ec7-4547-be05-de3265e9eb0d",
+        "Character Name": "Broly (Restrained)",
+        "Character ID": "BRZ",
+        "Costume Name": "Broly's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Gigantic Charge",
+        "Super Skill 2": "Gigantic Cluster",
+        "Super Skill 3": "Eraser Cannon",
+        "Super Skill 4": "Rising Rage",
+        "Ultimate Skill 1": "Gigantic Explosion",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "Super Saiyan",
+        "Evasive Skill": "Blaster Meteor",
+        "Super Soul": "This place will be your grave!"
+      }
+    ],
+    "Broly (Legendary Super Saiyan)": [
+      {
+        "entry_id": "a648fbfd-4f2c-45da-b7da-91c9435f56ff",
+        "Character Name": "Broly (Legendary Super Saiyan)",
+        "Character ID": "BRL",
+        "Costume Name": "Broly's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Eraser Blow",
+        "Super Skill 2": "Eraser Cannon",
+        "Super Skill 3": "Blaster Shell",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Gigantic Meteor",
+        "Ultimate Skill 2": "Gigantic Explosion",
+        "Awoken Skill": "",
+        "Evasive Skill": "Powered Shell",
+        "Super Soul": "What? Finished already?"
+      }
+    ],
+    "Bojack": [
+      {
+        "entry_id": "2519580c-13d8-4b91-a0e5-cf66b0466c90",
+        "Character Name": "Bojack",
+        "Character ID": "BJK",
+        "Costume Name": "Galactic Warrior's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Trap Shooter",
+        "Super Skill 2": "Cosmic Bomber",
+        "Super Skill 3": "Reverse Launcher",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Grand Smasher",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "",
+        "Evasive Skill": "Psycho Barrier",
+        "Super Soul": "This should be fun..."
+      }
+    ],
+    "Bojack (Full Power)": [
+      {
+        "entry_id": "3244d866-efc1-4438-b8fa-f491b14bd9b1",
+        "Character Name": "Bojack (Full Power)",
+        "Character ID": "BJF",
+        "Costume Name": "Galactic Warrior's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Grand Smasher",
+        "Super Skill 2": "Reverse Launcher",
+        "Super Skill 3": "Marauder Crush",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Dirty Criminal",
+        "Ultimate Skill 2": "Galactic Buster",
+        "Awoken Skill": "",
+        "Evasive Skill": "Psycho Barrier",
+        "Super Soul": "Now, give your father a message for me."
+      }
+    ],
+    "Zangya": [
+      {
+        "entry_id": "07b1d4fe-1dd3-4ff9-8741-d26fcca90bca",
+        "Character Name": "Zangya",
+        "Character ID": "ZNG",
+        "Costume Name": "Galactic Warrior's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Trap Shooter",
+        "Super Skill 2": "Shoot Blaster",
+        "Super Skill 3": "Psycho Thread",
+        "Super Skill 4": "Psycho Dance",
+        "Ultimate Skill 1": "Sky Zapper",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Super Back Jump",
+        "Super Soul": "There's no point in resisting me, so don't even try to show off."
+      }
+    ],
+    "Super Janemba": [
+      {
+        "entry_id": "f62a114c-7129-4d60-8285-6fccdb4a514b",
+        "Character Name": "Super Janemba",
+        "Character ID": "JNB",
+        "Costume Name": "Pure Evil",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Hell Gate",
+        "Super Skill 2": "Rakshasa's Claw",
+        "Super Skill 3": "Dimensional Hole",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Dimension Ray",
+        "Ultimate Skill 2": "Dimension Sword Attack",
+        "Awoken Skill": "",
+        "Evasive Skill": "Angry Shout",
+        "Super Soul": "Janemba! Janemba!"
+      }
+    ],
+    "Tapion": [
+      {
+        "entry_id": "9e7f8553-bca6-4e23-b760-230833f5a2f7",
+        "Character Name": "Tapion",
+        "Character ID": "TPN",
+        "Costume Name": "Hero's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Hero's Flute",
+        "Super Skill 2": "Brave Cannon",
+        "Super Skill 3": "Brave Sword Slash",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Brave Sword Attack",
+        "Ultimate Skill 2": "Full Power Energy Blast Volley",
+        "Awoken Skill": "",
+        "Evasive Skill": "Super Back Jump",
+        "Super Soul": "It was an honor to know you."
+      }
+    ],
+    "God of Destruction Beerus": [
+      {
+        "entry_id": "1270e36d-4f71-485a-a09c-91bb39d1f39a",
+        "Character Name": "God of Destruction Beerus",
+        "Character ID": "BLS",
+        "Costume Name": "God of Destruction's Clothes",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "God of Destruction's Anger",
+        "Super Skill 2": "God of Destruction's Wrath",
+        "Super Skill 3": "God of Destruction's Rampage",
+        "Super Skill 4": "Maximum Charge",
+        "Ultimate Skill 1": "Sphere of Destruction",
+        "Ultimate Skill 2": "Full Power Energy Wave",
+        "Awoken Skill": "",
+        "Evasive Skill": "Headshot",
+        "Super Soul": "Before creation comes destruction..."
+      }
+    ],
+    "Golden Frieza": [
+      {
+        "entry_id": "b6296bb6-556b-493b-8892-8f50698e591b",
+        "Character Name": "Golden Frieza",
+        "Character ID": "FRG",
+        "Costume Name": "Golden Form",
+        "Costume Index": 0,
+        "Model Preset": "0",
+        "Super Skill 1": "Emperor's Edge",
+        "Super Skill 2": "Emperor's Blast",
+        "Super Skill 3": "Emperor's Cannon",
+        "Super Skill 4": "Ultimate Charge",
+        "Ultimate Skill 1": "Emperor's Death Beam",
+        "Ultimate Skill 2": "Emperor's Death Crusher",
+        "Awoken Skill": "",
+        "Evasive Skill": "Spread Shot Retreat",
+        "Super Soul": "Wake up! Torture's no fun if I can't hear you scream!"
+      }
+    ]
+  },
+  "sheets_meta": {}
+}
