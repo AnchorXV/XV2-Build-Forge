@@ -1,0 +1,8 @@
+# DBXV2 Build Forge — Dependencies
+# Python 3.10+ required
+
+PySide6>=6.5.0
+openpyxl>=3.1.0
+
+# Development & Testing
+pytest>=7.0.0

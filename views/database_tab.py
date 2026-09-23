@@ -1,0 +1,205 @@
+"""
+DBXV2 Build Forge — Database Manager Tab.
+
+A generic tab that displays a single database category (Characters,
+Super Skills, Ultimate Skills, Awoken Skills, Evasive Skills, or
+Super Souls) in a searchable table with add/edit/delete.
+
+The outer ``QTabWidget`` in ``MainWindow`` creates one instance per
+category.  This avoids the copy-paste duplication found in the
+original ``main.py`` (``create_database_tab`` × 6).
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Optional
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QMenu,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+)
+
+from controllers.signal_bus import signal_bus
+from controllers.undo_commands import (
+    AddCacheItemCommand,
+    DeleteCacheItemCommand,
+    EditCacheItemCommand,
+)
+from locales.i18n_manager import tr
+from models.data_store import AppDataStore
+from models.table_models import DatabaseTableModel
+from PySide6.QtGui import QUndoStack
+from views.dialogs.db_entry_dialog import (
+    CharacterDialog,
+    SkillDialog,
+    SuperSoulDialog,
+)
+from views.widgets.searchable_table_view import SearchableTableView
+from views.widgets.toolbar_widget import ToolbarWidget
+
+logger = logging.getLogger(__name__)
+
+
+class DatabaseTab(QWidget):
+    """One database-manager tab for a given category.
+
+    Args:
+        category_key: The data store cache key
+            (``"characters"``, ``"super_skills"``, etc.).
+        display_name: Human-visible label for this tab (already translated).
+        data_store: The shared ``AppDataStore``.
+    """
+
+    def __init__(
+        self,
+        category_key: str,
+        display_name: str,
+        data_store: AppDataStore,
+        undo_stack: QUndoStack,
+        parent: Optional[QWidget] = None,
+    ) -> None:
+        super().__init__(parent)
+        self._key = category_key
+        self._display = display_name
+        self._store = data_store
+        self._undo_stack = undo_stack
+        self._model = DatabaseTableModel(data_store, category_key)
+
+        self._build_ui()
+        self._connect_signals()
+
+    # ── UI ──────────────────────────────────────────────────────────────
+
+    def _build_ui(self) -> None:
+        layout = QVBoxLayout(self)
+
+        self._toolbar = ToolbarWidget(
+            add_tooltip=tr("database.tooltip.add", type=self._display),
+            search_placeholder=tr("database.placeholder.search", type=self._display),
+            search_label=tr("database.label.search"),
+            sort_label=tr("database.button.sort_az"),
+            fix_cache_label=tr("database.button.fix_cache"),
+            parent=self,
+        )
+        layout.addWidget(self._toolbar)
+
+        self._stv = SearchableTableView(self, sortable=True)
+        self._stv.set_source_model(self._model)
+        self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
+        layout.addWidget(self._stv)
+
+    # ── Signals ─────────────────────────────────────────────────────────
+
+    def _connect_signals(self) -> None:
+        self._toolbar.add_clicked.connect(self._on_add)
+        self._toolbar.sort_clicked.connect(lambda: self._stv.sort_toggle(0))
+        self._toolbar.search_changed.connect(self._stv.set_filter_text)
+        self._toolbar.fix_cache_clicked.connect(self._on_fix_cache)
+        self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
+        self._stv.table_view.doubleClicked.connect(self._on_edit)
+
+        signal_bus.data_changed.connect(self._model.refresh)
+
+    # ── Handlers ────────────────────────────────────────────────────────
+
+    def _on_add(self) -> None:
+        dlg = self._make_dialog()
+        if dlg and dlg.exec():
+            data = dlg.get_data()
+            name = data.get("name", "").strip()
+            if not name:
+                QMessageBox.warning(self, tr("dialog.common.warning"), tr("database.message.empty_name"))
+                return
+            cmd = AddCacheItemCommand(self._store, self._key, data)
+            self._undo_stack.push(cmd)
+
+    def _on_fix_cache(self) -> None:
+        """Trigger a manual schema migration for this cache category."""
+        migrated = self._store.force_migrate_cache(self._key)
+        if migrated:
+            signal_bus.data_changed.emit()
+            QMessageBox.information(self, tr("dialog.common.ok"), "Cache migrated successfully to dictionary schema.")
+        else:
+            QMessageBox.information(self, tr("dialog.common.ok"), "No legacy string items found. Cache is already using dictionary schema.")
+
+    def _on_edit(self, proxy_index=None) -> None:
+        rows = self._stv.selected_source_rows()
+        if not rows:
+            return
+        row = rows[0]
+        items = self._store.get_cache(self._key)
+        if row >= len(items):
+            return
+
+        dlg = self._make_dialog(edit_data=items[row])
+        if dlg and dlg.exec():
+            data = dlg.get_data()
+            name = data.get("name", "").strip()
+            if not name:
+                QMessageBox.warning(self, tr("dialog.common.warning"), tr("database.message.empty_name"))
+                return
+            cmd = EditCacheItemCommand(self._store, self._key, row, items[row], data)
+            self._undo_stack.push(cmd)
+
+    def _on_context_menu(self, pos) -> None:
+        index = self._stv.table_view.indexAt(pos)
+        if not index.isValid():
+            return
+
+        menu = QMenu(self)
+        edit_action = menu.addAction(tr("database.context_menu.edit"))
+        delete_action = menu.addAction(tr("database.context_menu.delete"))
+
+        action = menu.exec(self._stv.table_view.viewport().mapToGlobal(pos))
+        if action == edit_action:
+            self._on_edit()
+        elif action == delete_action:
+            self._on_delete()
+
+    def _on_delete(self) -> None:
+        rows = self._stv.selected_source_rows()
+        if not rows:
+            return
+        row = rows[0]
+        items = self._store.get_cache(self._key)
+        if row >= len(items):
+            return
+
+        name = items[row].get("name", "???")
+        reply = QMessageBox.question(
+            self,
+            tr("dialog.common.confirm"),
+            tr("database.message.confirm_delete", name=name),
+        )
+        if reply == QMessageBox.Yes:
+            item = items[row]
+            cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
+            self._undo_stack.push(cmd)
+
+    # ── Dialog factory ──────────────────────────────────────────────────
+
+    def _make_dialog(self, edit_data: Optional[dict] = None):
+        if self._key == "characters":
+            return CharacterDialog(self, edit_data=edit_data)
+        elif self._key == "super_souls":
+            return SuperSoulDialog(self, edit_data=edit_data)
+        else:
+            # All four skill types use the same SkillDialog
+            return SkillDialog(self._display, self, edit_data=edit_data)
+
+    def retranslate_ui(self, display_title: str) -> None:
+        """Update visible text when the application language changes."""
+        self._display = display_title
+        self._toolbar.retranslate(
+            add_tooltip=tr("database.tooltip.add", type=display_title),
+            search_placeholder=tr("database.placeholder.search", type=display_title),
+            search_label=tr("database.label.search"),
+            sort_label=tr("database.button.sort_az"),
+            fix_cache_label=tr("database.button.fix_cache"),
+        )

@@ -1,0 +1,15 @@
+# Python virtual environment & cache
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Nuitka / PyInstaller build outputs
+build/
+main.build/
+main.onefile-build/
+main.dist/
+
+# Local backups & crash reports
+*.bak
+nuitka-crash-report.xml
+backups/

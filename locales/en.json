@@ -1,0 +1,190 @@
+{
+  "app": {
+    "title": "DBXV2 Build Forge",
+    "version": "1.0.0"
+  },
+  "menu": {
+    "file": {
+      "title": "File",
+      "new_sheet": "New Sheet",
+      "save": "Save",
+      "recent_sheets": "Recent Sheets"
+    },
+    "edit": {
+      "title": "Edit",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "settings": {
+      "title": "Settings",
+      "language": "Language"
+    },
+    "about": {
+      "title": "About",
+      "description": "Roster & Moveset Planner for DBXV2 Modding"
+    }
+  },
+  "tabs": {
+    "editor": "Skillset Editor",
+    "roster_preview": "Roster Table Preview",
+    "character": "Character",
+    "super_skill": "Super Skill",
+    "ultimate_skill": "Ultimate Skill",
+    "awoken_skill": "Awoken Skill",
+    "evasive_skill": "Evasive Skill",
+    "super_soul": "Super Soul"
+  },
+  "editor": {
+    "group": {
+      "character_info": "Character & Costume",
+      "skillset_matrix": "Skillset",
+      "save_target": "Save"
+    },
+    "label": {
+      "character_name": "Character Name:",
+      "character_id": "Character ID / Code:",
+      "costume_name": "Costume Name:",
+      "costume_index": "Costume Index:",
+      "model_preset": "Model Preset:",
+      "super_skill": "Super Skill {n}:",
+      "ultimate_skill": "Ultimate Skill {n}:",
+      "awoken_skill": "Awoken Skill:",
+      "evasive_skill": "Evasive Skill:",
+      "super_soul": "Super Soul:",
+      "target_sheet": "Target Sheet:"
+    },
+    "button": {
+      "reset": "Reset",
+      "save": "Save"
+    },
+    "placeholder": {
+      "target_sheet": "Type target sheet name (e.g. Goku)"
+    },
+    "message": {
+      "save_success_title": "Saved Successfully",
+      "save_success": "Preset entry has been saved to table: '{sheet}'",
+      "update_success": "Preset entry has been updated in table: '{sheet}'",
+      "update_not_found": "Original entry not found. Saved as a new entry instead.",
+      "validation_failed": "Validation Failed",
+      "empty_target": "Please specify a Target Table / Sheet name!",
+      "empty_char_name": "Character Name field must not be empty!"
+    }
+  },
+  "roster": {
+    "button": {
+      "export_selected": "Export Selected",
+      "sort_az": "Sort A-Z"
+    },
+    "label": {
+      "search": "Search Sheet:",
+      "hint": "Left-click to select, double-click to view sheet contents, right-click for menu."
+    },
+    "placeholder": {
+      "search": "Search sheet/character name..."
+    },
+    "context_menu": {
+      "rename": "Rename Sheet",
+      "delete": "Delete Sheet",
+      "delete_preset": "Delete Preset",
+      "edit_note_tags": "Edit Note & Tags"
+    },
+    "dialog": {
+      "create_title": "Create New Roster Sheet",
+      "create_label": "Sheet Name:",
+      "create_placeholder": "e.g. Broly / Vegito",
+      "rename_title": "Rename Sheet: {name}",
+      "rename_label": "New Name:",
+      "detail_title": "Content Detail Sheet - [{name}]",
+      "note_tags_title": "Edit Note & Tags: {name}",
+      "note_tags_note_label": "Sheet Note:",
+      "note_tags_note_placeholder": "Write your notes here...",
+      "note_tags_tags_label": "Tags (comma separated):",
+      "note_tags_tags_placeholder": "e.g. PVP, PVE, Raid"
+    },
+    "message": {
+      "duplicate_sheet": "A sheet with that name already exists.",
+      "confirm_delete": "Delete the entire sheet '{name}'?",
+      "confirm_delete_preset": "Delete preset '{name}' from this sheet?",
+      "select_export": "Please select at least one sheet to export!"
+    }
+  },
+  "database": {
+    "button": {
+      "sort_az": "Sort A-Z",
+      "fix_cache": "Fix Cache"
+    },
+    "label": {
+      "search": "Search:"
+    },
+    "placeholder": {
+      "search": "Search {type}..."
+    },
+    "tooltip": {
+      "add": "Add New {type}"
+    },
+    "context_menu": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "message": {
+      "empty_name": "Name field must not be empty.",
+      "confirm_delete": "Delete '{name}' from database?"
+    }
+  },
+  "dialog": {
+    "character": {
+      "add_title": "Add Character",
+      "edit_title": "Edit Character",
+      "label_code": "Character Code:",
+      "label_name": "Character Name:",
+      "label_playable": "Playable Character:",
+      "placeholder_code": "e.g. GOK",
+      "placeholder_name": "e.g. Goku"
+    },
+    "skill": {
+      "add_title": "Add {type}",
+      "edit_title": "Edit {type}",
+      "label_name": "Skill Name:",
+      "label_cac": "Is CaC Skill?:",
+      "label_note": "Note:",
+      "placeholder_note": "e.g. Goku (Super Saiyan Blue)"
+    },
+    "super_soul": {
+      "add_title": "Add Super Soul",
+      "edit_title": "Edit Super Soul",
+      "label_name": "Super Soul Name:",
+      "label_effect1": "Effect 1:",
+      "label_effect2": "Effect 2:",
+      "label_note": "Note:"
+    },
+    "sheet_detail": {
+      "close": "Close",
+      "load_into_editor": "Load into Editor"
+    },
+    "export": {
+      "title": "Multi-Sheet Export Options",
+      "message": "You selected {count} sheets. Choose export method:",
+      "single_file": "Single File (Multi-Sheet)",
+      "multi_file": "Separate File Per Sheet",
+      "cancel": "Cancel",
+      "format_title": "File Format",
+      "format_label": "Choose Format:",
+      "choose_folder": "Choose Output Folder",
+      "save_file": "Save Export File",
+      "success_title": "Success",
+      "success_multi": "Successfully exported {count} files to:\n{folder}",
+      "success_single": "Data exported successfully to:\n{path}"
+    },
+    "settings": {
+      "title": "Settings"
+    },
+    "common": {
+      "yes": "Yes",
+      "no": "No",
+      "ok": "OK",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "warning": "Warning"
+    }
+  }
+}
