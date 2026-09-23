@@ -69,3 +69,10 @@ htmlcov/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Build dan Setup files
+PRD_DBXV2_Build_Forge.md
+build_onefile.bat
+build_optimized.bat
+setup.iss
+slim_dist.ps1
