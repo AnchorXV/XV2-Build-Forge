@@ -8,7 +8,8 @@
       "title": "File",
       "new_sheet": "New Sheet",
       "save": "Save",
-      "recent_sheets": "Recent Sheets"
+      "recent_sheets": "Recent Sheets",
+      "no_recent": "(No recent sheets)"
     },
     "edit": {
       "title": "Edit",
@@ -17,12 +18,16 @@
     },
     "settings": {
       "title": "Settings",
-      "language": "Language"
+      "language": "Language",
+      "theme": "Theme:"
     },
     "about": {
       "title": "About",
       "description": "Roster & Moveset Planner for DBXV2 Modding"
     }
+  },
+  "status": {
+    "saved": "Data saved and backed up."
   },
   "tabs": {
     "editor": "Skillset Editor",
@@ -65,6 +70,8 @@
       "save_success": "Preset entry has been saved to table: '{sheet}'",
       "update_success": "Preset entry has been updated in table: '{sheet}'",
       "update_not_found": "Original entry not found. Saved as a new entry instead.",
+      "target_changed": "Original entry is in sheet '{old_sheet}', but target is now '{new_sheet}'.\n\nClick 'Yes' to keep updating in the original sheet, or 'No' to cancel and reset the form.",
+      "entry_not_found": "The entry to update was not found in this sheet.\n\nIt may have been deleted. The form will be reset. Click 'Save as New' to save as a new entry.",
       "validation_failed": "Validation Failed",
       "empty_target": "Please specify a Target Table / Sheet name!",
       "empty_char_name": "Character Name field must not be empty!"
@@ -73,7 +80,8 @@
   "roster": {
     "button": {
       "export_selected": "Export Selected",
-      "sort_az": "Sort A-Z"
+      "sort_az": "Sort A-Z",
+      "edit_note_tags": "Edit Note & Tags"
     },
     "label": {
       "search": "Search Sheet:",
@@ -84,6 +92,7 @@
     },
     "context_menu": {
       "rename": "Rename Sheet",
+      "duplicate": "Duplicate Sheet",
       "delete": "Delete Sheet",
       "delete_preset": "Delete Preset",
       "edit_note_tags": "Edit Note & Tags"
@@ -161,6 +170,10 @@
       "close": "Close",
       "load_into_editor": "Load into Editor"
     },
+    "duplicate_sheet": {
+      "title": "Duplicate Sheet",
+      "prompt": "New sheet name:"
+    },
     "export": {
       "title": "Multi-Sheet Export Options",
       "message": "You selected {count} sheets. Choose export method:",
@@ -176,7 +189,10 @@
       "success_single": "Data exported successfully to:\n{path}"
     },
     "settings": {
-      "title": "Settings"
+      "title": "Settings",
+      "theme_light": "Light",
+      "theme_dark": "Dark",
+      "theme_system": "System"
     },
     "common": {
       "yes": "Yes",

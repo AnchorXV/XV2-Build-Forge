@@ -167,10 +167,6 @@ class PresetEntry:
             costume_index = 0
 
         raw_preset = d.get("Model Preset", "")
-        try:
-            model_preset = int(raw_preset) if raw_preset else 0
-        except (ValueError, TypeError):
-            model_preset = 0
 
         # Handle empty strings that might have been saved in legacy or from bad copies
         raw_entry_id = d.get("entry_id")
@@ -182,7 +178,7 @@ class PresetEntry:
             character_id=d.get("Character ID", ""),
             costume_name=d.get("Costume Name", ""),
             costume_index=costume_index,
-            model_preset=str(raw_preset),
+            model_preset=str(raw_preset) if raw_preset else "",
             super_skills=[
                 d.get("Super Skill 1", ""),
                 d.get("Super Skill 2", ""),

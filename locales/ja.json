@@ -8,7 +8,8 @@
       "title": "ファイル",
       "new_sheet": "新しいシート",
       "save": "保存",
-      "recent_sheets": "最近使ったシート"
+      "recent_sheets": "最近使ったシート",
+      "no_recent": "(最近使ったシートはありません)"
     },
     "edit": {
       "title": "編集",
@@ -17,12 +18,16 @@
     },
     "settings": {
       "title": "設定",
-      "language": "言語"
+      "language": "言語",
+      "theme": "テーマ:"
     },
     "about": {
       "title": "このアプリについて",
       "description": "DBXV2 Mod用 ロスター＆ムーブセット プランナー"
     }
+  },
+  "status": {
+    "saved": "データを保存してバックアップしました。"
   },
   "tabs": {
     "editor": "スキルセットエディタ",
@@ -36,9 +41,9 @@
   },
   "editor": {
     "group": {
-      "character_info": "Character & Costume",
-      "skillset_matrix": "Skillset",
-      "save_target": "Save"
+      "character_info": "キャラクター＆コスチューム",
+      "skillset_matrix": "スキルセット",
+      "save_target": "保存"
     },
     "label": {
       "character_name": "キャラクター名:",
@@ -54,8 +59,8 @@
       "target_sheet": "ターゲットシート:"
     },
     "button": {
-      "reset": "Reset",
-      "save": "Save"
+      "reset": "リセット",
+      "save": "保存"
     },
     "placeholder": {
       "target_sheet": "シート名を入力 (例: 悟空)"
@@ -65,6 +70,8 @@
       "save_success": "プリセットエントリがテーブル「{sheet}」に保存されました",
       "update_success": "プリセットエントリがテーブル「{sheet}」で更新されました",
       "update_not_found": "元のエントリが見つかりませんでした。新規エントリとして保存されました。",
+      "target_changed": "元のエントリはシート「{old_sheet}」にありますが、ターゲットは現在「{new_sheet}」です。\n\n「はい」で元のシートを更新、「いいえ」でキャンセルしてフォームをリセットします。",
+      "entry_not_found": "更新するエントリがこのシートに見つかりませんでした。\n\n削除された可能性があります。フォームをリセットします。新規エントリとして保存するには「新規保存」をクリックしてください。",
       "validation_failed": "検証失敗",
       "empty_target": "ターゲットテーブル / シート名を指定してください！",
       "empty_char_name": "キャラクター名は空にできません！"
@@ -73,7 +80,8 @@
   "roster": {
     "button": {
       "export_selected": "選択をエクスポート",
-      "sort_az": "A-Z ソート"
+      "sort_az": "A-Z ソート",
+      "edit_note_tags": "ノートとタグを編集"
     },
     "label": {
       "search": "シート検索:",
@@ -84,6 +92,7 @@
     },
     "context_menu": {
       "rename": "シート名変更",
+      "duplicate": "シートを複製",
       "delete": "シート削除",
       "delete_preset": "プリセット削除",
       "edit_note_tags": "ノートとタグを編集"
@@ -161,6 +170,10 @@
       "close": "閉じる",
       "load_into_editor": "エディタに読み込む"
     },
+    "duplicate_sheet": {
+      "title": "シートを複製",
+      "prompt": "新しいシート名:"
+    },
     "export": {
       "title": "マルチシートエクスポートオプション",
       "message": "{count}シートが選択されました。エクスポート方法を選択:",
@@ -176,7 +189,10 @@
       "success_single": "データが正常にエクスポートされました:\n{path}"
     },
     "settings": {
-      "title": "設定"
+      "title": "設定",
+      "theme_light": "ライト",
+      "theme_dark": "ダーク",
+      "theme_system": "システムに従う"
     },
     "common": {
       "yes": "はい",

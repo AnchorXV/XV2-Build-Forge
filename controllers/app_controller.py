@@ -8,11 +8,10 @@ from PySide6.QtGui import QUndoStack
 from PySide6.QtWidgets import QApplication
 
 from app_config import DATA_FILE_PATH
-from controllers.export_controller import ExportController
 from locales.i18n_manager import init as init_i18n
 from models.data_store import AppDataStore
 from models.persistence import AtomicJsonPersistence
-from styles.theme_manager import ThemeMode, apply_theme, resolve_theme_mode
+from styles.theme_manager import apply_theme, resolve_theme_mode
 from views.main_window import MainWindow
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,6 @@ class AppController:
         self.theme_mode = resolve_theme_mode(saved_theme)
         apply_theme(self.app, self.theme_mode)
 
-        self.export_ctrl = ExportController()
         self.undo_stack = QUndoStack()
 
         self.backup_timer = QTimer(self.app)

@@ -8,7 +8,8 @@
       "title": "Berkas",
       "new_sheet": "Sheet Baru",
       "save": "Simpan",
-      "recent_sheets": "Sheet Terakhir"
+      "recent_sheets": "Sheet Terakhir",
+      "no_recent": "(Belum ada sheet terakhir)"
     },
     "edit": {
       "title": "Edit",
@@ -17,12 +18,16 @@
     },
     "settings": {
       "title": "Pengaturan",
-      "language": "Bahasa"
+      "language": "Bahasa",
+      "theme": "Tema:"
     },
     "about": {
       "title": "Tentang",
       "description": "Perencana Roster & Moveset untuk Modding DBXV2"
     }
+  },
+  "status": {
+    "saved": "Data tersimpan dan ter-backup."
   },
   "tabs": {
     "editor": "Editor Skillset",
@@ -36,9 +41,9 @@
   },
   "editor": {
     "group": {
-      "character_info": "Character & Costume",
+      "character_info": "Karakter & Kostum",
       "skillset_matrix": "Skillset",
-      "save_target": "Save"
+      "save_target": "Simpan"
     },
     "label": {
       "character_name": "Nama Karakter:",
@@ -55,7 +60,7 @@
     },
     "button": {
       "reset": "Reset",
-      "save": "Save"
+      "save": "Simpan"
     },
     "placeholder": {
       "target_sheet": "Ketik nama sheet target (misal: Goku)"
@@ -65,6 +70,8 @@
       "save_success": "Entri preset berhasil dimasukkan ke tabel: '{sheet}'",
       "update_success": "Entri preset berhasil diperbarui di tabel: '{sheet}'",
       "update_not_found": "Entri asli tidak ditemukan. Disimpan sebagai entri baru.",
+      "target_changed": "Entri asli ada di sheet '{old_sheet}', tapi target sekarang '{new_sheet}'.\n\nKlik 'Ya' untuk tetap update di sheet asal, atau 'Tidak' untuk membatalkan dan reset form.",
+      "entry_not_found": "Entri yang ingin di-update tidak ditemukan di sheet ini.\n\nKemungkinan sudah dihapus. Form akan di-reset. Klik 'Simpan sebagai Baru' untuk menyimpan sebagai entri baru.",
       "validation_failed": "Validasi Gagal",
       "empty_target": "Harap tentukan nama Target Tabel / Sheet!",
       "empty_char_name": "Field Nama Karakter tidak boleh kosong!"
@@ -73,7 +80,8 @@
   "roster": {
     "button": {
       "export_selected": "Ekspor Terpilih",
-      "sort_az": "Urutkan A-Z"
+      "sort_az": "Urutkan A-Z",
+      "edit_note_tags": "Edit Catatan & Tag"
     },
     "label": {
       "search": "Cari Sheet:",
@@ -84,6 +92,7 @@
     },
     "context_menu": {
       "rename": "Ubah Nama Sheet",
+      "duplicate": "Duplikat Sheet",
       "delete": "Hapus Sheet",
       "delete_preset": "Hapus Preset",
       "edit_note_tags": "Edit Catatan & Tag"
@@ -161,6 +170,10 @@
       "close": "Tutup",
       "load_into_editor": "Muat ke Editor"
     },
+    "duplicate_sheet": {
+      "title": "Duplikat Sheet",
+      "prompt": "Nama sheet baru:"
+    },
     "export": {
       "title": "Opsi Ekspor Multi-Sheet",
       "message": "Kamu memilih {count} sheet. Pilih metode ekspor:",
@@ -176,7 +189,10 @@
       "success_single": "Data berhasil diekspor ke:\n{path}"
     },
     "settings": {
-      "title": "Pengaturan"
+      "title": "Pengaturan",
+      "theme_light": "Terang",
+      "theme_dark": "Gelap",
+      "theme_system": "Ikuti Sistem"
     },
     "common": {
       "yes": "Ya",

@@ -39,9 +39,14 @@ class EditorTab(QWidget):
         self._editing_entry_id: Optional[str] = None
         self._editing_source_sheet: Optional[str] = None
 
+        self._super_labels: list[QLabel] = []
+        self._ult_labels: list[QLabel] = []
+
         self._build_ui()
         self._connect_signals()
         self._refresh_combos()
+
+    # ── UI Construction ────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
         root = QVBoxLayout(self)
@@ -66,31 +71,31 @@ class EditorTab(QWidget):
         g1.setColumnStretch(2, 0)
         g1.setColumnStretch(3, 1)
 
-        lbl_char_name = QLabel(tr("editor.label.character_name"))
+        self._lbl_char_name = QLabel(tr("editor.label.character_name"))
         self.char_name_combo = QComboBox()
         self.char_name_combo.setEditable(True)
-        g1.addWidget(lbl_char_name, 0, 0)
+        g1.addWidget(self._lbl_char_name, 0, 0)
         g1.addWidget(self.char_name_combo, 0, 1, 1, 3)
 
-        lbl_char_id = QLabel(tr("editor.label.character_id"))
+        self._lbl_char_id = QLabel(tr("editor.label.character_id"))
         self.char_id_input = QComboBox()
         self.char_id_input.setEditable(True)
-        lbl_costume_name = QLabel(tr("editor.label.costume_name"))
+        self._lbl_costume_name = QLabel(tr("editor.label.costume_name"))
         self.costume_name_input = QLineEdit()
-        g1.addWidget(lbl_char_id, 1, 0)
+        g1.addWidget(self._lbl_char_id, 1, 0)
         g1.addWidget(self.char_id_input, 1, 1)
-        g1.addWidget(lbl_costume_name, 1, 2)
+        g1.addWidget(self._lbl_costume_name, 1, 2)
         g1.addWidget(self.costume_name_input, 1, 3)
 
-        lbl_costume_idx = QLabel(tr("editor.label.costume_index"))
+        self._lbl_costume_idx = QLabel(tr("editor.label.costume_index"))
         self.costume_index_spin = QSpinBox()
         self.costume_index_spin.setMinimum(0)
         self.costume_index_spin.setMaximum(99)
-        lbl_model_preset = QLabel(tr("editor.label.model_preset"))
+        self._lbl_model_preset = QLabel(tr("editor.label.model_preset"))
         self.model_preset_input = QLineEdit()
-        g1.addWidget(lbl_costume_idx, 2, 0)
+        g1.addWidget(self._lbl_costume_idx, 2, 0)
         g1.addWidget(self.costume_index_spin, 2, 1)
-        g1.addWidget(lbl_model_preset, 2, 2)
+        g1.addWidget(self._lbl_model_preset, 2, 2)
         g1.addWidget(self.model_preset_input, 2, 3)
 
         main_layout.addWidget(self._grp_char)
@@ -109,6 +114,7 @@ class EditorTab(QWidget):
             label = QLabel(tr("editor.label.super_skill", n=i + 1))
             combo = QComboBox()
             combo.setEditable(True)
+            self._super_labels.append(label)
             self.super_combos.append(combo)
             g2.addWidget(label, i, 0)
             g2.addWidget(combo, i, 1)
@@ -118,23 +124,27 @@ class EditorTab(QWidget):
             label = QLabel(tr("editor.label.ultimate_skill", n=i + 1))
             combo = QComboBox()
             combo.setEditable(True)
+            self._ult_labels.append(label)
             self.ult_combos.append(combo)
             g2.addWidget(label, i, 2)
             g2.addWidget(combo, i, 3)
 
         self.awoken_combo = QComboBox()
         self.awoken_combo.setEditable(True)
-        g2.addWidget(QLabel(tr("editor.label.awoken_skill")), 2, 2)
+        self._lbl_awoken = QLabel(tr("editor.label.awoken_skill"))
+        g2.addWidget(self._lbl_awoken, 2, 2)
         g2.addWidget(self.awoken_combo, 2, 3)
 
         self.evasive_combo = QComboBox()
         self.evasive_combo.setEditable(True)
-        g2.addWidget(QLabel(tr("editor.label.evasive_skill")), 3, 2)
+        self._lbl_evasive = QLabel(tr("editor.label.evasive_skill"))
+        g2.addWidget(self._lbl_evasive, 3, 2)
         g2.addWidget(self.evasive_combo, 3, 3)
 
         self.super_soul_combo = QComboBox()
         self.super_soul_combo.setEditable(True)
-        g2.addWidget(QLabel(tr("editor.label.super_soul")), 4, 0)
+        self._lbl_super_soul = QLabel(tr("editor.label.super_soul"))
+        g2.addWidget(self._lbl_super_soul, 4, 0)
         g2.addWidget(self.super_soul_combo, 4, 1, 1, 3)
 
         main_layout.addWidget(self._grp_skills)
@@ -144,7 +154,8 @@ class EditorTab(QWidget):
         g3.setSpacing(10)
 
         target_row = QHBoxLayout()
-        target_row.addWidget(QLabel(tr("editor.label.target_sheet")))
+        self._lbl_target_sheet = QLabel(tr("editor.label.target_sheet"))
+        target_row.addWidget(self._lbl_target_sheet)
         self.target_sheet_combo = QComboBox()
         self.target_sheet_combo.setEditable(True)
         self.target_sheet_combo.setPlaceholderText(tr("editor.placeholder.target_sheet"))
@@ -172,6 +183,8 @@ class EditorTab(QWidget):
         scroll.setWidget(container)
         root.addWidget(scroll)
 
+    # ── Signal wiring ──────────────────────────────────────────────────
+
     def _connect_signals(self) -> None:
         self.reset_btn.clicked.connect(self.reset_form)
         self.save_btn.clicked.connect(self._on_save)
@@ -179,6 +192,8 @@ class EditorTab(QWidget):
         self.char_name_combo.currentTextChanged.connect(self._on_char_name_changed)
 
         signal_bus.data_changed.connect(self._refresh_combos)
+
+    # ── Public API ─────────────────────────────────────────────────────
 
     def reset_form(self) -> None:
         self.char_name_combo.setCurrentIndex(-1)
@@ -222,6 +237,8 @@ class EditorTab(QWidget):
 
         self._editing_entry_id = entry.entry_id
         self._editing_source_sheet = sheet_name
+
+    # ── Internal ───────────────────────────────────────────────────────
 
     def _collect_entry(self) -> PresetEntry:
         return PresetEntry(
@@ -366,6 +383,24 @@ class EditorTab(QWidget):
         self._grp_char.setTitle(tr("editor.group.character_info"))
         self._grp_skills.setTitle(tr("editor.group.skillset_matrix"))
         self._grp_save.setTitle(tr("editor.group.save_target"))
+
+        self._lbl_char_name.setText(tr("editor.label.character_name"))
+        self._lbl_char_id.setText(tr("editor.label.character_id"))
+        self._lbl_costume_name.setText(tr("editor.label.costume_name"))
+        self._lbl_costume_idx.setText(tr("editor.label.costume_index"))
+        self._lbl_model_preset.setText(tr("editor.label.model_preset"))
+
+        for i, label in enumerate(self._super_labels):
+            label.setText(tr("editor.label.super_skill", n=i + 1))
+        for i, label in enumerate(self._ult_labels):
+            label.setText(tr("editor.label.ultimate_skill", n=i + 1))
+
+        self._lbl_awoken.setText(tr("editor.label.awoken_skill"))
+        self._lbl_evasive.setText(tr("editor.label.evasive_skill"))
+        self._lbl_super_soul.setText(tr("editor.label.super_soul"))
+
+        self._lbl_target_sheet.setText(tr("editor.label.target_sheet"))
+        self.target_sheet_combo.setPlaceholderText(tr("editor.placeholder.target_sheet"))
+
         self.reset_btn.setText(tr("editor.button.reset"))
         self.save_btn.setText(tr("editor.button.save"))
-        self.target_sheet_combo.setPlaceholderText(tr("editor.placeholder.target_sheet"))
