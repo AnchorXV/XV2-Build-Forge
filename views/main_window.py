@@ -5,19 +5,15 @@ from typing import Optional
 
 from PySide6.QtGui import QAction, QCloseEvent, QUndoStack
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QMessageBox,
     QWidget,
 )
 
 from app_config import APP_NAME, APP_VERSION
-from controllers.signal_bus import signal_bus
-from locales.i18n_manager import get_language, set_language, tr
+from locales.i18n_manager import tr
 from models.data_store import AppDataStore
-from styles.theme_manager import ThemeMode, apply_theme, resolve_theme_mode
-from views.dialogs.settings_dialog import SettingsDialog
-from views.tab_manager import TabManager
+from views.page_manager import PageManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +29,10 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1050, 720)
         self.resize(1150, 780)
 
-        self.tab_manager = TabManager(data_store, self._undo_stack, self)
-        self.setCentralWidget(self.tab_manager)
+        self.page_manager = PageManager(data_store, self._undo_stack, self)
+        self.setCentralWidget(self.page_manager)
 
         self._build_menu_bar()
-        self._connect_signals()
-
-    # ── Menu Bar ───────────────────────────────────────────────────────
 
     def _build_menu_bar(self) -> None:
         menubar = self.menuBar()
@@ -70,11 +63,6 @@ class MainWindow(QMainWindow):
         self._menu_edit.addAction(self._act_undo)
         self._menu_edit.addAction(self._act_redo)
 
-        self._menu_settings = menubar.addMenu(tr("menu.settings.title", default="Settings"))
-        self._act_preferences = QAction(tr("menu.settings.title", default="Preferences"), self)
-        self._act_preferences.triggered.connect(self._open_settings_dialog)
-        self._menu_settings.addAction(self._act_preferences)
-
         self._menu_help = menubar.addMenu(tr("menu.about.title", default="About"))
         self._act_about = QAction(tr("menu.about.title", default="About"), self)
         self._act_about.triggered.connect(self._show_about_dialog)
@@ -97,18 +85,18 @@ class MainWindow(QMainWindow):
                     self._menu_recent.addAction(act)
 
     def _open_recent_sheet(self, sheet_name: str) -> None:
-        self.tab_manager.setCurrentIndex(TabManager.TAB_INDEX_ROSTER)
+        self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
         entries = self._store.get_sheet_entries(sheet_name)
         from views.dialogs.sheet_detail_dialog import SheetDetailDialog
         from models.table_models import PresetDetailTableModel
         detail_model = PresetDetailTableModel(entries)
         dlg = SheetDetailDialog(sheet_name, detail_model, self._store, self._undo_stack, self)
-        dlg.load_into_editor.connect(lambda r: self.tab_manager.roster_tab._load_entry(sheet_name, r))
+        dlg.load_into_editor.connect(lambda r: self.page_manager.roster_tab._load_entry(sheet_name, r))
         dlg.exec()
 
     def _on_new_sheet(self) -> None:
-        self.tab_manager.setCurrentIndex(TabManager.TAB_INDEX_ROSTER)
-        self.tab_manager.roster_tab._on_add_sheet()
+        self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
+        self.page_manager.roster_tab._on_add_sheet()
 
     def _on_save(self) -> None:
         self._store.save()
@@ -118,49 +106,10 @@ class MainWindow(QMainWindow):
             3000,
         )
 
-    def _connect_signals(self) -> None:
-        signal_bus.language_changed.connect(self._on_language_changed)
-        signal_bus.theme_changed.connect(self._on_theme_changed)
-
-    # ── Settings & About Actions ───────────────────────────────────────
-
-    def _open_settings_dialog(self) -> None:
-        current_lang = get_language()
-        current_theme = self._store.settings.get("theme", "dark")
-        dlg = SettingsDialog(current_lang, current_theme, parent=self)
-        dlg.language_changed.connect(lambda lang: signal_bus.language_changed.emit(lang))
-        dlg.theme_changed.connect(lambda theme: signal_bus.theme_changed.emit(theme))
-        dlg.exec()
-
-    def _on_language_changed(self, new_lang: str) -> None:
-        set_language(new_lang)
-        self._store.settings["language"] = new_lang
-        self._store.save()
-
-        self.setWindowTitle(f"{tr('app.title', default=APP_NAME)} v{APP_VERSION}")
-        self._build_menu_bar()
-        self.tab_manager.retranslate_ui()
-        logger.info("Language changed to '%s' and UI retranslated", new_lang)
-
-    def _on_theme_changed(self, new_theme) -> None:
-        if isinstance(new_theme, ThemeMode):
-            mode = new_theme
-        else:
-            mode = resolve_theme_mode(str(new_theme))
-
-        app = QApplication.instance()
-        if app:
-            apply_theme(app, mode)
-        self._store.settings["theme"] = mode.value
-        self._store.save()
-        logger.info("Theme changed to '%s'", mode.value)
-
     def _show_about_dialog(self) -> None:
         from views.dialogs.about_dialog import AboutDialog
         dlg = AboutDialog(self)
         dlg.exec()
-
-    # ── Close Event ────────────────────────────────────────────────────
 
     def closeEvent(self, event: QCloseEvent) -> None:
         logger.info("Application closing — persisting state...")

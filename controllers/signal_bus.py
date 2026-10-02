@@ -6,11 +6,7 @@ from PySide6.QtCore import QObject, Signal
 class SignalBus(QObject):
 
     data_changed = Signal()
-
     load_entry_to_editor = Signal(object, str)
-
-    language_changed = Signal(str)
-    theme_changed = Signal(object)
 
 
 signal_bus = SignalBus()

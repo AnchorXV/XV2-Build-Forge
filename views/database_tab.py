@@ -175,13 +175,3 @@ class DatabaseTab(QWidget):
             return SuperSoulDialog(self, edit_data=edit_data)
         else:
             return SkillDialog(self._display, self, edit_data=edit_data)
-
-    def retranslate_ui(self, display_title: str) -> None:
-        self._display = display_title
-        self._toolbar.retranslate(
-            add_tooltip=tr("database.tooltip.add", type=display_title),
-            search_placeholder=tr("database.placeholder.search", type=display_title),
-            search_label=tr("database.label.search"),
-            sort_label=tr("database.button.sort_az"),
-            fix_cache_label=tr("database.button.fix_cache"),
-        )

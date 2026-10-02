@@ -11,7 +11,7 @@ from app_config import DATA_FILE_PATH
 from locales.i18n_manager import init as init_i18n
 from models.data_store import AppDataStore
 from models.persistence import AtomicJsonPersistence
-from styles.theme_manager import apply_theme, resolve_theme_mode
+from styles.theme_manager import apply_theme
 from views.main_window import MainWindow
 
 logger = logging.getLogger(__name__)
@@ -26,12 +26,8 @@ class AppController:
         self.persistence = AtomicJsonPersistence(self.data_file)
         self.data_store = AppDataStore(self.persistence)
 
-        saved_lang = self.data_store.settings.get("language", "en")
-        init_i18n(saved_lang)
-
-        saved_theme = self.data_store.settings.get("theme", "dark")
-        self.theme_mode = resolve_theme_mode(saved_theme)
-        apply_theme(self.app, self.theme_mode)
+        init_i18n("en")
+        apply_theme(self.app)
 
         self.undo_stack = QUndoStack()
 

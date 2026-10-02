@@ -102,24 +102,6 @@ QTabBar QToolButton:hover {
     background-color: #383838;
 }
 
-/* ── Group Box ──────────────────────────────────────────────────────── */
-QGroupBox {
-    font-weight: bold;
-    border: 1px solid #3c3c3c;
-    border-radius: 6px;
-    margin-top: 14px;
-    padding-top: 20px;
-    background-color: #252526;
-}
-
-QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top left;
-    left: 12px;
-    padding: 4px 10px;
-    color: #569cd6;
-}
-
 /* ── Table View ─────────────────────────────────────────────────────── */
 QTableView, QTableWidget {
     background-color: #1e1e1e;
@@ -354,4 +336,62 @@ QMessageBox QLabel {
 /* ── Dialog Button Box ───────────────────────────────────────────────── */
 QDialogButtonBox QPushButton {
     min-width: 80px;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────── */
+QWidget#sidebar {
+    background-color: #181818;
+    border-right: 1px solid #2a2a2a;
+}
+
+QLabel#sidebarSection {
+    color: #6a6a6a;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 8px 8px 2px 8px;
+}
+
+QLabel#sidebarVersion {
+    color: #4a4a4a;
+    font-size: 10px;
+}
+
+QPushButton#sidebarButton {
+    background-color: transparent;
+    color: #b0b0b0;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+QPushButton#sidebarButton:hover {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+QPushButton#sidebarButton:checked {
+    background-color: #2b5797;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+QPushButton#sidebarButton:checked:hover {
+    background-color: #3568aa;
+}
+
+/* ── Section Header (ganti group box) ───────────────────────────────── */
+QLabel#sectionHeaderTitle {
+    color: #6a6a6a;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+}
+
+QFrame#sectionHeaderLine {
+    background-color: #2a2a2a;
+    border: none;
 }

@@ -35,13 +35,7 @@ CACHE_KEYS: Final[list[str]] = [
     "super_souls", "table_names",
 ]
 
-SUPPORTED_LANGUAGES: Final[dict[str, str]] = {
-    "en": "English",
-    "id": "Bahasa Indonesia",
-    "ja": "日本語",
-}
 DEFAULT_LANGUAGE: Final[str] = "en"
-DEFAULT_THEME: Final[str] = "dark"
 
 
 def get_resource_path(relative_path: str) -> Path:

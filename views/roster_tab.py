@@ -36,6 +36,8 @@ from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
 from views.widgets.toolbar_widget import ToolbarWidget
 
+from app_config import SUMMARY_COLUMNS
+
 logger = logging.getLogger(__name__)
 
 
@@ -75,9 +77,11 @@ class RosterTab(QWidget):
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
 
         header = self._stv.table_view.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setMinimumSectionSize(60)
+        header.setSectionResizeMode(QHeaderView.Interactive)
+        for i in range(1, len(SUMMARY_COLUMNS)):
+            header.resizeSection(i, 100)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setMinimumSectionSize(115)
 
         layout.addWidget(self._stv)
 
@@ -291,14 +295,3 @@ class RosterTab(QWidget):
     def _on_sheets_reordered(self, old_order: list[str], new_order: list[str]) -> None:
         cmd = ReorderSheetsCommand(self._store, old_order, new_order)
         self._undo_stack.push(cmd)
-
-    def retranslate_ui(self) -> None:
-        self._toolbar.retranslate(
-            add_tooltip=tr("roster.dialog.create_title"),
-            search_placeholder=tr("roster.placeholder.search"),
-            search_label=tr("roster.label.search"),
-            sort_label=tr("roster.button.sort_az"),
-        )
-        self._hint_label.setText(tr("roster.label.hint"))
-        self._note_tags_btn.setText(tr("roster.button.edit_note_tags", default="Edit Note & Tags"))
-        self._export_btn.setText(tr("roster.button.export_selected"))
