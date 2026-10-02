@@ -1,18 +1,9 @@
-"""
-DBXV2 Build Forge — Main Entry Point.
-
-Modular MVC application entry point (PRD §2.1).
-Supports development mode and Nuitka compiled onefile mode.
-"""
-
 from __future__ import annotations
 
 import logging
 import sys
-from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import QApplication
 
 from app_config import APP_NAME, APP_ORG, APP_VERSION
@@ -46,11 +37,15 @@ def main() -> int:
     app.setOrganizationName(APP_ORG)
     app.setApplicationVersion(APP_VERSION)
 
-    # Force global text color to white for better dark theme visibility in item views
-    palette = app.palette()
-    palette.setColor(QPalette.WindowText, QColor("#FFFFFF"))
-    palette.setColor(QPalette.Text, QColor("#FFFFFF"))
-    app.setPalette(palette)
+    # ── Note: Global palette override intentionally removed. ──────────
+    # Earlier versions forced QPalette.WindowText and QPalette.Text to
+    # white globally to make item views readable in the dark theme. That
+    # approach broke the light theme and any widget not explicitly styled
+    # via QSS (notably QToolTip and QMessageBox), producing white text on
+    # white/yellow backgrounds.
+    #
+    # All theme colors are now controlled exclusively by the QSS files in
+    # styles/. Do NOT reintroduce a palette override here.
 
     controller = AppController(app)
     controller.start()

@@ -1,16 +1,9 @@
-"""
-DBXV2 Build Forge — Qt Table Models.
-
-``QAbstractTableModel`` subclasses that read directly from ``AppDataStore``,
-replacing the manual ``QTableWidget`` rebuild pattern of the prototype.
-Each model emits fine-grained change signals (PRD §3.1).
-"""
-
 from __future__ import annotations
 
 from typing import Any, Optional, TYPE_CHECKING
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
+from PySide6.QtGui import QBrush, QColor
 
 from app_config import SUMMARY_COLUMNS, TABLE_COLUMNS
 
@@ -19,12 +12,6 @@ if TYPE_CHECKING:
 
 
 class DatabaseTableModel(QAbstractTableModel):
-    """Model for the Database Manager tabs (Character / Skill / Super Soul).
-
-    Reads from ``data_store.dropdown_cache[cache_key]`` which is a
-    ``list[dict]``.  Supports inline editing of the *Note* column for
-    skill and supersoul entry types.
-    """
 
     def __init__(
         self,
@@ -37,7 +24,7 @@ class DatabaseTableModel(QAbstractTableModel):
         super().__init__(parent)
         self._store = data_store
         self._cache_key = cache_key
-        
+
         if columns is None:
             if cache_key == "characters":
                 from app_config import CHAR_DB_COLUMNS
@@ -55,36 +42,31 @@ class DatabaseTableModel(QAbstractTableModel):
             self._columns = columns
             self._entry_type = entry_type or "skill"
 
-    # ── Property helpers ───────────────────────────────────────────────
-
     @property
     def _entries(self) -> list[dict]:
         return self._store.dropdown_cache.get(self._cache_key, [])
 
     def _map_col_to_key(self, col_name: str) -> str:
-        """Map the UI column name to the underlying dictionary key."""
         if self._entry_type == "char":
             mapping = {
                 "Code": "code",
                 "Name": "name",
-                "Playable Character": "is_playable"
+                "Playable Character": "is_playable",
             }
         elif self._entry_type == "supersoul":
             mapping = {
                 "Super Soul": "name",
-                "Effect 1": "effect1",
-                "Effect 2": "effect2",
-                "Note": "note"
+                "Effect 1": "effect_1",
+                "Effect 2": "effect_2",
+                "Note": "note",
             }
-        else: # skill
+        else:
             mapping = {
                 "Skill Name": "name",
                 "Is CaC Skill?": "is_cac",
-                "Note": "note"
+                "Note": "note",
             }
         return mapping.get(col_name, col_name.lower())
-
-    # ── Required overrides ─────────────────────────────────────────────
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         return len(self._entries)
@@ -104,7 +86,6 @@ class DatabaseTableModel(QAbstractTableModel):
         dict_key = self._map_col_to_key(col_name)
 
         if isinstance(entry, str):
-            # Fallback for unmigrated legacy strings: show the string in the first column
             val = entry if col == 0 else ""
         else:
             val = entry.get(dict_key, "")
@@ -116,9 +97,6 @@ class DatabaseTableModel(QAbstractTableModel):
             return str(val)
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
-        if role == Qt.ForegroundRole:
-            from PySide6.QtGui import QColor, QBrush
-            return QBrush(QColor("#FFFFFF"))
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
@@ -132,7 +110,6 @@ class DatabaseTableModel(QAbstractTableModel):
         if not index.isValid():
             return base
         col_name = self._columns[index.column()]
-        # Only Note column is inline-editable for skill/supersoul entries
         if col_name == "Note" and self._entry_type in ("skill", "supersoul"):
             return base | Qt.ItemIsEditable
         return base
@@ -147,20 +124,16 @@ class DatabaseTableModel(QAbstractTableModel):
         if dict_key == "note" and self._entry_type in ("skill", "supersoul"):
             if row < len(self._entries):
                 self._entries[row]["note"] = str(value).strip()
-                self._store.save()  # Persist inline edit
+                self._store.save()
                 self.dataChanged.emit(index, index, [Qt.DisplayRole])
                 return True
         return False
 
-    # ── Mutation helpers (called by controllers) ───────────────────────
-
     def refresh(self) -> None:
-        """Signal that the underlying data has changed — full reset."""
         self.beginResetModel()
         self.endResetModel()
 
     def begin_add(self) -> None:
-        """Notify the view that a row is about to be appended."""
         row = len(self._entries)
         self.beginInsertRows(QModelIndex(), row, row)
 
@@ -174,7 +147,6 @@ class DatabaseTableModel(QAbstractTableModel):
         self.endRemoveRows()
 
     def get_entry(self, row: int) -> Optional[dict]:
-        """Return the raw dict for *row*, or None if out of range."""
         entries = self._entries
         if 0 <= row < len(entries):
             return entries[row]
@@ -182,11 +154,7 @@ class DatabaseTableModel(QAbstractTableModel):
 
 
 class RosterSummaryTableModel(QAbstractTableModel):
-    """Model for the Roster Table Preview tab.
 
-    Each row summarises one sheet: character name, total costumes,
-    total presets, unique skill counts, etc.
-    """
     sheets_reordered = Signal(list, list)
 
     def __init__(self, data_store: "AppDataStore", parent: Any = None) -> None:
@@ -196,23 +164,18 @@ class RosterSummaryTableModel(QAbstractTableModel):
         self.rebuild_summaries()
 
     def refresh(self) -> None:
-        """Alias for rebuild_summaries to support uniform signal bus refresh."""
         self.rebuild_summaries()
 
     def sheet_name_at(self, row: int) -> Optional[str]:
-        """Return the sheet name for the given row index."""
         return self.get_sheet_name(row)
 
     def rebuild_summaries(self) -> None:
-        """Recalculate summaries from the data store and reset the model."""
         self.beginResetModel()
         self._summaries.clear()
         for sheet_name, presets in self._store.rosters.items():
             meta = self._store.get_sheet_meta(sheet_name)
             self._summaries.append(self._calculate_summary(sheet_name, presets, meta))
         self.endResetModel()
-
-    # ── Required overrides ─────────────────────────────────────────────
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
         return len(self._summaries)
@@ -262,10 +225,9 @@ class RosterSummaryTableModel(QAbstractTableModel):
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
         if role == Qt.ForegroundRole:
-            from PySide6.QtGui import QColor, QBrush
             if warnings:
                 return QBrush(QColor("#FFCC00"))
-            return QBrush(QColor("#FFFFFF"))
+            return None
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
@@ -277,7 +239,7 @@ class RosterSummaryTableModel(QAbstractTableModel):
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
         base = Qt.ItemIsEnabled | Qt.ItemIsSelectable
         if index.isValid():
-            return base | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled
+            return base | Qt.ItemIsDragEnabled
         return base | Qt.ItemIsDropEnabled
 
     def supportedDropActions(self) -> Qt.DropActions:
@@ -311,42 +273,54 @@ class RosterSummaryTableModel(QAbstractTableModel):
         if not dragged_rows:
             return False
 
+        dragged_rows = sorted(set(dragged_rows))
+        dragged_set = set(dragged_rows)
+
+        insert_row = row if row >= 0 else len(self._summaries)
+        insert_row = max(0, min(insert_row, len(self._summaries)))
+
+        dragged_names = []
+        for r in dragged_rows:
+            name = self.get_sheet_name(r)
+            if name:
+                dragged_names.append(name)
+
+        if not dragged_names:
+            return False
+
         old_order = list(self._store.rosters.keys())
-        dragged_names = [self.get_sheet_name(r) for r in dragged_rows]
-        dragged_names = [n for n in dragged_names if n is not None]
 
-        insert_row = row
-        if insert_row == -1:
-            insert_row = len(self._summaries)
-
-        new_order = []
-        for i, summary in enumerate(self._summaries):
-            if i == insert_row:
-                new_order.extend(dragged_names)
-            if i not in dragged_rows:
+        remaining_names = []
+        for i in range(len(self._summaries)):
+            if i not in dragged_set:
                 name = self.get_sheet_name(i)
                 if name:
-                    new_order.append(name)
+                    remaining_names.append(name)
 
-        if insert_row >= len(self._summaries):
-            new_order.extend(dragged_names)
+        adjusted_insert = insert_row
+        for dr in dragged_rows:
+            if dr < insert_row:
+                adjusted_insert -= 1
+        adjusted_insert = max(0, min(adjusted_insert, len(remaining_names)))
+
+        new_order = (
+            remaining_names[:adjusted_insert]
+            + dragged_names
+            + remaining_names[adjusted_insert:]
+        )
 
         if new_order != old_order:
             self.sheets_reordered.emit(old_order, new_order)
-            
+
         return False
 
-    # ── Helpers ────────────────────────────────────────────────────────
-
     def get_sheet_name(self, row: int) -> Optional[str]:
-        """Return the sheet name for the given summary row."""
         if 0 <= row < len(self._summaries):
             return str(self._summaries[row].get("Character Name", ""))
         return None
 
     @staticmethod
     def _calculate_summary(table_name: str, presets: list, meta: dict[str, Any] = None) -> dict[str, Any]:
-        """Replicate the prototype's ``calculate_summary`` logic."""
         from models.completeness import check_preset_completeness
 
         costumes: set[Any] = set()
@@ -358,7 +332,6 @@ class RosterSummaryTableModel(QAbstractTableModel):
         warnings: list[tuple[str, list[str]]] = []
 
         for p in presets:
-            # Support both PresetEntry objects and raw dicts
             if hasattr(p, "costume_index"):
                 missing = check_preset_completeness(p)
                 if missing:
@@ -380,7 +353,6 @@ class RosterSummaryTableModel(QAbstractTableModel):
                 if p.super_soul.strip():
                     supersouls.add(p.super_soul.strip())
             else:
-                # Raw dict fallback
                 costumes.add(p.get("Costume Index", 0))
                 for i in range(1, 5):
                     s = str(p.get(f"Super Skill {i}", "")).strip()
@@ -415,10 +387,7 @@ class RosterSummaryTableModel(QAbstractTableModel):
 
 
 class PresetDetailTableModel(QAbstractTableModel):
-    """Model for the Sheet Detail Dialog (read-only preset list).
 
-    Displays all presets within a single roster sheet using ``TABLE_COLUMNS``.
-    """
     presets_reordered = Signal(list, list)
 
     def __init__(self, presets: list, parent: Any = None) -> None:
@@ -461,10 +430,9 @@ class PresetDetailTableModel(QAbstractTableModel):
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
         if role == Qt.ForegroundRole:
-            from PySide6.QtGui import QColor, QBrush
             if missing:
                 return QBrush(QColor("#FFCC00"))
-            return QBrush(QColor("#FFFFFF"))
+            return None
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
@@ -476,7 +444,7 @@ class PresetDetailTableModel(QAbstractTableModel):
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
         base = Qt.ItemIsEnabled | Qt.ItemIsSelectable
         if index.isValid():
-            return base | Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled
+            return base | Qt.ItemIsDragEnabled
         return base | Qt.ItemIsDropEnabled
 
     def supportedDropActions(self) -> Qt.DropActions:
@@ -510,46 +478,56 @@ class PresetDetailTableModel(QAbstractTableModel):
         if not dragged_rows:
             return False
 
-        old_order = []
-        for p in self._presets:
+        dragged_rows = sorted(set(dragged_rows))
+        dragged_set = set(dragged_rows)
+
+        insert_row = row if row >= 0 else len(self._presets)
+        insert_row = max(0, min(insert_row, len(self._presets)))
+
+        def _entry_id(p):
             if hasattr(p, "entry_id"):
-                old_order.append(p.entry_id)
-            elif isinstance(p, dict):
-                old_order.append(p.get("entry_id"))
+                return p.entry_id
+            if isinstance(p, dict):
+                return p.get("entry_id")
+            return None
+
+        old_order = [_entry_id(p) for p in self._presets]
 
         dragged_ids = []
         for r in dragged_rows:
             if 0 <= r < len(self._presets):
-                p = self._presets[r]
-                if hasattr(p, "entry_id"):
-                    dragged_ids.append(p.entry_id)
-                elif isinstance(p, dict):
-                    dragged_ids.append(p.get("entry_id"))
+                eid = _entry_id(self._presets[r])
+                if eid is not None:
+                    dragged_ids.append(eid)
 
-        insert_row = row
-        if insert_row == -1:
-            insert_row = len(self._presets)
+        if not dragged_ids:
+            return False
 
-        new_order = []
+        remaining_ids = []
         for i, p in enumerate(self._presets):
-            if i == insert_row:
-                new_order.extend(dragged_ids)
-            if i not in dragged_rows:
-                if hasattr(p, "entry_id"):
-                    new_order.append(p.entry_id)
-                elif isinstance(p, dict):
-                    new_order.append(p.get("entry_id"))
+            if i not in dragged_set:
+                eid = _entry_id(p)
+                if eid is not None:
+                    remaining_ids.append(eid)
 
-        if insert_row >= len(self._presets):
-            new_order.extend(dragged_ids)
+        adjusted_insert = insert_row
+        for dr in dragged_rows:
+            if dr < insert_row:
+                adjusted_insert -= 1
+        adjusted_insert = max(0, min(adjusted_insert, len(remaining_ids)))
+
+        new_order = (
+            remaining_ids[:adjusted_insert]
+            + dragged_ids
+            + remaining_ids[adjusted_insert:]
+        )
 
         if new_order != old_order:
             self.presets_reordered.emit(old_order, new_order)
-            
+
         return False
 
     def get_preset(self, row: int) -> Any:
-        """Return the PresetEntry (or dict) at the given row."""
         if 0 <= row < len(self._presets):
             return self._presets[row]
         return None

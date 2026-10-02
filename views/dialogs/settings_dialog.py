@@ -1,11 +1,3 @@
-"""
-DBXV2 Build Forge — Settings Dialog.
-
-Allows the user to change Language and Theme with live preview.
-Emits signals so the main window can apply changes without restart
-(PRD §3.7 / §3.8).
-"""
-
 from __future__ import annotations
 
 from typing import Optional
@@ -22,7 +14,6 @@ from PySide6.QtWidgets import (
 )
 
 from locales.i18n_manager import tr
-from styles.theme_manager import ThemeMode
 
 
 _LANGUAGE_OPTIONS = [
@@ -31,30 +22,31 @@ _LANGUAGE_OPTIONS = [
     ("日本語", "ja"),
 ]
 
+_THEME_OPTIONS = [
+    ("light", "light"),
+    ("dark", "dark"),
+    ("system", "system"),
+]
+
 
 class SettingsDialog(QDialog):
-    """Modal settings dialog.
-
-    Signals:
-        language_changed: Emitted with the new language code (e.g. ``"ja"``).
-    """
 
     language_changed = Signal(str)
+    theme_changed = Signal(str)
 
     def __init__(
         self,
         current_lang: str,
-        current_theme: Optional[Any] = None,
+        current_theme: str = "dark",
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle(tr("dialog.settings.title"))
-        self.setMinimumWidth(320)
+        self.setWindowTitle(tr("dialog.settings.title", default="Settings"))
+        self.setMinimumWidth(360)
 
         layout = QVBoxLayout(self)
         form = QFormLayout()
 
-        # Language combo
         self._lang_combo = QComboBox()
         current_lang_idx = 0
         for idx, (display, code) in enumerate(_LANGUAGE_OPTIONS):
@@ -62,7 +54,26 @@ class SettingsDialog(QDialog):
             if code == current_lang:
                 current_lang_idx = idx
         self._lang_combo.setCurrentIndex(current_lang_idx)
-        form.addRow(QLabel(tr("menu.settings.language")), self._lang_combo)
+        form.addRow(
+            QLabel(tr("menu.settings.language", default="Language:")),
+            self._lang_combo,
+        )
+
+        self._theme_combo = QComboBox()
+        current_theme_idx = 0
+        for idx, (display_key, value) in enumerate(_THEME_OPTIONS):
+            display_text = tr(
+                f"dialog.settings.theme_{display_key}",
+                default=display_key.title(),
+            )
+            self._theme_combo.addItem(display_text, value)
+            if value == current_theme:
+                current_theme_idx = idx
+        self._theme_combo.setCurrentIndex(current_theme_idx)
+        form.addRow(
+            QLabel(tr("menu.settings.theme", default="Theme:")),
+            self._theme_combo,
+        )
 
         layout.addLayout(form)
 
@@ -72,6 +83,6 @@ class SettingsDialog(QDialog):
         layout.addWidget(buttons)
 
     def _on_accept(self) -> None:
-        new_lang = self._lang_combo.currentData()
-        self.language_changed.emit(new_lang)
+        self.language_changed.emit(self._lang_combo.currentData())
+        self.theme_changed.emit(self._theme_combo.currentData())
         self.accept()

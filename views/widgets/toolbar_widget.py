@@ -1,11 +1,3 @@
-"""
-DBXV2 Build Forge — Reusable Toolbar Widget.
-
-Provides a standard horizontal bar with ``+`` (add), ``Sort A-Z``, and a
-search ``QLineEdit``, used identically by every Database Manager tab and
-the Roster Preview tab.
-"""
-
 from __future__ import annotations
 
 from typing import Optional
@@ -21,13 +13,6 @@ from PySide6.QtWidgets import (
 
 
 class ToolbarWidget(QWidget):
-    """Horizontal toolbar emitting semantic signals.
-
-    Signals:
-        add_clicked: Emitted when the ``+`` button is pressed.
-        sort_clicked: Emitted when the ``Sort A-Z`` button is pressed.
-        search_changed: Emitted with the search text on every keystroke.
-    """
 
     add_clicked = Signal()
     sort_clicked = Signal()
@@ -49,22 +34,18 @@ class ToolbarWidget(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        # Add button
         self.add_btn = QPushButton("+")
         self.add_btn.setObjectName("addButton")
         self.add_btn.setToolTip(add_tooltip)
         self.add_btn.setFixedSize(34, 30)
-        self.add_btn.setStyleSheet("padding: 0px; margin: 0px; font-weight: bold; font-size: 18px; text-align: center;")
         self.add_btn.clicked.connect(self.add_clicked.emit)
         layout.addWidget(self.add_btn)
 
-        # Sort button
         self.sort_btn = QPushButton(sort_label)
         self.sort_btn.setObjectName("sortButton")
         self.sort_btn.clicked.connect(self.sort_clicked.emit)
         layout.addWidget(self.sort_btn)
 
-        # Fix cache button (optional)
         self.fix_cache_btn = None
         if fix_cache_label is not None:
             self.fix_cache_btn = QPushButton(fix_cache_label)
@@ -74,7 +55,6 @@ class ToolbarWidget(QWidget):
 
         layout.addStretch()
 
-        # Search
         self._search_label = QLabel(search_label)
         layout.addWidget(self._search_label)
 
@@ -95,7 +75,6 @@ class ToolbarWidget(QWidget):
         sort_label: str = "Sort A-Z",
         fix_cache_label: Optional[str] = None,
     ) -> None:
-        """Update all visible text for live language switching."""
         self.add_btn.setToolTip(add_tooltip)
         self.sort_btn.setText(sort_label)
         if self.fix_cache_btn and fix_cache_label is not None:

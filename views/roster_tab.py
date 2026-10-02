@@ -1,22 +1,10 @@
-"""
-DBXV2 Build Forge — Roster Table Preview Tab.
-
-Shows all roster sheets in a summary table.  Supports:
-- Left-click to select (multi-select with checkboxes).
-- Double-click to open :class:`SheetDetailDialog`.
-- Right-click context menu (Rename / Delete).
-- "Export Selected" for multi-sheet export.
-- Search bar for filtering.
-
-Migrated from ``create_roster_tab()`` (~lines 490-680) of ``main.py``.
-"""
-
 from __future__ import annotations
 
 import logging
 from typing import Optional
 
-from PySide6.QtCore import QSortFilterProxyModel, Qt
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHBoxLayout,
@@ -31,12 +19,17 @@ from PySide6.QtWidgets import (
 )
 
 from controllers.signal_bus import signal_bus
-from controllers.undo_commands import AddSheetCommand, DeleteSheetCommand, RenameSheetCommand, DuplicateSheetCommand, ReorderSheetsCommand, EditSheetNoteTagsCommand
+from controllers.undo_commands import (
+    AddSheetCommand,
+    DeleteSheetCommand,
+    DuplicateSheetCommand,
+    EditSheetNoteTagsCommand,
+    RenameSheetCommand,
+    ReorderSheetsCommand,
+)
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
-from PySide6.QtGui import QUndoStack, QShortcut, QKeySequence
-from PySide6.QtCore import Qt
 from views.dialogs.export_dialog import run_export_flow
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
@@ -47,7 +40,6 @@ logger = logging.getLogger(__name__)
 
 
 class RosterTab(QWidget):
-    """Roster Table Preview — the second tab."""
 
     def __init__(self, data_store: AppDataStore, undo_stack: QUndoStack, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -64,7 +56,6 @@ class RosterTab(QWidget):
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
 
-        # Toolbar
         self._toolbar = ToolbarWidget(
             add_tooltip=tr("roster.dialog.create_title"),
             search_placeholder=tr("roster.placeholder.search"),
@@ -74,7 +65,6 @@ class RosterTab(QWidget):
         )
         layout.addWidget(self._toolbar)
 
-        # Table
         self._stv = SearchableTableView(
             self,
             sortable=True,
@@ -83,16 +73,14 @@ class RosterTab(QWidget):
         )
         self._stv.set_source_model(self._model)
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
-        
-        # Configure table column sizing
+
         header = self._stv.table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeToContents)
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setMinimumSectionSize(115)
-        
+
         layout.addWidget(self._stv)
 
-        # Bottom row
         bottom = QHBoxLayout()
 
         self._hint_label = QLabel(tr("roster.label.hint"))
@@ -120,10 +108,30 @@ class RosterTab(QWidget):
         self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
         self._note_tags_btn.clicked.connect(self._on_edit_note_tags_clicked)
         self._export_btn.clicked.connect(self._on_export)
-        
+
         self._model.sheets_reordered.connect(self._on_sheets_reordered)
 
         signal_bus.data_changed.connect(self._model.refresh)
+
+    # ── Shortcuts ───────────────────────────────────────────────────────
+
+    def _setup_shortcuts(self) -> None:
+        table = self._stv.table_view
+
+        QShortcut(QKeySequence("Ctrl+F"), self, self._focus_search)
+
+        QShortcut(
+            QKeySequence("Ctrl+D"),
+            table,
+            self._duplicate_selected,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Delete"),
+            table,
+            self._delete_selected,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
 
     # ── Handlers ────────────────────────────────────────────────────────
 
@@ -140,11 +148,6 @@ class RosterTab(QWidget):
                 return
             cmd = AddSheetCommand(self._store, name)
             self._undo_stack.push(cmd)
-
-    def _setup_shortcuts(self) -> None:
-        QShortcut(QKeySequence("Ctrl+F"), self, self._focus_search)
-        QShortcut(QKeySequence("Ctrl+D"), self, self._duplicate_selected)
-        QShortcut(QKeySequence("Delete"), self, self._delete_selected)
 
     def _focus_search(self) -> None:
         self._toolbar.search_input.setFocus()
@@ -180,7 +183,6 @@ class RosterTab(QWidget):
         entries = self._store.get_sheet_entries(sheet_name)
         self._store.add_recent_sheet(sheet_name)
         detail_model = PresetDetailTableModel(entries)
-        # Pass undo_stack to SheetDetailDialog so it can push DeletePresetEntryCommand
         dlg = SheetDetailDialog(sheet_name, detail_model, self._store, self._undo_stack, self)
         dlg.load_into_editor.connect(lambda r: self._load_entry(sheet_name, r))
         dlg.exec()
@@ -291,7 +293,6 @@ class RosterTab(QWidget):
         self._undo_stack.push(cmd)
 
     def retranslate_ui(self) -> None:
-        """Update visible text when the application language changes."""
         self._toolbar.retranslate(
             add_tooltip=tr("roster.dialog.create_title"),
             search_placeholder=tr("roster.placeholder.search"),

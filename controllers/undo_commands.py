@@ -1,22 +1,8 @@
-"""
-DBXV2 Build Forge — Undo/Redo Command Classes.
-
-``QUndoCommand`` subclasses for every CRUD operation in the application.
-Each command stores the minimal state needed to undo/redo the operation,
-and emits ``signal_bus.data_changed`` on both undo and redo so views
-refresh automatically.
-
-All commands follow the same pattern:
-    1. ``redo()`` applies the mutation via ``AppDataStore`` methods.
-    2. ``undo()`` reverses the mutation.
-    3. Both emit ``signal_bus.data_changed.emit()`` to trigger UI refresh.
-"""
-
 from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtGui import QUndoCommand
 
@@ -26,17 +12,14 @@ from models.schemas import PresetEntry
 logger = logging.getLogger(__name__)
 
 
-# ── Preset Entry Commands ─────────────────────────────────────────────
-
-
 class AddPresetEntryCommand(QUndoCommand):
-    """Add a new preset entry to a roster sheet."""
 
     def __init__(self, data_store, sheet_name: str, entry: PresetEntry) -> None:
         super().__init__(f"Add Preset '{entry.character_name}' to '{sheet_name}'")
         self._store = data_store
         self._sheet = sheet_name
         self._entry = entry
+        self._created_sheet = False
 
     def redo(self) -> None:
         if self._sheet not in self._store.rosters:
@@ -44,7 +27,12 @@ class AddPresetEntryCommand(QUndoCommand):
             tnames = self._store.dropdown_cache.get("table_names", [])
             if self._sheet not in tnames:
                 tnames.append(self._sheet)
-        self._store.rosters[self._sheet].append(self._entry)
+            self._created_sheet = True
+
+        presets = self._store.rosters[self._sheet]
+        if not any(p.entry_id == self._entry.entry_id for p in presets):
+            presets.append(self._entry)
+
         self._store.save()
         signal_bus.data_changed.emit()
 
@@ -54,12 +42,86 @@ class AddPresetEntryCommand(QUndoCommand):
             if p.entry_id == self._entry.entry_id:
                 presets.pop(i)
                 break
+
+        if self._created_sheet and not self._store.rosters.get(self._sheet):
+            self._store.rosters.pop(self._sheet, None)
+            tnames = self._store.dropdown_cache.get("table_names", [])
+            if self._sheet in tnames:
+                tnames.remove(self._sheet)
+
         self._store.save()
         signal_bus.data_changed.emit()
 
 
+class AddPresetWithAutoRegisterCommand(QUndoCommand):
+
+    def __init__(self, data_store, sheet_name: str, entry: PresetEntry) -> None:
+        super().__init__(f"Add Preset '{entry.character_name}' to '{sheet_name}'")
+        self._store = data_store
+        self._sheet = sheet_name
+        self._entry = entry
+        self._cache_before: dict[str, list[Any]] | None = None
+        self._add_cmd = AddPresetEntryCommand(data_store, sheet_name, entry)
+
+    def redo(self) -> None:
+        if self._cache_before is None:
+            self._cache_before = copy.deepcopy(self._store.dropdown_cache)
+
+        self._auto_register_master_pool(self._entry, self._sheet)
+        self._add_cmd.redo()
+
+    def undo(self) -> None:
+        self._add_cmd.undo()
+
+        if self._cache_before is not None:
+            self._store.dropdown_cache = copy.deepcopy(self._cache_before)
+            self._store.save()
+            signal_bus.data_changed.emit()
+
+    def _auto_register_master_pool(self, entry: PresetEntry, target: str) -> None:
+        tables = self._store.dropdown_cache.get("table_names", [])
+        if target and target not in tables:
+            tables.append(target)
+
+        if entry.character_name:
+            chars = self._store.dropdown_cache.get("characters", [])
+            if not any(c.get("name") == entry.character_name for c in chars):
+                chars.append({
+                    "code": entry.character_id if entry.character_id else "MOD",
+                    "name": entry.character_name,
+                    "is_playable": True,
+                })
+
+        def _register_skill(category: str, skill_name: str) -> None:
+            if not skill_name:
+                return
+            skills = self._store.dropdown_cache.get(category, [])
+            if not any(s.get("name") == skill_name for s in skills):
+                skills.append({
+                    "name": skill_name,
+                    "is_cac": False,
+                    "note": "",
+                })
+
+        for s in entry.super_skills:
+            _register_skill("super_skills", s)
+        for s in entry.ultimate_skills:
+            _register_skill("ultimate_skills", s)
+        _register_skill("awoken_skills", entry.awoken_skill)
+        _register_skill("evasive_skills", entry.evasive_skill)
+
+        if entry.super_soul:
+            souls = self._store.dropdown_cache.get("super_souls", [])
+            if not any(s.get("name") == entry.super_soul for s in souls):
+                souls.append({
+                    "name": entry.super_soul,
+                    "effect_1": "",
+                    "effect_2": "",
+                    "note": "",
+                })
+
+
 class EditPresetEntryCommand(QUndoCommand):
-    """Edit an existing preset entry in-place (swap old ↔ new)."""
 
     def __init__(
         self,
@@ -91,14 +153,13 @@ class EditPresetEntryCommand(QUndoCommand):
 
 
 class DeletePresetEntryCommand(QUndoCommand):
-    """Delete a specific preset entry from a sheet."""
 
     def __init__(self, data_store, sheet_name: str, entry: PresetEntry, index: int) -> None:
         super().__init__(f"Delete Preset '{entry.character_name}' from '{sheet_name}'")
         self._store = data_store
         self._sheet = sheet_name
         self._entry = entry
-        self._index = index  # Original position for undo re-insert
+        self._index = index
 
     def redo(self) -> None:
         presets = self._store.rosters.get(self._sheet, [])
@@ -111,18 +172,13 @@ class DeletePresetEntryCommand(QUndoCommand):
 
     def undo(self) -> None:
         presets = self._store.rosters.get(self._sheet, [])
-        # Re-insert at original position (clamped to valid range)
         idx = min(self._index, len(presets))
         presets.insert(idx, self._entry)
         self._store.save()
         signal_bus.data_changed.emit()
 
 
-# ── Sheet Commands ────────────────────────────────────────────────────
-
-
 class AddSheetCommand(QUndoCommand):
-    """Create a new empty roster sheet."""
 
     def __init__(self, data_store, sheet_name: str) -> None:
         super().__init__(f"Create Sheet '{sheet_name}'")
@@ -147,13 +203,11 @@ class AddSheetCommand(QUndoCommand):
 
 
 class DeleteSheetCommand(QUndoCommand):
-    """Delete an entire roster sheet (preserving data for undo)."""
 
     def __init__(self, data_store, sheet_name: str) -> None:
         super().__init__(f"Delete Sheet '{sheet_name}'")
         self._store = data_store
         self._name = sheet_name
-        # Deep copy presets for undo restoration
         self._backup: list[PresetEntry] = list(data_store.rosters.get(sheet_name, []))
 
     def redo(self) -> None:
@@ -174,7 +228,6 @@ class DeleteSheetCommand(QUndoCommand):
 
 
 class EditSheetNoteTagsCommand(QUndoCommand):
-    """Edit the note and tags of a roster sheet."""
 
     def __init__(self, data_store, sheet_name: str, old_meta: dict, new_meta: dict) -> None:
         super().__init__(f"Edit Note/Tags for '{sheet_name}'")
@@ -192,16 +245,15 @@ class EditSheetNoteTagsCommand(QUndoCommand):
         self._apply(self._old_note, self._old_tags)
 
     def _apply(self, note: str, tags: list[str]) -> None:
-        sheet_obj = self._store.get_sheet_obj(self._sheet)
-        if sheet_obj:
-            sheet_obj.note = note
-            sheet_obj.tags = list(tags)
+        if self._sheet is not None:
+            self._store.sheets_meta.setdefault(self._sheet, {"note": "", "tags": []})
+            self._store.sheets_meta[self._sheet]["note"] = note
+            self._store.sheets_meta[self._sheet]["tags"] = list(tags)
             self._store.save()
             signal_bus.data_changed.emit()
 
 
 class RenameSheetCommand(QUndoCommand):
-    """Rename a roster sheet."""
 
     def __init__(self, data_store, old_name: str, new_name: str) -> None:
         super().__init__(f"Rename Sheet '{old_name}' → '{new_name}'")
@@ -218,6 +270,8 @@ class RenameSheetCommand(QUndoCommand):
     def _do_rename(self, from_name: str, to_name: str) -> None:
         if from_name in self._store.rosters:
             self._store.rosters[to_name] = self._store.rosters.pop(from_name)
+        if from_name in self._store.sheets_meta:
+            self._store.sheets_meta[to_name] = self._store.sheets_meta.pop(from_name)
         tnames = self._store.dropdown_cache.get("table_names", [])
         if from_name in tnames:
             tnames[tnames.index(from_name)] = to_name
@@ -226,7 +280,6 @@ class RenameSheetCommand(QUndoCommand):
 
 
 class DuplicateSheetCommand(QUndoCommand):
-    """Duplicate a roster sheet with new entry_ids for all presets."""
 
     def __init__(self, data_store, source_name: str, new_name: str) -> None:
         super().__init__(f"Duplicate Sheet '{source_name}' → '{new_name}'")
@@ -241,10 +294,14 @@ class DuplicateSheetCommand(QUndoCommand):
         cloned: list[PresetEntry] = []
         for p in source_presets:
             d = p.to_dict()
-            d["entry_id"] = str(uuid.uuid4())  # Generate fresh UUID
+            d["entry_id"] = str(uuid.uuid4())
             cloned.append(PresetEntry.from_dict(d))
 
         self._store.rosters[self._new_name] = cloned
+        self._store.sheets_meta.setdefault(
+            self._new_name,
+            dict(self._store.sheets_meta.get(self._source, {"note": "", "tags": []})),
+        )
         tnames = self._store.dropdown_cache.get("table_names", [])
         if self._new_name not in tnames:
             tnames.append(self._new_name)
@@ -253,6 +310,7 @@ class DuplicateSheetCommand(QUndoCommand):
 
     def undo(self) -> None:
         self._store.rosters.pop(self._new_name, None)
+        self._store.sheets_meta.pop(self._new_name, None)
         tnames = self._store.dropdown_cache.get("table_names", [])
         if self._new_name in tnames:
             tnames.remove(self._new_name)
@@ -260,11 +318,7 @@ class DuplicateSheetCommand(QUndoCommand):
         signal_bus.data_changed.emit()
 
 
-# ── Database Cache Commands ───────────────────────────────────────────
-
-
 class AddCacheItemCommand(QUndoCommand):
-    """Add a new item to a database cache category."""
 
     def __init__(self, data_store, category: str, item: dict[str, Any]) -> None:
         name = item.get("name", "???")
@@ -281,7 +335,6 @@ class AddCacheItemCommand(QUndoCommand):
 
     def undo(self) -> None:
         items = self._store.dropdown_cache.get(self._category, [])
-        # Remove the last occurrence that matches
         for i in range(len(items) - 1, -1, -1):
             if items[i] is self._item or items[i] == self._item:
                 items.pop(i)
@@ -291,7 +344,6 @@ class AddCacheItemCommand(QUndoCommand):
 
 
 class EditCacheItemCommand(QUndoCommand):
-    """Edit an existing item in a database cache category."""
 
     def __init__(
         self,
@@ -325,7 +377,6 @@ class EditCacheItemCommand(QUndoCommand):
 
 
 class DeleteCacheItemCommand(QUndoCommand):
-    """Delete an item from a database cache category."""
 
     def __init__(
         self,
@@ -356,15 +407,7 @@ class DeleteCacheItemCommand(QUndoCommand):
         signal_bus.data_changed.emit()
 
 
-# ── Bulk Edit Command ─────────────────────────────────────────────────
-
-
 class BulkEditCommand(QUndoCommand):
-    """Apply a single field change to multiple preset entries at once.
-
-    Stores the old values for each affected entry so undo restores them
-    individually.
-    """
 
     def __init__(
         self,
@@ -381,7 +424,7 @@ class BulkEditCommand(QUndoCommand):
         self._entry_ids = entry_ids
         self._field = field_name
         self._new_value = new_value
-        self._old_values = old_values  # {entry_id: old_field_value}
+        self._old_values = old_values
 
     def redo(self) -> None:
         self._apply_values({eid: self._new_value for eid in self._entry_ids})
@@ -399,7 +442,6 @@ class BulkEditCommand(QUndoCommand):
         signal_bus.data_changed.emit()
 
     def _set_field(self, entry: PresetEntry, value: str) -> None:
-        """Set a field on a PresetEntry by field name."""
         field = self._field
         if field.startswith("super_skill_"):
             idx = int(field.split("_")[-1]) - 1
@@ -428,7 +470,6 @@ class BulkEditCommand(QUndoCommand):
 
     @staticmethod
     def get_field_value(entry: PresetEntry, field_name: str) -> str:
-        """Read a field value from a PresetEntry by field name."""
         if field_name.startswith("super_skill_"):
             idx = int(field_name.split("_")[-1]) - 1
             return entry.super_skills[idx] if idx < len(entry.super_skills) else ""
@@ -450,11 +491,7 @@ class BulkEditCommand(QUndoCommand):
         return ""
 
 
-# ── Reorder Commands ──────────────────────────────────────────────────
-
-
 class ReorderPresetsCommand(QUndoCommand):
-    """Reorder presets within a sheet (drag-and-drop)."""
 
     def __init__(
         self,
@@ -466,8 +503,8 @@ class ReorderPresetsCommand(QUndoCommand):
         super().__init__(f"Reorder presets in '{sheet_name}'")
         self._store = data_store
         self._sheet = sheet_name
-        self._old_order = old_order  # List of entry_ids in old order
-        self._new_order = new_order  # List of entry_ids in new order
+        self._old_order = old_order
+        self._new_order = new_order
 
     def redo(self) -> None:
         self._reorder(self._new_order)
@@ -479,7 +516,6 @@ class ReorderPresetsCommand(QUndoCommand):
         presets = self._store.rosters.get(self._sheet, [])
         id_to_preset = {p.entry_id: p for p in presets}
         reordered = [id_to_preset[eid] for eid in order if eid in id_to_preset]
-        # Append any entries not in the order list (safety)
         seen = set(order)
         for p in presets:
             if p.entry_id not in seen:
@@ -490,7 +526,6 @@ class ReorderPresetsCommand(QUndoCommand):
 
 
 class ReorderSheetsCommand(QUndoCommand):
-    """Reorder roster sheets (drag-and-drop)."""
 
     def __init__(
         self,
@@ -511,24 +546,21 @@ class ReorderSheetsCommand(QUndoCommand):
 
     def _reorder(self, order: list[str]) -> None:
         new_rosters = {}
-        # Add keys in the new order
         for sheet_name in order:
             if sheet_name in self._store.rosters:
                 new_rosters[sheet_name] = self._store.rosters[sheet_name]
-        # Append any missing keys (safety)
         for sheet_name, presets in self._store.rosters.items():
             if sheet_name not in new_rosters:
                 new_rosters[sheet_name] = presets
-                
+
         self._store.rosters = new_rosters
-        
-        # Also reorder dropdown_cache["table_names"]
+
         tnames = self._store.dropdown_cache.get("table_names", [])
         new_tnames = [name for name in order if name in tnames]
         for name in tnames:
             if name not in new_tnames:
                 new_tnames.append(name)
         self._store.dropdown_cache["table_names"] = new_tnames
-        
+
         self._store.save()
         signal_bus.data_changed.emit()

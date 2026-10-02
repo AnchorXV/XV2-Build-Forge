@@ -1,19 +1,11 @@
-"""DBXV2 Build Forge — Controllers package."""
+﻿"""DBXV2 Build Forge — Controllers package.
 
-from controllers.app_controller import AppController
-from controllers.database_controller import DatabaseController
-from controllers.editor_controller import EditorController
-from controllers.export_controller import ExportController
-from controllers.roster_controller import RosterController
-from controllers.settings_controller import SettingsController
-from controllers.signal_bus import signal_bus
+Consumers must import submodules directly, e.g.:
 
-__all__ = [
-    "signal_bus",
-    "AppController",
-    "EditorController",
-    "RosterController",
-    "DatabaseController",
-    "ExportController",
-    "SettingsController",
-]
+    from controllers.app_controller import AppController
+    from controllers.signal_bus import signal_bus
+    from controllers.undo_commands import AddSheetCommand
+
+Do NOT add eager re-exports here — they cause circular imports
+between views and controllers.
+"""

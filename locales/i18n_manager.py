@@ -81,7 +81,7 @@ def get_language() -> str:
     return _current_lang
 
 
-def tr(key: str, **kwargs: Any) -> str:
+def tr(key: str, default: Optional[str] = None, **kwargs: Any) -> str:
     """Translate a dotted key path into a localised string.
 
     Supports Python ``.format()``-style placeholders in the locale
@@ -90,10 +90,12 @@ def tr(key: str, **kwargs: Any) -> str:
     Lookup order:
         1. Active locale (``_strings``).
         2. English fallback (``_fallback_strings``).
-        3. The raw key itself (``key``) — so the UI never shows blank.
+        3. The ``default`` argument, if provided.
+        4. The raw key itself — so the UI never shows blank.
 
     Args:
         key: Dot-separated key path (e.g. ``"editor.label.character_name"``).
+        default: Fallback string used if the key is missing in every locale.
         **kwargs: Format parameters to substitute into the string.
 
     Returns:
@@ -104,13 +106,17 @@ def tr(key: str, **kwargs: Any) -> str:
         'Character Name:'
         >>> tr("editor.message.save_success", sheet="Goku")
         "Preset entry has been saved to table: 'Goku'"
+        >>> tr("nonexistent.key", default="Fallback")
+        'Fallback'
     """
     result = _resolve(key, _strings)
     if result is None:
         result = _resolve(key, _fallback_strings)
     if result is None:
-        logger.debug("Missing i18n key: '%s'", key)
-        return key
+        logger.warning("Missing i18n key: '%s'", key)
+        if default is None:
+            return key
+        result = default
 
     if kwargs:
         try:

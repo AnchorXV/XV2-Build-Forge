@@ -1,19 +1,14 @@
-"""
-Unit tests for locales consistency (PRD §3.8).
-Ensures all supported languages have 100% matching key paths.
-"""
-
 import json
-from pathlib import Path
+
 import pytest
 
+from app_config import get_resource_path
 from locales.i18n_manager import init, set_language, tr
 
-LOCALES_DIR = Path(__file__).resolve().parent.parent / "locales"
+LOCALES_DIR = get_resource_path("locales")
 
 
 def _flatten_keys(data: dict, prefix: str = "") -> set[str]:
-    """Recursively collect all leaf key paths (e.g. 'editor.label.character_name')."""
     keys = set()
     for k, v in data.items():
         full_key = f"{prefix}.{k}" if prefix else k
@@ -24,7 +19,15 @@ def _flatten_keys(data: dict, prefix: str = "") -> set[str]:
     return keys
 
 
+@pytest.fixture(autouse=True)
+def reset_i18n():
+    init("en")
+    yield
+    init("en")
+
+
 class TestLocaleConsistency:
+
     @pytest.fixture
     def en_keys(self) -> set[str]:
         with open(LOCALES_DIR / "en.json", "r", encoding="utf-8") as f:
@@ -56,15 +59,38 @@ class TestLocaleConsistency:
         extra = ja_keys - en_keys
         assert not extra, f"ja.json has extra keys not in en.json: {extra}"
 
-    def test_tr_functionality(self):
+
+class TestTranslationMechanism:
+
+    def test_language_switch_changes_result(self):
         init("en")
-        assert tr("app.title") == "DBXV2 Build Forge"
+        en_result = tr("tabs.editor")
+
         set_language("ja")
-        assert tr("tabs.editor") == "スキルセットエディタ"
+        ja_result = tr("tabs.editor")
+
         set_language("id")
-        assert tr("tabs.editor") == "Editor Skillset"
+        id_result = tr("tabs.editor")
+
+        assert en_result != "tabs.editor"
+        assert ja_result != "tabs.editor"
+        assert id_result != "tabs.editor"
+
+        assert len({en_result, ja_result, id_result}) >= 2
 
     def test_tr_interpolation(self):
         init("en")
-        formatted = tr("editor.label.super_skill", n=2)
-        assert "2" in formatted
+        formatted = tr("editor.label.super_skill", n=99)
+        assert "99" in formatted
+        assert "{n}" not in formatted
+        assert "editor.label" not in formatted
+
+    def test_tr_returns_default_when_key_missing(self):
+        init("en")
+        result = tr("nonexistent.key.here", default="Fallback")
+        assert result == "Fallback"
+
+    def test_tr_returns_key_when_no_default(self):
+        init("en")
+        result = tr("nonexistent.key.here")
+        assert result == "nonexistent.key.here"

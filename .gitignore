@@ -1,78 +1,53 @@
-# ============================================================
-# DBXV2 Build Forge - .gitignore
-# ============================================================
-
-# --- Python bytecode & caches ---
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.hypothesis/
+*.so
+.Python
 
-# --- Virtual environments ---
+# Virtual environment
 .venv/
 venv/
 env/
-ENV/
 
-# --- Packaging / build artifacts ---
-# Panduan build (build/nuitka_build.md) tetap dilacak
-build/*
-!build/nuitka_build.md
-dist/
-*.egg-info/
-*.spec
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 
-# --- Nuitka ---
+# Nuitka build artifacts
+main.build/
+main.dist/
+main.onefile-build/
 *.build/
 *.dist/
 *.onefile-build/
-nuitka-crash-report.xml
 
-# --- Compiled binaries & installer output ---
-# Distribusikan via GitHub Releases, bukan lewat git
-*.exe
-*.msi
-Output/
-
-# --- Runtime user data (jangan commit data pribadi) ---
+# Runtime data (jangan commit data user)
 build_forge_data.json
 build_forge_data.json.bak
 build_forge_data.json.tmp
-*.bak
-*.tmp
-# Sample data tetap dilacak
-!build_forge_data.sample.json
+settings.json
+backups/
 
-# --- Exported files (hasil ekspor XLSX/CSV) ---
-exports/
-*.xlsx
-*.csv
+# Executables
+*.exe
+DBXV2_Build_Forge.exe
 
-# --- Logs & coverage ---
-*.log
-logs/
-.coverage
-coverage.xml
-htmlcov/
+# Crash reports
+nuitka-crash-report.xml
+*.crash
 
-# --- IDE / editor ---
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# --- OS files ---
+# OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Build dan Setup files
-PRD_DBXV2_Build_Forge.md
-build_onefile.bat
-build_optimized.bat
-setup.iss
-slim_dist.ps1
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Ad-hoc test scripts (test standalone yang saya kasih)
+test_f*.py

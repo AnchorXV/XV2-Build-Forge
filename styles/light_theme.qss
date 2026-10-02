@@ -16,6 +16,11 @@ QWidget {
     color: #1a1a1a;
 }
 
+QScrollArea, QScrollArea > QWidget > QWidget {
+    background-color: #f5f5f5;
+    border: none;
+}
+
 /* ── Menu Bar ───────────────────────────────────────────────────────── */
 QMenuBar {
     background-color: #e8e8e8;
@@ -227,4 +232,43 @@ QScrollBar::handle:vertical {
 
 QScrollBar::handle:vertical:hover {
     background: #a0a0a0;
+}
+
+QScrollBar:horizontal {
+    background: #f0f0f0;
+    height: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #c0c0c0;
+    border-radius: 6px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #a0a0a0;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    height: 0;
+    width: 0;
+}
+
+/* ── Tooltip ─────────────────────────────────────────────────────────── */
+QToolTip {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #cccccc;
+    padding: 4px 6px;
+}
+
+/* ── Message Box ─────────────────────────────────────────────────────── */
+QMessageBox {
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+
+QMessageBox QLabel {
+    color: #1a1a1a;
 }

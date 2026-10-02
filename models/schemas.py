@@ -21,21 +21,26 @@ class CharacterEntry:
     name: str
     is_playable: bool = True
 
-    # ── Serialisation helpers ──────────────────────────────────────────
-
     def to_dict(self) -> dict:
         return {
-            "Code": self.code,
-            "Name": self.name,
-            "Playable Character": "Yes" if self.is_playable else "No",
+            "code": self.code,
+            "name": self.name,
+            "is_playable": self.is_playable,
         }
 
     @classmethod
     def from_dict(cls, d: dict) -> "CharacterEntry":
+        # Support both legacy Title Case and canonical lowercase
+        if "Code" in d or "Name" in d or "Playable Character" in d:
+            return cls(
+                code=d.get("Code", ""),
+                name=d.get("Name", ""),
+                is_playable=str(d.get("Playable Character", "Yes")).lower() == "yes",
+            )
         return cls(
-            code=d.get("Code", ""),
-            name=d.get("Name", ""),
-            is_playable=d.get("Playable Character", "Yes") == "Yes",
+            code=d.get("code", ""),
+            name=d.get("name", ""),
+            is_playable=bool(d.get("is_playable", True)),
         )
 
 
@@ -50,21 +55,28 @@ class SkillEntry:
 
     def to_dict(self) -> dict:
         d: dict = {
-            "Skill Name": self.skill_name,
-            "Is CaC Skill?": "Yes" if self.is_cac_skill else "No",
-            "Note": self.note,
+            "name": self.skill_name,
+            "is_cac": self.is_cac_skill,
+            "note": self.note,
         }
         if self.skill_id is not None:
-            d["Skill ID"] = self.skill_id
+            d["skill_id"] = self.skill_id
         return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "SkillEntry":
+        if "Skill Name" in d or "Is CaC Skill?" in d:
+            return cls(
+                skill_name=d.get("Skill Name", ""),
+                skill_id=d.get("Skill ID"),
+                is_cac_skill=str(d.get("Is CaC Skill?", "No")).lower() == "yes",
+                note=d.get("Note", ""),
+            )
         return cls(
-            skill_name=d.get("Skill Name", ""),
-            skill_id=d.get("Skill ID"),
-            is_cac_skill=d.get("Is CaC Skill?", "No") == "Yes",
-            note=d.get("Note", ""),
+            skill_name=d.get("name", ""),
+            skill_id=d.get("skill_id"),
+            is_cac_skill=bool(d.get("is_cac", False)),
+            note=d.get("note", ""),
         )
 
 
@@ -79,19 +91,26 @@ class SuperSoulEntry:
 
     def to_dict(self) -> dict:
         return {
-            "Super Soul": self.name,
-            "Effect 1": self.effect_1,
-            "Effect 2": self.effect_2,
-            "Note": self.note,
+            "name": self.name,
+            "effect_1": self.effect_1,
+            "effect_2": self.effect_2,
+            "note": self.note,
         }
 
     @classmethod
     def from_dict(cls, d: dict) -> "SuperSoulEntry":
+        if "Super Soul" in d or "Effect 1" in d:
+            return cls(
+                name=d.get("Super Soul", ""),
+                effect_1=d.get("Effect 1", ""),
+                effect_2=d.get("Effect 2", ""),
+                note=d.get("Note", ""),
+            )
         return cls(
-            name=d.get("Super Soul", ""),
-            effect_1=d.get("Effect 1", ""),
-            effect_2=d.get("Effect 2", ""),
-            note=d.get("Note", ""),
+            name=d.get("name", ""),
+            effect_1=d.get("effect_1", ""),
+            effect_2=d.get("effect_2", ""),
+            note=d.get("note", ""),
         )
 
 
