@@ -134,10 +134,12 @@
     "context_menu": {
       "edit": "編集",
       "delete": "削除"
-    },
+    },  
     "message": {
       "empty_name": "名前フィールドは空にできません。",
-      "confirm_delete": "「{name}」をデータベースから削除しますか？"
+      "confirm_delete": "「{name}」をデータベースから削除しますか？",
+      "cache_migrated": "キャッシュを辞書スキーマに移行しました。",
+      "cache_already_ok": "旧形式の文字列アイテムはありません。キャッシュは既に辞書スキーマを使用しています。"
     }
   },
   "dialog": {

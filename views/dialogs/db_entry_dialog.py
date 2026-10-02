@@ -1,13 +1,3 @@
-"""
-DBXV2 Build Forge — Database Entry Dialogs.
-
-Modal dialogs for adding / editing records in the five Database Manager
-tabs: Character, Super, Ultimate, Awoken, Evasive, and Super Soul.
-
-Migrated from ``CharacterDialog``, ``SkillDialog``, and
-``SuperSoulDialog`` classes in the original ``main.py``.
-"""
-
 from __future__ import annotations
 
 from typing import Optional
@@ -26,10 +16,7 @@ from PySide6.QtWidgets import (
 from locales.i18n_manager import tr
 
 
-# ── Character Dialog ────────────────────────────────────────────────────
-
 class CharacterDialog(QDialog):
-    """Add / edit a Character record."""
 
     def __init__(self, parent: Optional[QWidget] = None, *, edit_data: Optional[dict] = None) -> None:
         super().__init__(parent)
@@ -61,14 +48,12 @@ class CharacterDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-        # Pre-fill for edit mode
         if edit_data:
             self.code_input.setText(edit_data.get("code", ""))
             self.name_input.setText(edit_data.get("name", ""))
             self.playable_cb.setChecked(edit_data.get("is_playable", True))
 
     def get_data(self) -> dict:
-        """Return the dialog data as a dict."""
         return {
             "code": self.code_input.text().strip(),
             "name": self.name_input.text().strip(),
@@ -76,10 +61,7 @@ class CharacterDialog(QDialog):
         }
 
 
-# ── Skill Dialog (shared by Super / Ultimate / Awoken / Evasive) ────
-
 class SkillDialog(QDialog):
-    """Add / edit a Skill record (any skill type)."""
 
     def __init__(
         self,
@@ -131,10 +113,7 @@ class SkillDialog(QDialog):
         }
 
 
-# ── Super Soul Dialog ────────────────────────────────────────────────
-
 class SuperSoulDialog(QDialog):
-    """Add / edit a Super Soul record."""
 
     def __init__(self, parent: Optional[QWidget] = None, *, edit_data: Optional[dict] = None) -> None:
         super().__init__(parent)
@@ -168,14 +147,14 @@ class SuperSoulDialog(QDialog):
 
         if edit_data:
             self.name_input.setText(edit_data.get("name", ""))
-            self.effect1_input.setText(edit_data.get("effect1", ""))
-            self.effect2_input.setText(edit_data.get("effect2", ""))
+            self.effect1_input.setText(edit_data.get("effect_1", ""))
+            self.effect2_input.setText(edit_data.get("effect_2", ""))
             self.note_input.setText(edit_data.get("note", ""))
 
     def get_data(self) -> dict:
         return {
             "name": self.name_input.text().strip(),
-            "effect1": self.effect1_input.text().strip(),
-            "effect2": self.effect2_input.text().strip(),
+            "effect_1": self.effect1_input.text().strip(),
+            "effect_2": self.effect2_input.text().strip(),
             "note": self.note_input.text().strip(),
         }

@@ -137,7 +137,9 @@
     },
     "message": {
       "empty_name": "Kolom nama tidak boleh kosong.",
-      "confirm_delete": "Hapus '{name}' dari database?"
+      "confirm_delete": "Hapus '{name}' dari database?",
+      "cache_migrated": "Cache berhasil dimigrasi ke skema dictionary.",
+      "cache_already_ok": "Tidak ada item string lama. Cache sudah menggunakan skema dictionary."
     }
   },
   "dialog": {

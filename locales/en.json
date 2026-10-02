@@ -137,7 +137,9 @@
     },
     "message": {
       "empty_name": "Name field must not be empty.",
-      "confirm_delete": "Delete '{name}' from database?"
+      "confirm_delete": "Delete '{name}' from database?",
+      "cache_migrated": "Cache migrated successfully to dictionary schema.",
+      "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema."
     }
   },
   "dialog": {

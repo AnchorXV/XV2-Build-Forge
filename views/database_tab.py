@@ -1,21 +1,10 @@
-"""
-DBXV2 Build Forge — Database Manager Tab.
-
-A generic tab that displays a single database category (Characters,
-Super Skills, Ultimate Skills, Awoken Skills, Evasive Skills, or
-Super Souls) in a searchable table with add/edit/delete.
-
-The outer ``QTabWidget`` in ``MainWindow`` creates one instance per
-category.  This avoids the copy-paste duplication found in the
-original ``main.py`` (``create_database_tab`` × 6).
-"""
-
 from __future__ import annotations
 
 import logging
 from typing import Optional
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QMenu,
@@ -33,7 +22,6 @@ from controllers.undo_commands import (
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from models.table_models import DatabaseTableModel
-from PySide6.QtGui import QUndoStack
 from views.dialogs.db_entry_dialog import (
     CharacterDialog,
     SkillDialog,
@@ -46,14 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseTab(QWidget):
-    """One database-manager tab for a given category.
-
-    Args:
-        category_key: The data store cache key
-            (``"characters"``, ``"super_skills"``, etc.).
-        display_name: Human-visible label for this tab (already translated).
-        data_store: The shared ``AppDataStore``.
-    """
 
     def __init__(
         self,
@@ -72,8 +52,6 @@ class DatabaseTab(QWidget):
 
         self._build_ui()
         self._connect_signals()
-
-    # ── UI ──────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -94,8 +72,6 @@ class DatabaseTab(QWidget):
         self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
         layout.addWidget(self._stv)
 
-    # ── Signals ─────────────────────────────────────────────────────────
-
     def _connect_signals(self) -> None:
         self._toolbar.add_clicked.connect(self._on_add)
         self._toolbar.sort_clicked.connect(lambda: self._stv.sort_toggle(0))
@@ -105,8 +81,6 @@ class DatabaseTab(QWidget):
         self._stv.table_view.doubleClicked.connect(self._on_edit)
 
         signal_bus.data_changed.connect(self._model.refresh)
-
-    # ── Handlers ────────────────────────────────────────────────────────
 
     def _on_add(self) -> None:
         dlg = self._make_dialog()
@@ -120,19 +94,31 @@ class DatabaseTab(QWidget):
             self._undo_stack.push(cmd)
 
     def _on_fix_cache(self) -> None:
-        """Trigger a manual schema migration for this cache category."""
         migrated = self._store.force_migrate_cache(self._key)
         if migrated:
             signal_bus.data_changed.emit()
-            QMessageBox.information(self, tr("dialog.common.ok"), "Cache migrated successfully to dictionary schema.")
+            QMessageBox.information(
+                self,
+                tr("dialog.common.ok"),
+                tr("database.message.cache_migrated"),
+            )
         else:
-            QMessageBox.information(self, tr("dialog.common.ok"), "No legacy string items found. Cache is already using dictionary schema.")
+            QMessageBox.information(
+                self,
+                tr("dialog.common.ok"),
+                tr("database.message.cache_already_ok"),
+            )
 
     def _on_edit(self, proxy_index=None) -> None:
-        rows = self._stv.selected_source_rows()
-        if not rows:
-            return
-        row = rows[0]
+        if proxy_index is not None and proxy_index.isValid():
+            source_index = self._stv.proxy_model.mapToSource(proxy_index)
+            row = source_index.row()
+        else:
+            rows = self._stv.selected_source_rows()
+            if not rows:
+                return
+            row = rows[0]
+
         items = self._store.get_cache(self._key)
         if row >= len(items):
             return
@@ -182,19 +168,15 @@ class DatabaseTab(QWidget):
             cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
             self._undo_stack.push(cmd)
 
-    # ── Dialog factory ──────────────────────────────────────────────────
-
     def _make_dialog(self, edit_data: Optional[dict] = None):
         if self._key == "characters":
             return CharacterDialog(self, edit_data=edit_data)
         elif self._key == "super_souls":
             return SuperSoulDialog(self, edit_data=edit_data)
         else:
-            # All four skill types use the same SkillDialog
             return SkillDialog(self._display, self, edit_data=edit_data)
 
     def retranslate_ui(self, display_title: str) -> None:
-        """Update visible text when the application language changes."""
         self._display = display_title
         self._toolbar.retranslate(
             add_tooltip=tr("database.tooltip.add", type=display_title),
