@@ -59,6 +59,9 @@ backups/
 *.pdb
 DBXV2_Build_Forge.exe
 
+# ── Local Documentation (tidak untuk publik) ─────────────────────────
+PRD_DBXV2_Build_Forge.md
+
 # ── OS ───────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
