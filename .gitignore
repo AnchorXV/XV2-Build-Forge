@@ -1,53 +1,75 @@
-# Python
+# ── Python ───────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 
-# Virtual environment
+# ── Virtual Environment ──────────────────────────────────────────────
 .venv/
 venv/
 env/
+ENV/
 
-# Testing
+# ── Testing ──────────────────────────────────────────────────────────
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
+.cache/
 
-# Nuitka build artifacts
+# ── Nuitka Build Artifacts ───────────────────────────────────────────
+# Output folders
+build_nuitka/
+build_debug/
+build_standalone/
 main.build/
 main.dist/
 main.onefile-build/
+
+# Nuitka intermediate
 *.build/
 *.dist/
 *.onefile-build/
+*.nuitka-cache/
+main.exe
+main.bin
 
-# Runtime data (jangan commit data user)
+# Nuitka crash reports
+nuitka-crash-report.xml
+nuitka-crash-report-*.xml
+*.crash
+
+# ── PyInstaller (kalau nanti dipakai) ────────────────────────────────
+build/
+dist/
+*.spec
+
+# ── Runtime Data (jangan commit data user) ───────────────────────────
 build_forge_data.json
 build_forge_data.json.bak
 build_forge_data.json.tmp
 settings.json
 backups/
 
-# Executables
+# ── Executables & Binary ─────────────────────────────────────────────
 *.exe
+*.dll
+*.pdb
 DBXV2_Build_Forge.exe
 
-# Crash reports
-nuitka-crash-report.xml
-*.crash
-
-# OS
+# ── OS ───────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# IDE
+# ── IDE ──────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
-# Ad-hoc test scripts (test standalone yang saya kasih)
+# ── Ad-hoc test scripts ──────────────────────────────────────────────
 test_f*.py

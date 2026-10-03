@@ -7,9 +7,7 @@ APP_ORG: Final[str] = "DBXV2Modding"
 APP_VERSION: Final[str] = "1.0.0"
 
 DATA_FILE: Final[str] = "build_forge_data.json"
-DATA_FILE_PATH: Final[Path] = Path(DATA_FILE)
 SETTINGS_FILE: Final[str] = "settings.json"
-SETTINGS_FILE_PATH: Final[Path] = Path(SETTINGS_FILE)
 
 TABLE_COLUMNS: Final[list[str]] = [
     "Character Name", "Character ID", "Costume Name", "Costume Index",
@@ -30,6 +28,20 @@ CACHE_KEYS: Final[list[str]] = [
 ]
 
 DEFAULT_LANGUAGE: Final[str] = "en"
+
+
+def is_compiled() -> bool:
+    return getattr(sys, "frozen", False) or "__compiled__" in globals()
+
+
+def get_app_dir() -> Path:
+    if is_compiled():
+        return Path(sys.argv[0]).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+DATA_FILE_PATH: Final[Path] = get_app_dir() / DATA_FILE
+SETTINGS_FILE_PATH: Final[Path] = get_app_dir() / SETTINGS_FILE
 
 
 def get_resource_path(relative_path: str) -> Path:
