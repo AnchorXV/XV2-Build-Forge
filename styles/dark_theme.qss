@@ -484,3 +484,51 @@ QTableView#sheetList::item:selected {
 QTableView#sheetList::item:hover {
     background-color: #252526;
 }
+
+/* ── Command Palette ────────────────────────────────────────────────── */
+QDialog {
+    background-color: #252526;
+}
+
+QLineEdit#commandPaletteInput {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 2px solid #2b5797;
+    border-radius: 0;
+    padding: 12px 16px;
+    font-size: 15px;
+}
+
+QFrame#commandPaletteDivider {
+    background-color: #2b5797;
+    border: none;
+}
+
+QListWidget#commandPaletteList {
+    background-color: #252526;
+    border: none;
+    outline: none;
+    padding: 4px;
+    max-height: 280px;
+}
+
+QListWidget#commandPaletteList::item {
+    color: #d4d4d4;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+QListWidget#commandPaletteList::item:selected {
+    background-color: #2b5797;
+    color: #ffffff;
+}
+
+QListWidget#commandPaletteList::item:hover {
+    background-color: #2d2d30;
+}
+
+QLabel#commandPaletteEmpty {
+    color: #6a6a6a;
+    font-style: italic;
+    padding: 20px;
+}

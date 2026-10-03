@@ -14,7 +14,8 @@
     "edit": {
       "title": "Edit",
       "undo": "Undo",
-      "redo": "Redo"
+      "redo": "Redo",
+      "command_palette": "Command Palette"
     },
     "settings": {
       "title": "Settings",

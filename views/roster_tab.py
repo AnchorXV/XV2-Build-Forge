@@ -235,6 +235,13 @@ class RosterTab(QWidget):
         )
         self._sheet_view.table_view.setCurrentIndex(proxy_index)
 
+    def select_sheet_by_name(self, sheet_name: str) -> bool:
+        for i in range(self._sheet_model.rowCount()):
+            if self._sheet_model.sheet_name_at(i) == sheet_name:
+                self._select_sheet_row(i)
+                return True
+        return False
+
     def _get_selected_sheet_name(self) -> Optional[str]:
         sel = self._sheet_view.table_view.selectionModel()
         if not sel.hasSelection():

@@ -79,3 +79,9 @@ class DatabasePage(QWidget):
             self._category_combo.setItemText(i, display)
             if key in self._tabs:
                 self._tabs[key].retranslate_ui(display)
+
+    def focus_search(self, text: str) -> None:
+        idx = self._category_combo.currentIndex()
+        widget = self._stack.widget(idx)
+        if hasattr(widget, "_stv"):
+            widget._stv.set_filter_text(text)

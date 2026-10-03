@@ -14,6 +14,7 @@ from app_config import APP_NAME, APP_VERSION
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from views.page_manager import PageManager
+from views.widgets.command_palette import CommandPalette
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,9 @@ class MainWindow(QMainWindow):
 
         self.page_manager = PageManager(data_store, self._undo_stack, self)
         self.setCentralWidget(self.page_manager)
+
+        self._palette = CommandPalette(self)
+        self._palette.action_selected.connect(self._on_palette_action)
 
         self._build_menu_bar()
 
@@ -63,10 +67,74 @@ class MainWindow(QMainWindow):
         self._menu_edit.addAction(self._act_undo)
         self._menu_edit.addAction(self._act_redo)
 
+        self._act_palette = QAction(tr("menu.edit.command_palette", default="Command Palette"), self)
+        self._act_palette.setShortcut("Ctrl+P")
+        self._act_palette.triggered.connect(self._open_command_palette)
+        self._menu_edit.addSeparator()
+        self._menu_edit.addAction(self._act_palette)
+
         self._menu_help = menubar.addMenu(tr("menu.about.title", default="About"))
         self._act_about = QAction(tr("menu.about.title", default="About"), self)
         self._act_about.triggered.connect(self._show_about_dialog)
         self._menu_help.addAction(self._act_about)
+
+    def _open_command_palette(self) -> None:
+        commands = self._build_commands()
+        self._palette.register_commands(commands)
+        self._palette.open_palette()
+
+    def _build_commands(self) -> list[dict]:
+        commands: list[dict] = []
+
+        for sheet_name in self._store.get_all_sheets().keys():
+            count = len(self._store.get_sheet_entries(sheet_name))
+            commands.append({
+                "label": f"Open Roster: {sheet_name}  ({count})",
+                "search": f"roster sheet {sheet_name}",
+                "action": "open_sheet",
+                "data": {"sheet": sheet_name},
+            })
+
+        for char in self._store.get_cache("characters"):
+            name = char.get("name", "")
+            if not name:
+                continue
+            commands.append({
+                "label": f"Find Character: {name}",
+                "search": f"character db {name}",
+                "action": "find_character",
+                "data": {"name": name},
+            })
+
+        commands.append({
+            "label": "New Sheet",
+            "search": "new sheet create",
+            "action": "new_sheet",
+            "data": {},
+        })
+        commands.append({
+            "label": "Save / Backup",
+            "search": "save backup",
+            "action": "save",
+            "data": {},
+        })
+
+        return commands
+
+    def _on_palette_action(self, action: str, data: dict) -> None:
+        if action == "open_sheet":
+            sheet_name = data.get("sheet")
+            if sheet_name:
+                self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
+                self.page_manager.roster_tab.select_sheet_by_name(sheet_name)
+        elif action == "find_character":
+            self.page_manager.set_current_page(PageManager.PAGE_DATABASE)
+            name = data.get("name", "")
+            self.page_manager.database_page.focus_search(name)
+        elif action == "new_sheet":
+            self._on_new_sheet()
+        elif action == "save":
+            self._on_save()
 
     def _update_recent_menu(self) -> None:
         self._menu_recent.clear()
@@ -86,13 +154,7 @@ class MainWindow(QMainWindow):
 
     def _open_recent_sheet(self, sheet_name: str) -> None:
         self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
-        entries = self._store.get_sheet_entries(sheet_name)
-        from views.dialogs.sheet_detail_dialog import SheetDetailDialog
-        from models.table_models import PresetDetailTableModel
-        detail_model = PresetDetailTableModel(entries)
-        dlg = SheetDetailDialog(sheet_name, detail_model, self._store, self._undo_stack, self)
-        dlg.load_into_editor.connect(lambda r: self.page_manager.roster_tab._load_entry(sheet_name, r))
-        dlg.exec()
+        self.page_manager.roster_tab.select_sheet_by_name(sheet_name)
 
     def _on_new_sheet(self) -> None:
         self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
