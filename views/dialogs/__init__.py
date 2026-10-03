@@ -7,6 +7,7 @@ from views.dialogs.about_dialog import AboutDialog
 from views.dialogs.db_entry_dialog import CharacterDialog, SkillDialog, SuperSoulDialog
 from views.dialogs.export_dialog import ExportMethodDialog, run_export_flow
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
+from views.dialogs.find_replace_dialog import FindReplaceDialog
 
 __all__ = [
     "AboutDialog",
@@ -15,5 +16,6 @@ __all__ = [
     "SuperSoulDialog",
     "SheetDetailDialog",
     "ExportMethodDialog",
+    "FindReplaceDialog",
     "run_export_flow",
 ]

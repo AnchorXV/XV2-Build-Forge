@@ -41,6 +41,7 @@ from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
+from views.dialogs.find_replace_dialog import FindReplaceDialog
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +242,13 @@ class RosterTab(QWidget):
             self._on_preset_paste,
             context=Qt.WidgetWithChildrenShortcut,
         )
+        QShortcut(
+            QKeySequence("Ctrl+R"),
+            self,
+            self._on_find_replace,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
 
     def _select_sheet_row(self, row: int) -> None:
         proxy_index = self._sheet_view.proxy_model.mapFromSource(
@@ -567,4 +575,15 @@ class RosterTab(QWidget):
             QCursor.pos(),
             f"Pasted {count} preset(s) into '{self._current_sheet}'.",
             self._preset_view.table_view,
-        )   
+        )
+
+    def _on_find_replace(self) -> None:
+        dlg = FindReplaceDialog(
+            self._store,
+            self._undo_stack,
+            current_sheet=self._current_sheet,
+            parent=self,
+        )
+        dlg.exec()
+        if self._current_sheet:
+            self._load_sheet_into_right_panel(self._current_sheet)   

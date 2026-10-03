@@ -593,3 +593,9 @@ QLabel#fieldLabel {
     font-weight: 600;
     letter-spacing: 0.3px;
 }
+
+QLabel#previewLabel {
+    color: #8b8c93;
+    font-size: 12px;
+    padding: 8px 0;
+}

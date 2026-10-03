@@ -28,6 +28,7 @@ from models.data_store import AppDataStore
 from models.preset_clipboard import PresetClipboard
 from models.table_models import PresetDetailTableModel
 from views.dialogs.bulk_edit_dialog import BulkEditDialog
+from views.dialogs.find_replace_dialog import FindReplaceDialog
 
 
 class SheetDetailDialog(QDialog):
@@ -123,6 +124,12 @@ class SheetDetailDialog(QDialog):
             QKeySequence("Ctrl+V"),
             self._table,
             self._on_paste,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+R"),
+            self._table,
+            self._on_find_replace,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -283,3 +290,13 @@ class SheetDetailDialog(QDialog):
             f"Pasted {count} preset(s) into '{self._sheet_name}'.",
             self._table,
         )
+
+    def _on_find_replace(self) -> None:
+        dlg = FindReplaceDialog(
+            self._store,
+            self._undo_stack,
+            current_sheet=self._sheet_name,
+            parent=self,
+        )
+        dlg.exec()
+        self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
