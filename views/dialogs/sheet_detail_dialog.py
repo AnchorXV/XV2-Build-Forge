@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QUndoStack
+from PySide6.QtGui import QCursor, QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QDialog,
@@ -13,13 +13,19 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QTableView,
+    QToolTip,
     QVBoxLayout,
     QWidget,
 )
 
-from controllers.undo_commands import DeletePresetEntryCommand, ReorderPresetsCommand
+from controllers.undo_commands import (
+    AddPresetEntryCommand,
+    DeletePresetEntryCommand,
+    ReorderPresetsCommand,
+)
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
+from models.preset_clipboard import PresetClipboard
 from models.table_models import PresetDetailTableModel
 from views.dialogs.bulk_edit_dialog import BulkEditDialog
 
@@ -91,12 +97,34 @@ class SheetDetailDialog(QDialog):
 
         layout.addLayout(btn_row)
 
+        self._setup_shortcuts()
+
         if parent is not None:
             self.adjustSize()
             pg = parent.geometry()
             x = pg.x() + (pg.width() - self.width()) // 2
             y = pg.y() + (pg.height() - self.height()) // 3
             self.move(x, y)
+
+    def _setup_shortcuts(self) -> None:
+        QShortcut(
+            QKeySequence("Ctrl+C"),
+            self._table,
+            self._on_copy,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+X"),
+            self._table,
+            self._on_cut,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+V"),
+            self._table,
+            self._on_paste,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
 
     def _on_load_clicked(self) -> None:
         indexes = self._table.selectionModel().selectedRows()
@@ -167,10 +195,16 @@ class SheetDetailDialog(QDialog):
             reply = QMessageBox.question(
                 self,
                 tr("dialog.common.confirm"),
-                tr("dialog.bulk_edit.confirm_delete_multiple", count=len(selected_rows), default=f"Delete {len(selected_rows)} presets?"),
+                tr(
+                    "dialog.bulk_edit.confirm_delete_multiple",
+                    count=len(selected_rows),
+                    default=f"Delete {len(selected_rows)} presets?",
+                ),
             )
             if reply == QMessageBox.Yes:
-                self._undo_stack.beginMacro(f"Delete {len(selected_rows)} presets from '{self._sheet_name}'")
+                self._undo_stack.beginMacro(
+                    f"Delete {len(selected_rows)} presets from '{self._sheet_name}'"
+                )
                 for idx in sorted(selected_rows, key=lambda x: x.row(), reverse=True):
                     r = idx.row()
                     if 0 <= r < len(entries):
@@ -179,3 +213,73 @@ class SheetDetailDialog(QDialog):
                 self._undo_stack.endMacro()
 
                 self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
+
+    def _get_selected_entries(self) -> list:
+        entries = self._store.get_sheet_entries(self._sheet_name)
+        rows = [idx.row() for idx in self._table.selectionModel().selectedRows()]
+        return [entries[r] for r in rows if 0 <= r < len(entries)]
+
+    def _on_copy(self) -> None:
+        selected = self._get_selected_entries()
+        if not selected:
+            return
+        PresetClipboard.instance().set(selected)
+        QToolTip.showText(
+            QCursor.pos(),
+            f"Copied {len(selected)} preset(s).",
+            self._table,
+        )
+
+    def _on_cut(self) -> None:
+        selected_rows = self._table.selectionModel().selectedRows()
+        if not selected_rows:
+            return
+        entries = self._store.get_sheet_entries(self._sheet_name)
+        selected = [(idx.row(), entries[idx.row()])
+                    for idx in selected_rows
+                    if 0 <= idx.row() < len(entries)]
+        if not selected:
+            return
+
+        PresetClipboard.instance().set([e for _, e in selected])
+
+        self._undo_stack.beginMacro(
+            f"Cut {len(selected)} preset(s) from '{self._sheet_name}'"
+        )
+        for row, entry in sorted(selected, key=lambda x: x[0], reverse=True):
+            cmd = DeletePresetEntryCommand(self._store, self._sheet_name, entry, row)
+            self._undo_stack.push(cmd)
+        self._undo_stack.endMacro()
+
+        self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
+
+        QToolTip.showText(
+            QCursor.pos(),
+            f"Cut {len(selected)} preset(s).",
+            self._table,
+        )
+
+    def _on_paste(self) -> None:
+        clipboard = PresetClipboard.instance()
+        if not clipboard.has_content():
+            return
+
+        entries = clipboard.get_entries()
+        count = len(entries)
+
+        self._undo_stack.beginMacro(
+            f"Paste {count} preset(s) into '{self._sheet_name}'"
+        )
+        for e in entries:
+            cloned = PresetClipboard.clone_with_new_id(e)
+            cmd = AddPresetEntryCommand(self._store, self._sheet_name, cloned)
+            self._undo_stack.push(cmd)
+        self._undo_stack.endMacro()
+
+        self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
+
+        QToolTip.showText(
+            QCursor.pos(),
+            f"Pasted {count} preset(s) into '{self._sheet_name}'.",
+            self._table,
+        )

@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
+from PySide6.QtGui import QCursor, QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHBoxLayout,
@@ -16,12 +16,15 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSplitter,
     QStackedWidget,
+    QToolTip,
     QVBoxLayout,
     QWidget,
 )
 
+from app_config import TABLE_COLUMNS
 from controllers.signal_bus import signal_bus
 from controllers.undo_commands import (
+    AddPresetEntryCommand,
     AddSheetCommand,
     DeletePresetEntryCommand,
     DeleteSheetCommand,
@@ -33,12 +36,11 @@ from controllers.undo_commands import (
 )
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
+from models.preset_clipboard import PresetClipboard
 from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
-
-from app_config import TABLE_COLUMNS
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +139,7 @@ class RosterTab(QWidget):
         empty = QWidget()
         empty_layout = QVBoxLayout(empty)
         empty_layout.addStretch()
-        empty_label = QLabel(tr("roster.panel.empty_state", default="Pilih sheet dari panel kiri"))
+        empty_label = QLabel(tr("roster.panel.empty_state", default="Select a sheet from the left panel"))
         empty_label.setObjectName("emptyStateLabel")
         empty_label.setAlignment(Qt.AlignCenter)
         empty_layout.addWidget(empty_label)
@@ -219,6 +221,24 @@ class RosterTab(QWidget):
             QKeySequence("Delete"),
             self._preset_view.table_view,
             self._on_delete_preset_clicked,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+C"),
+            self._preset_view.table_view,
+            self._on_preset_copy,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+X"),
+            self._preset_view.table_view,
+            self._on_preset_cut,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+V"),
+            self._preset_view.table_view,
+            self._on_preset_paste,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -478,3 +498,73 @@ class RosterTab(QWidget):
             self._load_sheet_into_right_panel(self._current_sheet)
         else:
             self._load_sheet_into_right_panel(None)
+
+    # ── Clipboard ──────────────────────────────────────────────────────
+
+    def _get_selected_preset_entries(self) -> list:
+        if not self._current_sheet:
+            return []
+        rows = self._preset_view.selected_source_rows()
+        if not rows:
+            return []
+        entries = self._store.get_sheet_entries(self._current_sheet)
+        return [entries[r] for r in rows if 0 <= r < len(entries)]
+
+    def _on_preset_copy(self) -> None:
+        selected = self._get_selected_preset_entries()
+        if not selected:
+            return
+        PresetClipboard.instance().set(selected)
+        QToolTip.showText(
+            QCursor.pos(),
+            f"Copied {len(selected)} preset(s). Ctrl+V to paste.",
+            self._preset_view.table_view,
+        )
+
+    def _on_preset_cut(self) -> None:
+        if not self._current_sheet:
+            return
+        rows = self._preset_view.selected_source_rows()
+        if not rows:
+            return
+        entries = self._store.get_sheet_entries(self._current_sheet)
+        selected = [(r, entries[r]) for r in rows if 0 <= r < len(entries)]
+        if not selected:
+            return
+
+        PresetClipboard.instance().set([e for _, e in selected])
+
+        self._undo_stack.beginMacro(f"Cut {len(selected)} preset(s) from '{self._current_sheet}'")
+        for row, entry in sorted(selected, key=lambda x: x[0], reverse=True):
+            cmd = DeletePresetEntryCommand(self._store, self._current_sheet, entry, row)
+            self._undo_stack.push(cmd)
+        self._undo_stack.endMacro()
+
+        QToolTip.showText(
+            QCursor.pos(),
+            f"Cut {len(selected)} preset(s). Ctrl+V to paste.",
+            self._preset_view.table_view,
+        )
+
+    def _on_preset_paste(self) -> None:
+        if not self._current_sheet:
+            return
+        clipboard = PresetClipboard.instance()
+        if not clipboard.has_content():
+            return
+
+        entries = clipboard.get_entries()
+        count = len(entries)
+
+        self._undo_stack.beginMacro(f"Paste {count} preset(s) into '{self._current_sheet}'")
+        for e in entries:
+            cloned = PresetClipboard.clone_with_new_id(e)
+            cmd = AddPresetEntryCommand(self._store, self._current_sheet, cloned)
+            self._undo_stack.push(cmd)
+        self._undo_stack.endMacro()
+
+        QToolTip.showText(
+            QCursor.pos(),
+            f"Pasted {count} preset(s) into '{self._current_sheet}'.",
+            self._preset_view.table_view,
+        )   

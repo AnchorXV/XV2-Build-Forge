@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QUndoStack
+from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QMenu,
@@ -52,6 +52,7 @@ class DatabaseTab(QWidget):
 
         self._build_ui()
         self._connect_signals()
+        self._setup_shortcuts()
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -66,7 +67,11 @@ class DatabaseTab(QWidget):
         )
         layout.addWidget(self._toolbar)
 
-        self._stv = SearchableTableView(self, sortable=True)
+        self._stv = SearchableTableView(
+            self,
+            sortable=True,
+            selection_mode=QAbstractItemView.ExtendedSelection,
+        )
         self._stv.set_source_model(self._model)
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
@@ -81,6 +86,23 @@ class DatabaseTab(QWidget):
         self._stv.table_view.doubleClicked.connect(self._on_edit)
 
         signal_bus.data_changed.connect(self._model.refresh)
+
+    def _setup_shortcuts(self) -> None:
+        QShortcut(
+            QKeySequence("Ctrl+F"),
+            self,
+            self._focus_search,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+A"),
+            self._stv.table_view,
+            self._stv.table_view.selectAll,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
+    def _focus_search(self) -> None:
+        self._toolbar.search_input.setFocus()
+        self._toolbar.search_input.selectAll()
 
     def _on_add(self) -> None:
         dlg = self._make_dialog()
@@ -152,21 +174,40 @@ class DatabaseTab(QWidget):
         rows = self._stv.selected_source_rows()
         if not rows:
             return
-        row = rows[0]
+
         items = self._store.get_cache(self._key)
-        if row >= len(items):
+        valid_rows = sorted([r for r in rows if 0 <= r < len(items)], reverse=True)
+        if not valid_rows:
             return
 
-        name = items[row].get("name", "???")
-        reply = QMessageBox.question(
-            self,
-            tr("dialog.common.confirm"),
-            tr("database.message.confirm_delete", name=name),
-        )
-        if reply == QMessageBox.Yes:
-            item = items[row]
-            cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
-            self._undo_stack.push(cmd)
+        if len(valid_rows) == 1:
+            row = valid_rows[0]
+            name = items[row].get("name", "???")
+            reply = QMessageBox.question(
+                self,
+                tr("dialog.common.confirm"),
+                tr("database.message.confirm_delete", name=name),
+            )
+            if reply == QMessageBox.Yes:
+                item = items[row]
+                cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
+                self._undo_stack.push(cmd)
+        else:
+            reply = QMessageBox.question(
+                self,
+                tr("dialog.common.confirm"),
+                f"Delete {len(valid_rows)} items from database?",
+            )
+            if reply == QMessageBox.Yes:
+                self._undo_stack.beginMacro(
+                    f"Delete {len(valid_rows)} items from '{self._key}'"
+                )
+                for row in valid_rows:
+                    if row < len(items):
+                        item = items[row]
+                        cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
+                        self._undo_stack.push(cmd)
+                self._undo_stack.endMacro()
 
     def _make_dialog(self, edit_data: Optional[dict] = None):
         if self._key == "characters":
@@ -175,3 +216,13 @@ class DatabaseTab(QWidget):
             return SuperSoulDialog(self, edit_data=edit_data)
         else:
             return SkillDialog(self._display, self, edit_data=edit_data)
+
+    def retranslate_ui(self, display_title: str) -> None:
+        self._display = display_title
+        self._toolbar.retranslate(
+            add_tooltip=tr("database.tooltip.add", type=display_title),
+            search_placeholder=tr("database.placeholder.search", type=display_title),
+            search_label=tr("database.label.search"),
+            sort_label=tr("database.button.sort_az"),
+            fix_cache_label=tr("database.button.fix_cache"),
+        )
