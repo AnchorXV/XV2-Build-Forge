@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QUndoStack
 from PySide6.QtWidgets import (
     QComboBox,
+    QCompleter,
     QFrame,
     QGridLayout,
     QHBoxLayout,
@@ -60,15 +61,12 @@ class EditorTab(QWidget):
         main_layout.setContentsMargins(28, 24, 28, 32)
         main_layout.setSpacing(20)
 
-        # ── Section: Character & Costume ──────────────────────────────
         main_layout.addWidget(SectionHeader(tr("editor.group.character_info")))
         main_layout.addWidget(self._build_char_card())
 
-        # ── Section: Skillset ─────────────────────────────────────────
         main_layout.addWidget(SectionHeader(tr("editor.group.skillset_matrix")))
         main_layout.addWidget(self._build_skills_card())
 
-        # ── Section: Save ─────────────────────────────────────────────
         main_layout.addWidget(SectionHeader(tr("editor.group.save_target")))
         main_layout.addWidget(self._build_save_card())
 
@@ -87,14 +85,14 @@ class EditorTab(QWidget):
         grid.setColumnStretch(1, 1)
 
         self.char_name_combo = QComboBox()
-        self.char_name_combo.setEditable(True)
+        self._setup_searchable_combo(self.char_name_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.character_name"), self.char_name_combo),
             0, 0, 1, 2,
         )
 
         self.char_id_input = QComboBox()
-        self.char_id_input.setEditable(True)
+        self._setup_searchable_combo(self.char_id_input)
         grid.addWidget(
             self._make_field(tr("editor.label.character_id"), self.char_id_input),
             1, 0,
@@ -114,9 +112,11 @@ class EditorTab(QWidget):
             2, 0,
         )
 
-        self.model_preset_input = QLineEdit()
+        self.model_preset_spin = QSpinBox()
+        self.model_preset_spin.setMinimum(0)
+        self.model_preset_spin.setMaximum(9999)
         grid.addWidget(
-            self._make_field(tr("editor.label.model_preset"), self.model_preset_input),
+            self._make_field(tr("editor.label.model_preset"), self.model_preset_spin),
             2, 1,
         )
 
@@ -135,7 +135,7 @@ class EditorTab(QWidget):
         self.super_combos: list[QComboBox] = []
         for i in range(4):
             combo = QComboBox()
-            combo.setEditable(True)
+            self._setup_searchable_combo(combo)
             self.super_combos.append(combo)
             grid.addWidget(
                 self._make_field(tr("editor.label.super_skill", n=i + 1), combo),
@@ -145,7 +145,7 @@ class EditorTab(QWidget):
         self.ult_combos: list[QComboBox] = []
         for i in range(2):
             combo = QComboBox()
-            combo.setEditable(True)
+            self._setup_searchable_combo(combo)
             self.ult_combos.append(combo)
             grid.addWidget(
                 self._make_field(tr("editor.label.ultimate_skill", n=i + 1), combo),
@@ -153,21 +153,21 @@ class EditorTab(QWidget):
             )
 
         self.awoken_combo = QComboBox()
-        self.awoken_combo.setEditable(True)
+        self._setup_searchable_combo(self.awoken_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.awoken_skill"), self.awoken_combo),
             2, 1,
         )
 
         self.evasive_combo = QComboBox()
-        self.evasive_combo.setEditable(True)
+        self._setup_searchable_combo(self.evasive_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.evasive_skill"), self.evasive_combo),
             3, 1,
         )
 
         self.super_soul_combo = QComboBox()
-        self.super_soul_combo.setEditable(True)
+        self._setup_searchable_combo(self.super_soul_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.super_soul"), self.super_soul_combo),
             4, 0, 1, 2,
@@ -183,7 +183,7 @@ class EditorTab(QWidget):
         layout.setSpacing(18)
 
         self.target_sheet_combo = QComboBox()
-        self.target_sheet_combo.setEditable(True)
+        self._setup_searchable_combo(self.target_sheet_combo)
         self.target_sheet_combo.setPlaceholderText(tr("editor.placeholder.target_sheet"))
         layout.addWidget(
             self._make_field(tr("editor.label.target_sheet"), self.target_sheet_combo)
@@ -220,6 +220,21 @@ class EditorTab(QWidget):
 
         return container
 
+    @staticmethod
+    def _setup_searchable_combo(combo: QComboBox) -> None:
+        combo.setEditable(True)
+        combo.setInsertPolicy(QComboBox.NoInsert)
+
+        completer = combo.completer()
+        if completer is None:
+            completer = QCompleter(combo.model(), combo)
+            combo.setCompleter(completer)
+
+        completer.setCompletionMode(QCompleter.PopupCompletion)
+        completer.setFilterMode(Qt.MatchContains)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setMaxVisibleItems(15)
+
     # ── Signal wiring ──────────────────────────────────────────────────
 
     def _connect_signals(self) -> None:
@@ -239,7 +254,7 @@ class EditorTab(QWidget):
         self.char_id_input.clearEditText()
         self.costume_name_input.clear()
         self.costume_index_spin.setValue(0)
-        self.model_preset_input.clear()
+        self.model_preset_spin.setValue(0)
 
         for combo in self.super_combos + self.ult_combos:
             combo.setCurrentIndex(-1)
@@ -260,7 +275,11 @@ class EditorTab(QWidget):
         self.char_id_input.setCurrentText(entry.character_id)
         self.costume_name_input.setText(entry.costume_name)
         self.costume_index_spin.setValue(entry.costume_index)
-        self.model_preset_input.setText(str(entry.model_preset))
+
+        try:
+            self.model_preset_spin.setValue(int(entry.model_preset))
+        except (ValueError, TypeError):
+            self.model_preset_spin.setValue(0)
 
         for i, combo in enumerate(self.super_combos):
             combo.setCurrentText(entry.super_skills[i] if i < len(entry.super_skills) else "")
@@ -283,7 +302,7 @@ class EditorTab(QWidget):
             character_id=self.char_id_input.currentText().strip(),
             costume_name=self.costume_name_input.text().strip(),
             costume_index=self.costume_index_spin.value(),
-            model_preset=self.model_preset_input.text().strip(),
+            model_preset=str(self.model_preset_spin.value()),
             super_skills=[c.currentText().strip() for c in self.super_combos],
             ultimate_skills=[c.currentText().strip() for c in self.ult_combos],
             awoken_skill=self.awoken_combo.currentText().strip(),

@@ -1,19 +1,12 @@
-/*
- * DBXV2 Build Forge — Dark Theme
- * Linear × Arc hybrid: dense, dark, rounded, indigo accent
- */
-
 /* ── Global ─────────────────────────────────────────────────────────── */
 QMainWindow, QDialog {
     background-color: #0c0d10;
     color: #e8e8ec;
-    font-family: "Plus Jakarta Sans", "Segoe UI Variable", "Segoe UI", sans-serif;
     font-size: 13px;
 }
 
 QWidget {
     color: #e8e8ec;
-    font-family: "Plus Jakarta Sans", "Segoe UI Variable", "Segoe UI", sans-serif;
 }
 
 QScrollArea, QScrollArea > QWidget > QWidget {
@@ -124,7 +117,7 @@ QFrame#sectionHeaderLine {
     border: none;
 }
 
-/* ── Panel Header (SHEETS / preset count) ───────────────────────────── */
+/* ── Panel Header ───────────────────────────────────────────────────── */
 QLabel#panelHeader {
     color: #52535c;
     font-size: 11px;
@@ -252,6 +245,50 @@ QLineEdit:disabled, QComboBox:disabled, QSpinBox:disabled {
     background-color: #0f1013;
 }
 
+/* ── SpinBox ────────────────────────────────────────────────────────── */
+QSpinBox {
+    padding-right: 30px;
+}
+
+QSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 24px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    margin: 3px 3px 0 0;
+}
+
+QSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 24px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    margin: 0 3px 3px 0;
+}
+
+QSpinBox::up-button:hover,
+QSpinBox::down-button:hover {
+    background-color: #1a1b1f;
+    border-radius: 4px;
+}
+
+QSpinBox::up-arrow {
+    image: url(assets/icons/chevron_down.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QSpinBox::down-arrow {
+    image: url(assets/icons/chevron_up.svg);
+    width: 10px;
+    height: 10px;
+}
+
+/* ── ComboBox ────────────────────────────────────────────────────────── */
 QComboBox QLineEdit {
     background-color: transparent;
     border: none;
@@ -260,7 +297,25 @@ QComboBox QLineEdit {
 
 QComboBox::drop-down {
     border: none;
-    width: 24px;
+    width: 32px;
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+}
+
+QComboBox::down-arrow {
+    image: url(assets/icons/chevron_up.svg);
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+}
+
+QComboBox::down-arrow:hover,
+QComboBox::down-arrow:on,
+QComboBox::down-arrow:pressed {
+    image: url(assets/icons/chevron_up.svg);
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
 }
 
 QComboBox QAbstractItemView {

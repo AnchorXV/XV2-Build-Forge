@@ -6,6 +6,8 @@ from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont, QFontDatabase
 
+from typing import Optional
+
 from app_config import APP_NAME, APP_ORG, APP_VERSION, get_resource_path
 from controllers.app_controller import AppController
 
@@ -21,7 +23,9 @@ def _load_fonts(app: QApplication) -> None:
     font_files = [
         "assets/fonts/PlusJakartaSans-VariableFont_wght.ttf",
     ]
-    loaded = False
+
+    loaded_family: Optional[str] = None
+
     for rel_path in font_files:
         path = get_resource_path(rel_path)
         if not path.exists():
@@ -30,14 +34,24 @@ def _load_fonts(app: QApplication) -> None:
         font_id = QFontDatabase.addApplicationFont(str(path))
         if font_id == -1:
             logger.warning("Failed to load font: %s", path)
-        else:
-            families = QFontDatabase.applicationFontFamilies(font_id)
-            logger.info("Loaded font: %s", families)
-            loaded = True
+            continue
 
-    base = QFont("Plus Jakarta Sans" if loaded else "Segoe UI", 10)
-    app.setFont(base)
+        families = QFontDatabase.applicationFontFamilies(font_id)
+        logger.info("Loaded font: %s", families)
 
+        # Pilih family "utama" — yang paling pendek namanya
+        if families and loaded_family is None:
+            loaded_family = min(families, key=len)
+
+    # Verify family benar-benar ada di QFontDatabase
+    if loaded_family and loaded_family in QFontDatabase.families():
+        base_font = QFont(loaded_family, 10)
+        logger.info("Using base font: %s", loaded_family)
+    else:
+        base_font = QFont("Segoe UI", 10)
+        logger.info("Falling back to Segoe UI")
+
+    app.setFont(base_font)
 
 def is_compiled() -> bool:
     return getattr(sys, "frozen", False) or "__compiled__" in globals()
