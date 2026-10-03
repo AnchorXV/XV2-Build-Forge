@@ -91,6 +91,13 @@ class SheetDetailDialog(QDialog):
 
         layout.addLayout(btn_row)
 
+        if parent is not None:
+            self.adjustSize()
+            pg = parent.geometry()
+            x = pg.x() + (pg.width() - self.width()) // 2
+            y = pg.y() + (pg.height() - self.height()) // 3
+            self.move(x, y)
+
     def _on_load_clicked(self) -> None:
         indexes = self._table.selectionModel().selectedRows()
         if indexes:

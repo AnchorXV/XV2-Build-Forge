@@ -98,7 +98,7 @@ class RosterTab(QWidget):
         sheet_header.setMinimumSectionSize(40)
         sheet_header.setSectionResizeMode(0, QHeaderView.Stretch)
         sheet_header.setSectionResizeMode(1, QHeaderView.Fixed)
-        sheet_header.resizeSection(1, 50)
+        sheet_header.resizeSection(1, 64)
 
         left_layout.addWidget(self._sheet_view, 1)
 
@@ -156,11 +156,12 @@ class RosterTab(QWidget):
         self._preset_view.set_edit_triggers(QAbstractItemView.NoEditTriggers)
 
         preset_header = self._preset_view.table_view.horizontalHeader()
-        preset_header.setMinimumSectionSize(80)
+        preset_header.setMinimumSectionSize(60)
         preset_header.setSectionResizeMode(QHeaderView.Interactive)
         for i in range(1, len(TABLE_COLUMNS)):
-            preset_header.resizeSection(i, 110)
-        preset_header.setSectionResizeMode(0, QHeaderView.Stretch)
+            preset_header.resizeSection(i, 105)
+        preset_header.setSectionResizeMode(0, QHeaderView.Interactive)
+        preset_header.resizeSection(0, 170)
 
         self._right_stack.addWidget(self._preset_view)
 

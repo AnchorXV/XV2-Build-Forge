@@ -1,15 +1,14 @@
-from __future__ import annotations
-
 import logging
 import sys
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QFont, QFontDatabase
 
-from app_config import APP_NAME, APP_ORG, APP_VERSION
+from app_config import APP_NAME, APP_ORG, APP_VERSION, get_resource_path
 from controllers.app_controller import AppController
 
-# ── Logging Configuration ──────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -18,16 +17,35 @@ logging.basicConfig(
 logger = logging.getLogger("DBXV2BuildForge")
 
 
+def _load_fonts(app: QApplication) -> None:
+    font_files = [
+        "assets/fonts/PlusJakartaSans-VariableFont_wght.ttf",
+    ]
+    loaded = False
+    for rel_path in font_files:
+        path = get_resource_path(rel_path)
+        if not path.exists():
+            logger.warning("Font not found: %s", path)
+            continue
+        font_id = QFontDatabase.addApplicationFont(str(path))
+        if font_id == -1:
+            logger.warning("Failed to load font: %s", path)
+        else:
+            families = QFontDatabase.applicationFontFamilies(font_id)
+            logger.info("Loaded font: %s", families)
+            loaded = True
+
+    base = QFont("Plus Jakarta Sans" if loaded else "Segoe UI", 10)
+    app.setFont(base)
+
+
 def is_compiled() -> bool:
-    """Return True if running in a Nuitka or PyInstaller compiled binary."""
     return getattr(sys, "frozen", False) or "__compiled__" in globals()
 
 
 def main() -> int:
-    """Main application routine."""
     logger.info("Starting %s v%s (compiled=%s)...", APP_NAME, APP_VERSION, is_compiled())
 
-    # High-DPI support
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
@@ -37,15 +55,7 @@ def main() -> int:
     app.setOrganizationName(APP_ORG)
     app.setApplicationVersion(APP_VERSION)
 
-    # ── Note: Global palette override intentionally removed. ──────────
-    # Earlier versions forced QPalette.WindowText and QPalette.Text to
-    # white globally to make item views readable in the dark theme. That
-    # approach broke the light theme and any widget not explicitly styled
-    # via QSS (notably QToolTip and QMessageBox), producing white text on
-    # white/yellow backgrounds.
-    #
-    # All theme colors are now controlled exclusively by the QSS files in
-    # styles/. Do NOT reintroduce a palette override here.
+    _load_fonts(app)
 
     controller = AppController(app)
     controller.start()

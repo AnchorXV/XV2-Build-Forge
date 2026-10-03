@@ -89,7 +89,7 @@ class MainWindow(QMainWindow):
         for sheet_name in self._store.get_all_sheets().keys():
             count = len(self._store.get_sheet_entries(sheet_name))
             commands.append({
-                "label": f"Open Roster: {sheet_name}  ({count})",
+                "label": f"▸  Open Roster: {sheet_name}  ({count})",
                 "search": f"roster sheet {sheet_name}",
                 "action": "open_sheet",
                 "data": {"sheet": sheet_name},
@@ -100,20 +100,20 @@ class MainWindow(QMainWindow):
             if not name:
                 continue
             commands.append({
-                "label": f"Find Character: {name}",
+                "label": f"⌕  Find Character: {name}",
                 "search": f"character db {name}",
                 "action": "find_character",
                 "data": {"name": name},
             })
 
         commands.append({
-            "label": "New Sheet",
+            "label": "+  New Sheet",
             "search": "new sheet create",
             "action": "new_sheet",
             "data": {},
         })
         commands.append({
-            "label": "Save / Backup",
+            "label": "↓  Save / Backup",
             "search": "save backup",
             "action": "save",
             "data": {},

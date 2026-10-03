@@ -25,6 +25,8 @@ class CommandPalette(QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
         self.setModal(True)
         self.setFixedWidth(560)
+        self.setObjectName("CommandPalette")
+        self.setAttribute(Qt.WA_TranslucentBackground, False)
 
         self._all_commands: list[dict] = []
 
