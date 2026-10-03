@@ -19,12 +19,6 @@ TABLE_COLUMNS: Final[list[str]] = [
     "Awoken Skill", "Evasive Skill", "Super Soul",
 ]
 
-SUMMARY_COLUMNS: Final[list[str]] = [
-    "Character Name", "Total Costume", "Total Preset",
-    "Total Super Skill", "Total Ultimate Skill",
-    "Total Awoken Skill", "Total Evasive Skill", "Total Super Soul",
-]
-
 CHAR_DB_COLUMNS: Final[list[str]] = ["Code", "Name", "Playable Character"]
 SKILL_DB_COLUMNS: Final[list[str]] = ["Skill Name", "Is CaC Skill?", "Note"]
 SUPERSOUL_DB_COLUMNS: Final[list[str]] = ["Super Soul", "Effect 1", "Effect 2", "Note"]

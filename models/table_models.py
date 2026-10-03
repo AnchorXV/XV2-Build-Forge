@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Any, Optional, TYPE_CHECKING
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
-from PySide6.QtGui import QBrush, QColor
 
-from app_config import SUMMARY_COLUMNS, TABLE_COLUMNS
+from app_config import TABLE_COLUMNS
 
 if TYPE_CHECKING:
     from models.data_store import AppDataStore
@@ -133,19 +132,6 @@ class DatabaseTableModel(QAbstractTableModel):
         self.beginResetModel()
         self.endResetModel()
 
-    def begin_add(self) -> None:
-        row = len(self._entries)
-        self.beginInsertRows(QModelIndex(), row, row)
-
-    def end_add(self) -> None:
-        self.endInsertRows()
-
-    def begin_remove(self, row: int) -> None:
-        self.beginRemoveRows(QModelIndex(), row, row)
-
-    def end_remove(self) -> None:
-        self.endRemoveRows()
-
     def get_entry(self, row: int) -> Optional[dict]:
         entries = self._entries
         if 0 <= row < len(entries):
@@ -157,83 +143,56 @@ class RosterSummaryTableModel(QAbstractTableModel):
 
     sheets_reordered = Signal(list, list)
 
+    COLUMNS = ["Sheet Name", "Presets"]
+
     def __init__(self, data_store: "AppDataStore", parent: Any = None) -> None:
         super().__init__(parent)
         self._store = data_store
-        self._summaries: list[dict[str, Any]] = []
+        self._sheets: list[tuple[str, int]] = []
         self.rebuild_summaries()
+
+    def rebuild_summaries(self) -> None:
+        self.beginResetModel()
+        self._sheets.clear()
+        for name, presets in self._store.rosters.items():
+            self._sheets.append((name, len(presets)))
+        self.endResetModel()
 
     def refresh(self) -> None:
         self.rebuild_summaries()
 
     def sheet_name_at(self, row: int) -> Optional[str]:
-        return self.get_sheet_name(row)
-
-    def rebuild_summaries(self) -> None:
-        self.beginResetModel()
-        self._summaries.clear()
-        for sheet_name, presets in self._store.rosters.items():
-            meta = self._store.get_sheet_meta(sheet_name)
-            self._summaries.append(self._calculate_summary(sheet_name, presets, meta))
-        self.endResetModel()
+        if 0 <= row < len(self._sheets):
+            return self._sheets[row][0]
+        return None
 
     def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        return len(self._summaries)
+        return len(self._sheets)
 
     def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        return len(SUMMARY_COLUMNS)
+        return 2
 
     def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> Any:
         if not index.isValid():
             return None
         row, col = index.row(), index.column()
-        if row >= len(self._summaries):
+        if row >= len(self._sheets):
             return None
 
-        summary = self._summaries[row]
-        warnings = summary.get("_warnings", [])
-        meta = summary.get("_meta", {})
-        has_note = bool(meta.get("note", "").strip())
-        has_tags = bool(meta.get("tags", []))
+        name, count = self._sheets[row]
 
         if role == Qt.DisplayRole:
-            col_name = SUMMARY_COLUMNS[col]
-            val = str(summary.get(col_name, ""))
-            if col == 0:
-                prefix = ""
-                if warnings:
-                    prefix += "⚠️ "
-                if has_note or has_tags:
-                    prefix += "🏷️ "
-                val = f"{prefix}{val}"
-            return val
-        if role == Qt.ToolTipRole:
-            tooltip_lines = []
-            if has_note:
-                tooltip_lines.append(f"<b>Note:</b> {meta.get('note')}")
-            if has_tags:
-                tooltip_lines.append(f"<b>Tags:</b> {', '.join(meta.get('tags'))}")
-            if warnings:
-                if tooltip_lines:
-                    tooltip_lines.append("<hr>")
-                tooltip_lines.append("<b>Incomplete Presets:</b>")
-                for label, missing in warnings:
-                    tooltip_lines.append(f"• {label}: <i>{', '.join(missing)}</i>")
-            if tooltip_lines:
-                return "<br>".join(tooltip_lines)
-            return None
+            return name if col == 0 else str(count)
         if role == Qt.TextAlignmentRole:
+            if col == 0:
+                return int(Qt.AlignLeft | Qt.AlignVCenter)
             return int(Qt.AlignCenter)
-        if role == Qt.ForegroundRole:
-            if warnings:
-                return QBrush(QColor("#FFCC00"))
-            return None
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-            if 0 <= section < len(SUMMARY_COLUMNS):
-                return SUMMARY_COLUMNS[section]
+            if 0 <= section < len(self.COLUMNS):
+                return self.COLUMNS[section]
         return None
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
@@ -276,12 +235,12 @@ class RosterSummaryTableModel(QAbstractTableModel):
         dragged_rows = sorted(set(dragged_rows))
         dragged_set = set(dragged_rows)
 
-        insert_row = row if row >= 0 else len(self._summaries)
-        insert_row = max(0, min(insert_row, len(self._summaries)))
+        insert_row = row if row >= 0 else len(self._sheets)
+        insert_row = max(0, min(insert_row, len(self._sheets)))
 
         dragged_names = []
         for r in dragged_rows:
-            name = self.get_sheet_name(r)
+            name = self.sheet_name_at(r)
             if name:
                 dragged_names.append(name)
 
@@ -291,9 +250,9 @@ class RosterSummaryTableModel(QAbstractTableModel):
         old_order = list(self._store.rosters.keys())
 
         remaining_names = []
-        for i in range(len(self._summaries)):
+        for i in range(len(self._sheets)):
             if i not in dragged_set:
-                name = self.get_sheet_name(i)
+                name = self.sheet_name_at(i)
                 if name:
                     remaining_names.append(name)
 
@@ -313,77 +272,6 @@ class RosterSummaryTableModel(QAbstractTableModel):
             self.sheets_reordered.emit(old_order, new_order)
 
         return False
-
-    def get_sheet_name(self, row: int) -> Optional[str]:
-        if 0 <= row < len(self._summaries):
-            return str(self._summaries[row].get("Character Name", ""))
-        return None
-
-    @staticmethod
-    def _calculate_summary(table_name: str, presets: list, meta: dict[str, Any] = None) -> dict[str, Any]:
-        from models.completeness import check_preset_completeness
-
-        costumes: set[Any] = set()
-        supers: set[str] = set()
-        ultimates: set[str] = set()
-        awokens: set[str] = set()
-        evasives: set[str] = set()
-        supersouls: set[str] = set()
-        warnings: list[tuple[str, list[str]]] = []
-
-        for p in presets:
-            if hasattr(p, "costume_index"):
-                missing = check_preset_completeness(p)
-                if missing:
-                    label = p.character_name or "Unnamed"
-                    if p.costume_name:
-                        label = f"{label} ({p.costume_name})"
-                    warnings.append((label, missing))
-                costumes.add(p.costume_index)
-                for s in p.super_skills:
-                    if s.strip():
-                        supers.add(s.strip())
-                for u in p.ultimate_skills:
-                    if u.strip():
-                        ultimates.add(u.strip())
-                if p.awoken_skill.strip():
-                    awokens.add(p.awoken_skill.strip())
-                if p.evasive_skill.strip():
-                    evasives.add(p.evasive_skill.strip())
-                if p.super_soul.strip():
-                    supersouls.add(p.super_soul.strip())
-            else:
-                costumes.add(p.get("Costume Index", 0))
-                for i in range(1, 5):
-                    s = str(p.get(f"Super Skill {i}", "")).strip()
-                    if s:
-                        supers.add(s)
-                for i in range(1, 3):
-                    u = str(p.get(f"Ultimate Skill {i}", "")).strip()
-                    if u:
-                        ultimates.add(u)
-                aw = str(p.get("Awoken Skill", "")).strip()
-                if aw:
-                    awokens.add(aw)
-                ev = str(p.get("Evasive Skill", "")).strip()
-                if ev:
-                    evasives.add(ev)
-                ss = str(p.get("Super Soul", "")).strip()
-                if ss:
-                    supersouls.add(ss)
-
-        return {
-            "Character Name": table_name,
-            "Total Costume": len(costumes),
-            "Total Preset": len(presets),
-            "Total Super Skill": len(supers),
-            "Total Ultimate Skill": len(ultimates),
-            "Total Awoken Skill": len(awokens),
-            "Total Evasive Skill": len(evasives),
-            "Total Super Soul": len(supersouls),
-            "_warnings": warnings,
-            "_meta": meta or {},
-        }
 
 
 class PresetDetailTableModel(QAbstractTableModel):
@@ -410,29 +298,14 @@ class PresetDetailTableModel(QAbstractTableModel):
         p = self._presets[row]
         col_name = TABLE_COLUMNS[col]
 
-        missing = []
-        if hasattr(p, "costume_index"):
-            from models.completeness import check_preset_completeness
-            missing = check_preset_completeness(p)
-
         if role == Qt.DisplayRole:
             if hasattr(p, "to_dict"):
                 val = str(p.to_dict().get(col_name, ""))
             else:
                 val = str(p.get(col_name, ""))
-            if col == 0 and missing:
-                val = f"⚠️ {val}"
             return val
-        if role == Qt.ToolTipRole:
-            if missing:
-                return f"Missing slots: {', '.join(missing)}"
-            return None
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
-        if role == Qt.ForegroundRole:
-            if missing:
-                return QBrush(QColor("#FFCC00"))
-            return None
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:

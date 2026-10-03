@@ -395,3 +395,92 @@ QFrame#sectionHeaderLine {
     background-color: #2a2a2a;
     border: none;
 }
+
+/* ── Roster Split View ──────────────────────────────────────────────── */
+QSplitter#rosterSplitter::handle {
+    background-color: #2a2a2a;
+}
+
+QSplitter#rosterSplitter::handle:horizontal {
+    width: 4px;
+}
+
+QSplitter#rosterSplitter::handle:hover {
+    background-color: #2b5797;
+}
+
+QLabel#panelHeader {
+    color: #6a6a6a;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 4px 2px;
+}
+
+QLabel#emptyStateLabel {
+    color: #5a5a5a;
+    font-size: 14px;
+    font-style: italic;
+}
+
+QPushButton#secondaryButton {
+    background-color: #2d2d30;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+QPushButton#secondaryButton:hover {
+    background-color: #3c3c3c;
+    border-color: #2b5797;
+}
+
+QPushButton#secondaryButton:disabled {
+    color: #5a5a5a;
+    border-color: #2a2a2a;
+}
+
+QPushButton#dangerButton {
+    background-color: #2d2d30;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+QPushButton#dangerButton:hover {
+    background-color: #7a2828;
+    border-color: #a03030;
+    color: #ffffff;
+}
+
+QPushButton#dangerButton:disabled {
+    color: #5a5a5a;
+    border-color: #2a2a2a;
+}
+
+QTableView#sheetList {
+    background-color: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+}
+
+QTableView#sheetList::item {
+    padding: 8px 10px;
+    color: #d4d4d4;
+    border-bottom: 1px solid #232323;
+}
+
+QTableView#sheetList::item:selected {
+    background-color: #2b5797;
+    color: #ffffff;
+}
+
+QTableView#sheetList::item:hover {
+    background-color: #252526;
+}

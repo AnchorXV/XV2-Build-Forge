@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QMenu,
     QMessageBox,
     QPushButton,
+    QSplitter,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -21,22 +23,22 @@ from PySide6.QtWidgets import (
 from controllers.signal_bus import signal_bus
 from controllers.undo_commands import (
     AddSheetCommand,
+    DeletePresetEntryCommand,
     DeleteSheetCommand,
     DuplicateSheetCommand,
     EditSheetNoteTagsCommand,
     RenameSheetCommand,
+    ReorderPresetsCommand,
     ReorderSheetsCommand,
 )
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
-from views.dialogs.export_dialog import run_export_flow
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
-from views.widgets.toolbar_widget import ToolbarWidget
 
-from app_config import SUMMARY_COLUMNS
+from app_config import TABLE_COLUMNS
 
 logger = logging.getLogger(__name__)
 
@@ -47,97 +49,227 @@ class RosterTab(QWidget):
         super().__init__(parent)
         self._store = data_store
         self._undo_stack = undo_stack
-        self._model = RosterSummaryTableModel(data_store)
+        self._current_sheet: Optional[str] = None
+
+        self._sheet_model = RosterSummaryTableModel(data_store)
+        self._preset_model = PresetDetailTableModel([])
 
         self._build_ui()
         self._connect_signals()
         self._setup_shortcuts()
 
-    # ── UI ──────────────────────────────────────────────────────────────
+        if self._sheet_model.rowCount() > 0:
+            self._select_sheet_row(0)
+        else:
+            self._load_sheet_into_right_panel(None)
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
 
-        self._toolbar = ToolbarWidget(
-            add_tooltip=tr("roster.dialog.create_title"),
-            search_placeholder=tr("roster.placeholder.search"),
-            search_label=tr("roster.label.search"),
-            sort_label=tr("roster.button.sort_az"),
-            parent=self,
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setChildrenCollapsible(False)
+        splitter.setHandleWidth(4)
+        splitter.setObjectName("rosterSplitter")
+
+        left = QWidget()
+        left_layout = QVBoxLayout(left)
+        left_layout.setContentsMargins(16, 16, 8, 16)
+        left_layout.setSpacing(8)
+
+        self._sheets_header = QLabel(tr("roster.panel.sheets_header", default="SHEETS"))
+        self._sheets_header.setObjectName("panelHeader")
+        left_layout.addWidget(self._sheets_header)
+
+        self._sheet_view = SearchableTableView(
+            sortable=False,
+            selection_mode=QAbstractItemView.SingleSelection,
+            drag_drop=True,
+            stretch_columns=False,
         )
-        layout.addWidget(self._toolbar)
+        self._sheet_view.set_source_model(self._sheet_model)
+        self._sheet_view.table_view.setObjectName("sheetList")
+        self._sheet_view.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._sheet_view.table_view.verticalHeader().setVisible(False)
+        self._sheet_view.table_view.setShowGrid(False)
+        self._sheet_view.set_edit_triggers(QAbstractItemView.NoEditTriggers)
 
-        self._stv = SearchableTableView(
-            self,
+        sheet_header = self._sheet_view.table_view.horizontalHeader()
+        sheet_header.setMinimumSectionSize(40)
+        sheet_header.setSectionResizeMode(0, QHeaderView.Stretch)
+        sheet_header.setSectionResizeMode(1, QHeaderView.Fixed)
+        sheet_header.resizeSection(1, 50)
+
+        left_layout.addWidget(self._sheet_view, 1)
+
+        left_btn_row = QHBoxLayout()
+        left_btn_row.setSpacing(6)
+
+        self._new_sheet_btn = QPushButton(tr("roster.button.new_sheet", default="+ New"))
+        self._new_sheet_btn.setObjectName("secondaryButton")
+        self._new_sheet_btn.clicked.connect(self._on_add_sheet)
+        left_btn_row.addWidget(self._new_sheet_btn)
+
+        self._note_btn = QPushButton(tr("roster.button.edit_note_tags"))
+        self._note_btn.setObjectName("secondaryButton")
+        self._note_btn.clicked.connect(self._on_edit_note_tags_clicked)
+        left_btn_row.addWidget(self._note_btn)
+
+        self._delete_sheet_btn = QPushButton(tr("roster.context_menu.delete"))
+        self._delete_sheet_btn.setObjectName("dangerButton")
+        self._delete_sheet_btn.clicked.connect(self._on_delete_sheet_clicked)
+        left_btn_row.addWidget(self._delete_sheet_btn)
+
+        left_layout.addLayout(left_btn_row)
+        splitter.addWidget(left)
+
+        right = QWidget()
+        right_layout = QVBoxLayout(right)
+        right_layout.setContentsMargins(8, 16, 16, 16)
+        right_layout.setSpacing(8)
+
+        self._preset_header = QLabel(tr("roster.panel.select_sheet", default="Select a sheet"))
+        self._preset_header.setObjectName("panelHeader")
+        right_layout.addWidget(self._preset_header)
+
+        self._right_stack = QStackedWidget()
+
+        empty = QWidget()
+        empty_layout = QVBoxLayout(empty)
+        empty_layout.addStretch()
+        empty_label = QLabel(tr("roster.panel.empty_state", default="Pilih sheet dari panel kiri"))
+        empty_label.setObjectName("emptyStateLabel")
+        empty_label.setAlignment(Qt.AlignCenter)
+        empty_layout.addWidget(empty_label)
+        empty_layout.addStretch()
+        self._right_stack.addWidget(empty)
+
+        self._preset_view = SearchableTableView(
             sortable=True,
             selection_mode=QAbstractItemView.ExtendedSelection,
             drag_drop=True,
+            stretch_columns=False,
         )
-        self._stv.set_source_model(self._model)
-        self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._preset_view.set_source_model(self._preset_model)
+        self._preset_view.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._preset_view.table_view.verticalHeader().setVisible(False)
+        self._preset_view.set_edit_triggers(QAbstractItemView.NoEditTriggers)
 
-        header = self._stv.table_view.horizontalHeader()
-        header.setMinimumSectionSize(60)
-        header.setSectionResizeMode(QHeaderView.Interactive)
-        for i in range(1, len(SUMMARY_COLUMNS)):
-            header.resizeSection(i, 100)
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        preset_header = self._preset_view.table_view.horizontalHeader()
+        preset_header.setMinimumSectionSize(80)
+        preset_header.setSectionResizeMode(QHeaderView.Interactive)
+        for i in range(1, len(TABLE_COLUMNS)):
+            preset_header.resizeSection(i, 110)
+        preset_header.setSectionResizeMode(0, QHeaderView.Stretch)
 
-        layout.addWidget(self._stv)
+        self._right_stack.addWidget(self._preset_view)
 
-        bottom = QHBoxLayout()
+        right_layout.addWidget(self._right_stack, 1)
 
-        self._hint_label = QLabel(tr("roster.label.hint"))
-        self._hint_label.setObjectName("hintLabel")
-        bottom.addWidget(self._hint_label, 1)
+        right_btn_row = QHBoxLayout()
+        right_btn_row.setSpacing(6)
+        right_btn_row.addStretch()
 
-        self._note_tags_btn = QPushButton(tr("roster.button.edit_note_tags", default="Edit Note & Tags"))
-        self._note_tags_btn.setObjectName("noteTagsButton")
-        bottom.addWidget(self._note_tags_btn)
+        self._load_btn = QPushButton(tr("dialog.sheet_detail.load_into_editor"))
+        self._load_btn.setObjectName("secondaryButton")
+        self._load_btn.clicked.connect(self._on_load_clicked)
+        right_btn_row.addWidget(self._load_btn)
 
-        self._export_btn = QPushButton(tr("roster.button.export_selected"))
-        self._export_btn.setObjectName("exportButton")
-        bottom.addWidget(self._export_btn)
+        self._open_detail_btn = QPushButton(tr("roster.button.open_detail", default="Open Detail Dialog"))
+        self._open_detail_btn.setObjectName("secondaryButton")
+        self._open_detail_btn.clicked.connect(self._on_open_detail_clicked)
+        right_btn_row.addWidget(self._open_detail_btn)
 
-        layout.addLayout(bottom)
+        self._delete_preset_btn = QPushButton(tr("roster.context_menu.delete_preset"))
+        self._delete_preset_btn.setObjectName("dangerButton")
+        self._delete_preset_btn.clicked.connect(self._on_delete_preset_clicked)
+        right_btn_row.addWidget(self._delete_preset_btn)
 
-    # ── Signals ─────────────────────────────────────────────────────────
+        right_layout.addLayout(right_btn_row)
+        splitter.addWidget(right)
+
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([280, 800])
+
+        root.addWidget(splitter)
 
     def _connect_signals(self) -> None:
-        self._toolbar.add_clicked.connect(self._on_add_sheet)
-        self._toolbar.sort_clicked.connect(lambda: self._stv.sort_toggle(0))
-        self._toolbar.search_changed.connect(self._stv.set_filter_text)
+        self._sheet_view.table_view.selectionModel().selectionChanged.connect(self._on_sheet_selection_changed)
+        self._sheet_view.table_view.customContextMenuRequested.connect(self._on_sheet_context_menu)
+        self._sheet_view.table_view.doubleClicked.connect(self._on_sheet_double_clicked)
+        self._sheet_model.sheets_reordered.connect(self._on_sheets_reordered)
 
-        self._stv.table_view.doubleClicked.connect(self._on_double_click)
-        self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
-        self._note_tags_btn.clicked.connect(self._on_edit_note_tags_clicked)
-        self._export_btn.clicked.connect(self._on_export)
+        self._preset_view.table_view.doubleClicked.connect(self._on_preset_double_clicked)
+        self._preset_view.table_view.customContextMenuRequested.connect(self._on_preset_context_menu)
+        self._preset_model.presets_reordered.connect(self._on_presets_reordered)
 
-        self._model.sheets_reordered.connect(self._on_sheets_reordered)
-
-        signal_bus.data_changed.connect(self._model.refresh)
-
-    # ── Shortcuts ───────────────────────────────────────────────────────
+        signal_bus.data_changed.connect(self._on_data_changed)
 
     def _setup_shortcuts(self) -> None:
-        table = self._stv.table_view
-
-        QShortcut(QKeySequence("Ctrl+F"), self, self._focus_search)
-
+        QShortcut(QKeySequence("Ctrl+N"), self, self._on_add_sheet)
         QShortcut(
-            QKeySequence("Ctrl+D"),
-            table,
-            self._duplicate_selected,
+            QKeySequence("Delete"),
+            self._sheet_view.table_view,
+            self._on_delete_sheet_clicked,
             context=Qt.WidgetWithChildrenShortcut,
         )
         QShortcut(
             QKeySequence("Delete"),
-            table,
-            self._delete_selected,
+            self._preset_view.table_view,
+            self._on_delete_preset_clicked,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
-    # ── Handlers ────────────────────────────────────────────────────────
+    def _select_sheet_row(self, row: int) -> None:
+        proxy_index = self._sheet_view.proxy_model.mapFromSource(
+            self._sheet_model.index(row, 0)
+        )
+        if not proxy_index.isValid():
+            return
+
+        sel = self._sheet_view.table_view.selectionModel()
+        sel.select(
+            proxy_index,
+            sel.SelectionFlag.Select | sel.SelectionFlag.Clear,
+        )
+        self._sheet_view.table_view.setCurrentIndex(proxy_index)
+
+    def _get_selected_sheet_name(self) -> Optional[str]:
+        sel = self._sheet_view.table_view.selectionModel()
+        if not sel.hasSelection():
+            return None
+        indexes = sel.selectedRows()
+        if not indexes:
+            return None
+        return self._sheet_model.sheet_name_at(indexes[0].row())
+
+    def _on_sheet_selection_changed(self, *_args) -> None:
+        name = self._get_selected_sheet_name()
+        self._load_sheet_into_right_panel(name)
+
+    def _load_sheet_into_right_panel(self, sheet_name: Optional[str]) -> None:
+        self._current_sheet = sheet_name
+        if sheet_name is None:
+            self._preset_header.setText(tr("roster.panel.select_sheet", default="Select a sheet"))
+            self._right_stack.setCurrentIndex(0)
+            self._set_right_buttons_enabled(False)
+            return
+
+        entries = self._store.get_sheet_entries(sheet_name)
+        self._preset_model.update_data(entries)
+        count = len(entries)
+        label = f"{sheet_name}  ·  {count} preset"
+        if count != 1:
+            label += "s"
+        self._preset_header.setText(label)
+        self._right_stack.setCurrentIndex(1)
+        self._set_right_buttons_enabled(True)
+
+    def _set_right_buttons_enabled(self, enabled: bool) -> None:
+        self._load_btn.setEnabled(enabled)
+        self._open_detail_btn.setEnabled(enabled)
+        self._delete_preset_btn.setEnabled(enabled)
 
     def _on_add_sheet(self) -> None:
         name, ok = QInputDialog.getText(
@@ -153,56 +285,43 @@ class RosterTab(QWidget):
             cmd = AddSheetCommand(self._store, name)
             self._undo_stack.push(cmd)
 
-    def _focus_search(self) -> None:
-        self._toolbar.search_input.setFocus()
-        self._toolbar.search_input.selectAll()
-
-    def _get_selected_sheet_name(self) -> Optional[str]:
-        selection = self._stv.table_view.selectionModel()
-        if not selection.hasSelection():
-            return None
-        indexes = selection.selectedRows()
-        if not indexes:
-            return None
-        source_index = self._stv.proxy_model.mapToSource(indexes[0])
-        return self._model.sheet_name_at(source_index.row())
-
-    def _duplicate_selected(self) -> None:
-        sheet_name = self._get_selected_sheet_name()
-        if sheet_name:
-            self._duplicate_sheet(sheet_name)
-
-    def _delete_selected(self) -> None:
-        sheet_name = self._get_selected_sheet_name()
-        if sheet_name:
-            self._delete_sheet(sheet_name)
-
-    def _on_double_click(self, proxy_index) -> None:
-        source_index = self._stv.proxy_model.mapToSource(proxy_index)
-        row = source_index.row()
-        sheet_name = self._model.sheet_name_at(row)
-        if sheet_name is None:
+    def _on_edit_note_tags_clicked(self) -> None:
+        name = self._get_selected_sheet_name()
+        if not name:
+            QMessageBox.warning(self, tr("dialog.common.warning"), tr("roster.message.select_export"))
             return
 
-        entries = self._store.get_sheet_entries(sheet_name)
-        self._store.add_recent_sheet(sheet_name)
-        detail_model = PresetDetailTableModel(entries)
-        dlg = SheetDetailDialog(sheet_name, detail_model, self._store, self._undo_stack, self)
-        dlg.load_into_editor.connect(lambda r: self._load_entry(sheet_name, r))
-        dlg.exec()
+        meta = self._store.get_sheet_meta(name)
+        dialog = SheetNoteTagsDialog(name, meta, self)
+        if dialog.exec():
+            new_meta = dialog.get_meta()
+            if new_meta != meta:
+                cmd = EditSheetNoteTagsCommand(self._store, name, meta, new_meta)
+                self._undo_stack.push(cmd)
 
-    def _load_entry(self, sheet_name: str, row: int) -> None:
-        entries = self._store.get_sheet_entries(sheet_name)
-        if 0 <= row < len(entries):
-            signal_bus.load_entry_to_editor.emit(entries[row], sheet_name)
+    def _on_delete_sheet_clicked(self) -> None:
+        name = self._get_selected_sheet_name()
+        if not name:
+            return
+        reply = QMessageBox.question(
+            self,
+            tr("dialog.common.confirm"),
+            tr("roster.message.confirm_delete", name=name),
+        )
+        if reply == QMessageBox.Yes:
+            cmd = DeleteSheetCommand(self._store, name)
+            self._undo_stack.push(cmd)
 
-    def _on_context_menu(self, pos) -> None:
-        index = self._stv.table_view.indexAt(pos)
+    def _on_sheet_double_clicked(self, proxy_index) -> None:
+        self._on_open_detail_clicked()
+
+    def _on_sheet_context_menu(self, pos) -> None:
+        index = self._sheet_view.table_view.indexAt(pos)
         if not index.isValid():
             return
-        source_index = self._stv.proxy_model.mapToSource(index)
-        sheet_name = self._model.sheet_name_at(source_index.row())
-        if sheet_name is None:
+        source_index = self._sheet_view.proxy_model.mapToSource(index)
+        name = self._sheet_model.sheet_name_at(source_index.row())
+        if name is None:
             return
 
         menu = QMenu(self)
@@ -212,15 +331,15 @@ class RosterTab(QWidget):
         menu.addSeparator()
         delete_action = menu.addAction(tr("roster.context_menu.delete"))
 
-        action = menu.exec(self._stv.table_view.viewport().mapToGlobal(pos))
+        action = menu.exec(self._sheet_view.table_view.viewport().mapToGlobal(pos))
         if action == rename_action:
-            self._rename_sheet(sheet_name)
+            self._rename_sheet(name)
         elif action == duplicate_action:
-            self._duplicate_sheet(sheet_name)
+            self._duplicate_sheet(name)
         elif action == note_tags_action:
-            self._edit_note_tags(sheet_name)
+            self._on_edit_note_tags_clicked()
         elif action == delete_action:
-            self._delete_sheet(sheet_name)
+            self._on_delete_sheet_clicked()
 
     def _rename_sheet(self, old_name: str) -> None:
         new_name, ok = QInputDialog.getText(
@@ -252,46 +371,102 @@ class RosterTab(QWidget):
             cmd = DuplicateSheetCommand(self._store, sheet_name, new_name)
             self._undo_stack.push(cmd)
 
-    def _on_edit_note_tags_clicked(self) -> None:
-        sheet_name = self._get_selected_sheet_name()
-        if sheet_name:
-            self._edit_note_tags(sheet_name)
-        else:
-            QMessageBox.warning(self, tr("dialog.common.warning"), tr("roster.message.select_export", default="Please select a sheet first."))
-
-    def _edit_note_tags(self, sheet_name: str) -> None:
-        meta = self._store.get_sheet_meta(sheet_name)
-        dialog = SheetNoteTagsDialog(sheet_name, meta, self)
-        if dialog.exec():
-            new_meta = dialog.get_meta()
-            if new_meta != meta:
-                cmd = EditSheetNoteTagsCommand(self._store, sheet_name, meta, new_meta)
-                self._undo_stack.push(cmd)
-
-    def _delete_sheet(self, name: str) -> None:
-        reply = QMessageBox.question(
-            self,
-            tr("dialog.common.confirm"),
-            tr("roster.message.confirm_delete", name=name),
-        )
-        if reply == QMessageBox.Yes:
-            cmd = DeleteSheetCommand(self._store, name)
-            self._undo_stack.push(cmd)
-
-    def _on_export(self) -> None:
-        selected_rows = self._stv.selected_source_rows()
-        if not selected_rows:
-            QMessageBox.warning(self, tr("dialog.common.warning"), tr("roster.message.select_export"))
-            return
-
-        sheets: dict[str, list] = {}
-        for row in selected_rows:
-            name = self._model.sheet_name_at(row)
-            if name:
-                sheets[name] = self._store.get_sheet_entries(name)
-
-        run_export_flow(self, sheets)
-
     def _on_sheets_reordered(self, old_order: list[str], new_order: list[str]) -> None:
         cmd = ReorderSheetsCommand(self._store, old_order, new_order)
         self._undo_stack.push(cmd)
+
+    def _on_load_clicked(self) -> None:
+        if not self._current_sheet:
+            return
+        rows = self._preset_view.selected_source_rows()
+        if not rows:
+            return
+        self._load_entry(self._current_sheet, rows[0])
+
+    def _on_open_detail_clicked(self) -> None:
+        name = self._get_selected_sheet_name()
+        if not name:
+            return
+        entries = self._store.get_sheet_entries(name)
+        self._store.add_recent_sheet(name)
+        detail_model = PresetDetailTableModel(entries)
+        dlg = SheetDetailDialog(name, detail_model, self._store, self._undo_stack, self)
+        dlg.load_into_editor.connect(lambda r: self._load_entry(name, r))
+        dlg.exec()
+        self._load_sheet_into_right_panel(name)
+
+    def _on_delete_preset_clicked(self) -> None:
+        if not self._current_sheet:
+            return
+        rows = self._preset_view.selected_source_rows()
+        if not rows:
+            return
+
+        entries = self._store.get_sheet_entries(self._current_sheet)
+        if len(rows) == 1:
+            row = rows[0]
+            if 0 <= row < len(entries):
+                entry = entries[row]
+                reply = QMessageBox.question(
+                    self,
+                    tr("dialog.common.confirm"),
+                    tr("roster.message.confirm_delete_preset", name=entry.character_name),
+                )
+                if reply == QMessageBox.Yes:
+                    cmd = DeletePresetEntryCommand(self._store, self._current_sheet, entry, row)
+                    self._undo_stack.push(cmd)
+        else:
+            reply = QMessageBox.question(
+                self,
+                tr("dialog.common.confirm"),
+                f"Delete {len(rows)} presets?",
+            )
+            if reply == QMessageBox.Yes:
+                self._undo_stack.beginMacro(f"Delete {len(rows)} presets")
+                for row in sorted(rows, reverse=True):
+                    if 0 <= row < len(entries):
+                        cmd = DeletePresetEntryCommand(self._store, self._current_sheet, entries[row], row)
+                        self._undo_stack.push(cmd)
+                self._undo_stack.endMacro()
+
+    def _on_preset_double_clicked(self, proxy_index) -> None:
+        if not self._current_sheet:
+            return
+        source_index = self._preset_view.proxy_model.mapToSource(proxy_index)
+        self._load_entry(self._current_sheet, source_index.row())
+
+    def _on_preset_context_menu(self, pos) -> None:
+        index = self._preset_view.table_view.indexAt(pos)
+        if not index.isValid():
+            return
+        menu = QMenu(self)
+        load_action = menu.addAction(tr("dialog.sheet_detail.load_into_editor"))
+        delete_action = menu.addAction(tr("roster.context_menu.delete_preset"))
+        action = menu.exec(self._preset_view.table_view.viewport().mapToGlobal(pos))
+        if action == load_action:
+            self._on_load_clicked()
+        elif action == delete_action:
+            self._on_delete_preset_clicked()
+
+    def _on_presets_reordered(self, old_order: list[str], new_order: list[str]) -> None:
+        if not self._current_sheet:
+            return
+        cmd = ReorderPresetsCommand(self._store, self._current_sheet, old_order, new_order)
+        self._undo_stack.push(cmd)
+
+    def _load_entry(self, sheet_name: str, row: int) -> None:
+        entries = self._store.get_sheet_entries(sheet_name)
+        if 0 <= row < len(entries):
+            signal_bus.load_entry_to_editor.emit(entries[row], sheet_name)
+
+    def _on_data_changed(self) -> None:
+        self._sheet_model.refresh()
+
+        if self._current_sheet and self._current_sheet in self._store.rosters:
+            for i in range(self._sheet_model.rowCount()):
+                if self._sheet_model.sheet_name_at(i) == self._current_sheet:
+                    self._select_sheet_row(i)
+                    break
+            self._load_sheet_into_right_panel(self._current_sheet)
+        else:
+            self._load_sheet_into_right_panel(None)

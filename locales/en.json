@@ -78,10 +78,17 @@
     }
   },
   "roster": {
+    "panel": {
+      "sheets_header": "SHEETS",
+      "select_sheet": "Select a sheet",
+      "empty_state": "Pilih sheet dari panel kiri"
+    },
     "button": {
       "export_selected": "Export Selected",
       "sort_az": "Sort A-Z",
-      "edit_note_tags": "Edit Note & Tags"
+      "edit_note_tags": "Edit Note and Tags",
+      "new_sheet": "+ New",
+      "open_detail": "Open Detail Dialog"
     },
     "label": {
       "search": "Search Sheet:",
@@ -95,7 +102,7 @@
       "duplicate": "Duplicate Sheet",
       "delete": "Delete Sheet",
       "delete_preset": "Delete Preset",
-      "edit_note_tags": "Edit Note & Tags"
+      "edit_note_tags": "Edit Note and Tags"
     },
     "dialog": {
       "create_title": "Create New Roster Sheet",
@@ -104,7 +111,7 @@
       "rename_title": "Rename Sheet: {name}",
       "rename_label": "New Name:",
       "detail_title": "Content Detail Sheet - [{name}]",
-      "note_tags_title": "Edit Note & Tags: {name}",
+      "note_tags_title": "Edit Note and Tags: {name}",
       "note_tags_note_label": "Sheet Note:",
       "note_tags_note_placeholder": "Write your notes here...",
       "note_tags_tags_label": "Tags (comma separated):",
