@@ -85,8 +85,9 @@ class RosterTab(QWidget):
         left_layout.addWidget(self._sheets_header)
 
         self._sheet_view = SearchableTableView(
+            self,
             sortable=False,
-            selection_mode=QAbstractItemView.SingleSelection,
+            selection_mode=QAbstractItemView.ExtendedSelection,
             drag_drop=True,
             stretch_columns=False,
         )
@@ -248,6 +249,18 @@ class RosterTab(QWidget):
             self._on_find_replace,
             context=Qt.WidgetWithChildrenShortcut,
         )
+        QShortcut(
+            QKeySequence("Ctrl+A"),
+            self._sheet_view.table_view,
+            self._sheet_view.table_view.selectAll,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+A"),
+            self._preset_view.table_view,
+            self._preset_view.table_view.selectAll,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
 
 
     def _select_sheet_row(self, row: int) -> None:
@@ -279,6 +292,17 @@ class RosterTab(QWidget):
         if not indexes:
             return None
         return self._sheet_model.sheet_name_at(indexes[0].row())
+
+    def _get_selected_sheet_names(self) -> list[str]:
+        sel = self._sheet_view.table_view.selectionModel()
+        if not sel.hasSelection():
+            return []
+        names: list[str] = []
+        for idx in sel.selectedRows():
+            name = self._sheet_model.sheet_name_at(idx.row())
+            if name:
+                names.append(name)
+        return names
 
     def _on_sheet_selection_changed(self, *_args) -> None:
         name = self._get_selected_sheet_name()
@@ -336,17 +360,31 @@ class RosterTab(QWidget):
                 self._undo_stack.push(cmd)
 
     def _on_delete_sheet_clicked(self) -> None:
-        name = self._get_selected_sheet_name()
-        if not name:
+        names = self._get_selected_sheet_names()
+        if not names:
             return
-        reply = QMessageBox.question(
-            self,
-            tr("dialog.common.confirm"),
-            tr("roster.message.confirm_delete", name=name),
-        )
-        if reply == QMessageBox.Yes:
-            cmd = DeleteSheetCommand(self._store, name)
-            self._undo_stack.push(cmd)
+
+        if len(names) == 1:
+            reply = QMessageBox.question(
+                self,
+                tr("dialog.common.confirm"),
+                tr("roster.message.confirm_delete", name=names[0]),
+            )
+            if reply == QMessageBox.Yes:
+                cmd = DeleteSheetCommand(self._store, names[0])
+                self._undo_stack.push(cmd)
+        else:
+            reply = QMessageBox.question(
+                self,
+                tr("dialog.common.confirm"),
+                f"Delete {len(names)} sheets?",
+            )
+            if reply == QMessageBox.Yes:
+                self._undo_stack.beginMacro(f"Delete {len(names)} sheets")
+                for name in names:
+                    cmd = DeleteSheetCommand(self._store, name)
+                    self._undo_stack.push(cmd)
+                self._undo_stack.endMacro()
 
     def _on_sheet_double_clicked(self, proxy_index) -> None:
         self._on_open_detail_clicked()
