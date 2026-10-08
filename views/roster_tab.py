@@ -38,10 +38,10 @@ from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from models.preset_clipboard import PresetClipboard
 from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
+from views.dialogs.find_replace_dialog import FindReplaceDialog
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
-from views.dialogs.find_replace_dialog import FindReplaceDialog
 
 logger = logging.getLogger(__name__)
 
@@ -262,6 +262,7 @@ class RosterTab(QWidget):
             context=Qt.WidgetWithChildrenShortcut,
         )
 
+    # ── Navigation ─────────────────────────────────────────────────────
 
     def _select_sheet_row(self, row: int) -> None:
         proxy_index = self._sheet_view.proxy_model.mapFromSource(
@@ -304,6 +305,17 @@ class RosterTab(QWidget):
                 names.append(name)
         return names
 
+    def _get_selected_preset_entries(self) -> list:
+        if not self._current_sheet:
+            return []
+        rows = self._preset_view.selected_source_rows()
+        if not rows:
+            return []
+        entries = self._store.get_sheet_entries(self._current_sheet)
+        return [entries[r] for r in rows if 0 <= r < len(entries)]
+
+    # ── Sheet events ───────────────────────────────────────────────────
+
     def _on_sheet_selection_changed(self, *_args) -> None:
         name = self._get_selected_sheet_name()
         self._load_sheet_into_right_panel(name)
@@ -330,6 +342,8 @@ class RosterTab(QWidget):
         self._load_btn.setEnabled(enabled)
         self._open_detail_btn.setEnabled(enabled)
         self._delete_preset_btn.setEnabled(enabled)
+
+    # ── Sheet operations ───────────────────────────────────────────────
 
     def _on_add_sheet(self) -> None:
         name, ok = QInputDialog.getText(
@@ -377,10 +391,12 @@ class RosterTab(QWidget):
             reply = QMessageBox.question(
                 self,
                 tr("dialog.common.confirm"),
-                f"Delete {len(names)} sheets?",
+                tr("roster.message.confirm_delete_multiple", count=len(names)),
             )
             if reply == QMessageBox.Yes:
-                self._undo_stack.beginMacro(f"Delete {len(names)} sheets")
+                self._undo_stack.beginMacro(
+                    tr("undo.macro.delete_sheets", count=len(names))
+                )
                 for name in names:
                     cmd = DeleteSheetCommand(self._store, name)
                     self._undo_stack.push(cmd)
@@ -449,6 +465,8 @@ class RosterTab(QWidget):
         cmd = ReorderSheetsCommand(self._store, old_order, new_order)
         self._undo_stack.push(cmd)
 
+    # ── Preset operations ──────────────────────────────────────────────
+
     def _on_load_clicked(self) -> None:
         if not self._current_sheet:
             return
@@ -493,10 +511,12 @@ class RosterTab(QWidget):
             reply = QMessageBox.question(
                 self,
                 tr("dialog.common.confirm"),
-                f"Delete {len(rows)} presets?",
+                tr("roster.message.confirm_delete_preset_multiple", count=len(rows)),
             )
             if reply == QMessageBox.Yes:
-                self._undo_stack.beginMacro(f"Delete {len(rows)} presets")
+                self._undo_stack.beginMacro(
+                    tr("undo.macro.delete_presets", count=len(rows), sheet=self._current_sheet)
+                )
                 for row in sorted(rows, reverse=True):
                     if 0 <= row < len(entries):
                         cmd = DeletePresetEntryCommand(self._store, self._current_sheet, entries[row], row)
@@ -534,27 +554,30 @@ class RosterTab(QWidget):
             signal_bus.load_entry_to_editor.emit(entries[row], sheet_name)
 
     def _on_data_changed(self) -> None:
-        self._sheet_model.refresh()
+        sheet_name = self._current_sheet
 
-        if self._current_sheet and self._current_sheet in self._store.rosters:
-            for i in range(self._sheet_model.rowCount()):
-                if self._sheet_model.sheet_name_at(i) == self._current_sheet:
-                    self._select_sheet_row(i)
-                    break
-            self._load_sheet_into_right_panel(self._current_sheet)
-        else:
-            self._load_sheet_into_right_panel(None)
+        sel_model = self._sheet_view.table_view.selectionModel()
+        if sel_model is not None:
+            sel_model.blockSignals(True)
+
+        try:
+            self._sheet_model.refresh()
+
+            if sheet_name and sheet_name in self._store.rosters:
+                for i in range(self._sheet_model.rowCount()):
+                    if self._sheet_model.sheet_name_at(i) == sheet_name:
+                        self._select_sheet_row(i)
+                        break
+                self._current_sheet = sheet_name
+                self._load_sheet_into_right_panel(sheet_name)
+            else:
+                self._current_sheet = None
+                self._load_sheet_into_right_panel(None)
+        finally:
+            if sel_model is not None:
+                sel_model.blockSignals(False)
 
     # ── Clipboard ──────────────────────────────────────────────────────
-
-    def _get_selected_preset_entries(self) -> list:
-        if not self._current_sheet:
-            return []
-        rows = self._preset_view.selected_source_rows()
-        if not rows:
-            return []
-        entries = self._store.get_sheet_entries(self._current_sheet)
-        return [entries[r] for r in rows if 0 <= r < len(entries)]
 
     def _on_preset_copy(self) -> None:
         selected = self._get_selected_preset_entries()
@@ -563,7 +586,7 @@ class RosterTab(QWidget):
         PresetClipboard.instance().set(selected)
         QToolTip.showText(
             QCursor.pos(),
-            f"Copied {len(selected)} preset(s). Ctrl+V to paste.",
+            tr("preset.clipboard.copied", count=len(selected)),
             self._preset_view.table_view,
         )
 
@@ -580,7 +603,9 @@ class RosterTab(QWidget):
 
         PresetClipboard.instance().set([e for _, e in selected])
 
-        self._undo_stack.beginMacro(f"Cut {len(selected)} preset(s) from '{self._current_sheet}'")
+        self._undo_stack.beginMacro(
+            tr("undo.macro.cut_presets", count=len(selected), sheet=self._current_sheet)
+        )
         for row, entry in sorted(selected, key=lambda x: x[0], reverse=True):
             cmd = DeletePresetEntryCommand(self._store, self._current_sheet, entry, row)
             self._undo_stack.push(cmd)
@@ -588,7 +613,7 @@ class RosterTab(QWidget):
 
         QToolTip.showText(
             QCursor.pos(),
-            f"Cut {len(selected)} preset(s). Ctrl+V to paste.",
+            tr("preset.clipboard.cut", count=len(selected)),
             self._preset_view.table_view,
         )
 
@@ -602,7 +627,9 @@ class RosterTab(QWidget):
         entries = clipboard.get_entries()
         count = len(entries)
 
-        self._undo_stack.beginMacro(f"Paste {count} preset(s) into '{self._current_sheet}'")
+        self._undo_stack.beginMacro(
+            tr("undo.macro.paste_presets", count=count, sheet=self._current_sheet)
+        )
         for e in entries:
             cloned = PresetClipboard.clone_with_new_id(e)
             cmd = AddPresetEntryCommand(self._store, self._current_sheet, cloned)
@@ -611,9 +638,11 @@ class RosterTab(QWidget):
 
         QToolTip.showText(
             QCursor.pos(),
-            f"Pasted {count} preset(s) into '{self._current_sheet}'.",
+            tr("preset.clipboard.pasted", count=count, sheet=self._current_sheet),
             self._preset_view.table_view,
         )
+
+    # ── Find & Replace ─────────────────────────────────────────────────
 
     def _on_find_replace(self) -> None:
         dlg = FindReplaceDialog(
@@ -624,4 +653,4 @@ class RosterTab(QWidget):
         )
         dlg.exec()
         if self._current_sheet:
-            self._load_sheet_into_right_panel(self._current_sheet)   
+            self._load_sheet_into_right_panel(self._current_sheet)

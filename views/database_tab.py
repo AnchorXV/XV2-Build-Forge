@@ -174,7 +174,6 @@ class DatabaseTab(QWidget):
         rows = self._stv.selected_source_rows()
         if not rows:
             return
-
         items = self._store.get_cache(self._key)
         valid_rows = sorted([r for r in rows if 0 <= r < len(items)], reverse=True)
         if not valid_rows:
@@ -196,11 +195,11 @@ class DatabaseTab(QWidget):
             reply = QMessageBox.question(
                 self,
                 tr("dialog.common.confirm"),
-                f"Delete {len(valid_rows)} items from database?",
+                tr("database.message.confirm_delete_multiple", count=len(valid_rows)),
             )
             if reply == QMessageBox.Yes:
                 self._undo_stack.beginMacro(
-                    f"Delete {len(valid_rows)} items from '{self._key}'"
+                    tr("undo.macro.delete_items", count=len(valid_rows), category=self._key)
                 )
                 for row in valid_rows:
                     if row < len(items):

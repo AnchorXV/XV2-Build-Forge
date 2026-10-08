@@ -151,10 +151,9 @@ class SheetDetailDialog(QDialog):
 
         bulk_edit_action = None
         if len(selected_rows) > 1:
-            bulk_edit_text = tr("dialog.bulk_edit.menu_title", count=len(selected_rows))
-            if bulk_edit_text == "dialog.bulk_edit.menu_title":
-                bulk_edit_text = f"Bulk Edit Selected ({len(selected_rows)} presets)"
-            bulk_edit_action = menu.addAction(bulk_edit_text)
+            bulk_edit_action = menu.addAction(
+                tr("dialog.bulk_edit.menu_title", count=len(selected_rows))
+            )
 
         action = menu.exec(self._table.viewport().mapToGlobal(pos))
 
@@ -172,11 +171,6 @@ class SheetDetailDialog(QDialog):
                 dlg = BulkEditDialog(self._sheet_name, selected_entries, self._store, self._undo_stack, self)
                 dlg.exec()
                 self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
-
-    def _on_presets_reordered(self, old_order: list[str], new_order: list[str]) -> None:
-        cmd = ReorderPresetsCommand(self._store, self._sheet_name, old_order, new_order)
-        self._undo_stack.push(cmd)
-        self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
 
     def _on_delete_clicked(self) -> None:
         selected_rows = self._table.selectionModel().selectedRows()
@@ -202,15 +196,11 @@ class SheetDetailDialog(QDialog):
             reply = QMessageBox.question(
                 self,
                 tr("dialog.common.confirm"),
-                tr(
-                    "dialog.bulk_edit.confirm_delete_multiple",
-                    count=len(selected_rows),
-                    default=f"Delete {len(selected_rows)} presets?",
-                ),
+                tr("dialog.bulk_edit.confirm_delete_multiple", count=len(selected_rows)),
             )
             if reply == QMessageBox.Yes:
                 self._undo_stack.beginMacro(
-                    f"Delete {len(selected_rows)} presets from '{self._sheet_name}'"
+                    tr("undo.macro.delete_presets", count=len(selected_rows), sheet=self._sheet_name)
                 )
                 for idx in sorted(selected_rows, key=lambda x: x.row(), reverse=True):
                     r = idx.row()
@@ -221,10 +211,10 @@ class SheetDetailDialog(QDialog):
 
                 self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
 
-    def _get_selected_entries(self) -> list:
-        entries = self._store.get_sheet_entries(self._sheet_name)
-        rows = [idx.row() for idx in self._table.selectionModel().selectedRows()]
-        return [entries[r] for r in rows if 0 <= r < len(entries)]
+    def _on_presets_reordered(self, old_order: list[str], new_order: list[str]) -> None:
+        cmd = ReorderPresetsCommand(self._store, self._sheet_name, old_order, new_order)
+        self._undo_stack.push(cmd)
+        self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
 
     def _on_copy(self) -> None:
         selected = self._get_selected_entries()
@@ -233,7 +223,7 @@ class SheetDetailDialog(QDialog):
         PresetClipboard.instance().set(selected)
         QToolTip.showText(
             QCursor.pos(),
-            f"Copied {len(selected)} preset(s).",
+            tr("preset.clipboard.copied", count=len(selected)),
             self._table,
         )
 
@@ -251,7 +241,7 @@ class SheetDetailDialog(QDialog):
         PresetClipboard.instance().set([e for _, e in selected])
 
         self._undo_stack.beginMacro(
-            f"Cut {len(selected)} preset(s) from '{self._sheet_name}'"
+            tr("undo.macro.cut_presets", count=len(selected), sheet=self._sheet_name)
         )
         for row, entry in sorted(selected, key=lambda x: x[0], reverse=True):
             cmd = DeletePresetEntryCommand(self._store, self._sheet_name, entry, row)
@@ -262,7 +252,7 @@ class SheetDetailDialog(QDialog):
 
         QToolTip.showText(
             QCursor.pos(),
-            f"Cut {len(selected)} preset(s).",
+            tr("preset.clipboard.cut", count=len(selected)),
             self._table,
         )
 
@@ -275,7 +265,7 @@ class SheetDetailDialog(QDialog):
         count = len(entries)
 
         self._undo_stack.beginMacro(
-            f"Paste {count} preset(s) into '{self._sheet_name}'"
+            tr("undo.macro.paste_presets", count=count, sheet=self._sheet_name)
         )
         for e in entries:
             cloned = PresetClipboard.clone_with_new_id(e)
@@ -287,9 +277,14 @@ class SheetDetailDialog(QDialog):
 
         QToolTip.showText(
             QCursor.pos(),
-            f"Pasted {count} preset(s) into '{self._sheet_name}'.",
+            tr("preset.clipboard.pasted", count=count, sheet=self._sheet_name),
             self._table,
         )
+
+    def _get_selected_entries(self) -> list:
+        entries = self._store.get_sheet_entries(self._sheet_name)
+        rows = [idx.row() for idx in self._table.selectionModel().selectedRows()]
+        return [entries[r] for r in rows if 0 <= r < len(entries)]
 
     def _on_find_replace(self) -> None:
         dlg = FindReplaceDialog(

@@ -7,7 +7,7 @@
     "file": {
       "title": "File",
       "new_sheet": "New Sheet",
-      "save": "Save",
+      "save": "Save / Backup",
       "recent_sheets": "Recent Sheets",
       "no_recent": "(No recent sheets)"
     },
@@ -28,7 +28,24 @@
     }
   },
   "status": {
-    "saved": "Data saved and backed up."
+    "saved": "Data saved and backed up.",
+    "error_saving_before_exit": "Error saving data before exit: {error}\nExit anyway?"
+  },
+  "undo": {
+    "macro": {
+      "delete_items": "Delete {count} items from '{category}'",
+      "delete_presets": "Delete {count} presets from '{sheet}'",
+      "delete_sheets": "Delete {count} sheets",
+      "cut_presets": "Cut {count} presets from '{sheet}'",
+      "paste_presets": "Paste {count} presets into '{sheet}'"
+    }
+  },
+  "preset": {
+    "clipboard": {
+      "copied": "Copied {count} preset(s). Ctrl+V to paste.",
+      "cut": "Cut {count} preset(s). Ctrl+V to paste.",
+      "pasted": "Pasted {count} preset(s) into '{sheet}'."
+    }
   },
   "tabs": {
     "editor": "Skillset Editor",
@@ -82,7 +99,7 @@
     "panel": {
       "sheets_header": "SHEETS",
       "select_sheet": "Select a sheet",
-      "empty_state": "Pilih sheet dari panel kiri"
+      "empty_state": "Select a sheet from the left panel"
     },
     "button": {
       "export_selected": "Export Selected",
@@ -121,7 +138,9 @@
     "message": {
       "duplicate_sheet": "A sheet with that name already exists.",
       "confirm_delete": "Delete the entire sheet '{name}'?",
+      "confirm_delete_multiple": "Delete {count} sheets?",
       "confirm_delete_preset": "Delete preset '{name}' from this sheet?",
+      "confirm_delete_preset_multiple": "Delete {count} presets?",
       "select_export": "Please select at least one sheet to export!"
     }
   },
@@ -147,6 +166,7 @@
     "message": {
       "empty_name": "Name field must not be empty.",
       "confirm_delete": "Delete '{name}' from database?",
+      "confirm_delete_multiple": "Delete {count} items from database?",
       "cache_migrated": "Cache migrated successfully to dictionary schema.",
       "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema."
     }
@@ -184,6 +204,10 @@
     "duplicate_sheet": {
       "title": "Duplicate Sheet",
       "prompt": "New sheet name:"
+    },
+    "bulk_edit": {
+      "menu_title": "Bulk Edit Selected ({count} presets)",
+      "confirm_delete_multiple": "Delete {count} presets?"
     },
     "export": {
       "title": "Multi-Sheet Export Options",

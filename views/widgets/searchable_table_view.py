@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PySide6.QtCore import (
+    QModelIndex,
     QSortFilterProxyModel,
     QTimer,
     Qt,
@@ -14,6 +15,42 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+
+class DragDropProxyModel(QSortFilterProxyModel):
+    """Proxy model yang meneruskan operasi drag-drop ke source model.
+
+    QSortFilterProxyModel default tidak selalu meneruskan supportedDropActions
+    dari source dengan benar, yang menyebabkan InternalMove gagal pada beberapa
+    kombinasi model/view. Class ini menambal semua method drag-drop yang
+    dibutuhkan agar berjalan lewat source.
+    """
+
+    def supportedDropActions(self) -> Qt.DropActions:
+        source = self.sourceModel()
+        if source is None:
+            return super().supportedDropActions()
+        return source.supportedDropActions()
+
+    def mimeTypes(self) -> list[str]:
+        source = self.sourceModel()
+        if source is None:
+            return super().mimeTypes()
+        return source.mimeTypes()
+
+    def mimeData(self, indexes):
+        source = self.sourceModel()
+        if source is None:
+            return None
+        source_indexes = [self.mapToSource(idx) for idx in indexes if idx.isValid()]
+        return source.mimeData(source_indexes)
+
+    def dropMimeData(self, data, action, row, column, parent):
+        source = self.sourceModel()
+        if source is None:
+            return False
+        source_parent = self.mapToSource(parent) if parent.isValid() else QModelIndex()
+        return source.dropMimeData(data, action, row, column, source_parent)
 
 
 class SearchableTableView(QWidget):
@@ -30,7 +67,7 @@ class SearchableTableView(QWidget):
     ) -> None:
         super().__init__(parent)
 
-        self._proxy = QSortFilterProxyModel(self)
+        self._proxy = DragDropProxyModel(self)
         self._proxy.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self._proxy.setFilterKeyColumn(-1)
 
@@ -71,8 +108,6 @@ class SearchableTableView(QWidget):
         self._debounce_timer.setInterval(150)
         self._debounce_timer.timeout.connect(self._apply_filter)
         self._pending_filter: str = ""
-
-    # ── Public API ─────────────────────────────────────────────────────
 
     @property
     def table_view(self) -> QTableView:
@@ -124,13 +159,15 @@ class SearchableTableView(QWidget):
     def set_edit_triggers(self, triggers: QAbstractItemView.EditTriggers) -> None:
         self._table.setEditTriggers(triggers)
 
-    # ── Internal ───────────────────────────────────────────────────────
-
     def _apply_filter(self) -> None:
         self._proxy.setFilterFixedString(self._pending_filter)
 
     def _update_drag_drop_state(self, *args) -> None:
         if not self._drag_drop_enabled:
+            return
+        if not self._sortable:
+            self._table.setAcceptDrops(True)
+            self._table.setDragEnabled(True)
             return
         is_sorted = self._table.horizontalHeader().sortIndicatorSection() != -1
         self._table.setAcceptDrops(not is_sorted)

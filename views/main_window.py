@@ -163,10 +163,7 @@ class MainWindow(QMainWindow):
     def _on_save(self) -> None:
         self._store.save()
         self._store._persistence.backup()
-        self.statusBar().showMessage(
-            tr("status.saved", default="Data saved and backed up."),
-            3000,
-        )
+        self.statusBar().showMessage(tr("status.saved"), 3000)
 
     def _show_about_dialog(self) -> None:
         from views.dialogs.about_dialog import AboutDialog
@@ -182,8 +179,8 @@ class MainWindow(QMainWindow):
             logger.exception("Error saving data on close: %s", exc)
             reply = QMessageBox.warning(
                 self,
-                tr("dialog.common.warning", default="Warning"),
-                f"Error saving data before exit: {exc}\nExit anyway?",
+                tr("dialog.common.warning"),
+                tr("status.error_saving_before_exit", error=exc),
                 QMessageBox.Yes | QMessageBox.No,
             )
             if reply == QMessageBox.Yes:

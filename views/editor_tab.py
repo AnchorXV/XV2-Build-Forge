@@ -352,12 +352,6 @@ class EditorTab(QWidget):
                 tr("editor.message.validation_failed"),
                 tr(
                     "editor.message.target_changed",
-                    default=(
-                        f"Entry asli ada di sheet '{self._editing_source_sheet}', "
-                        f"tapi target sekarang '{target}'.\n\n"
-                        "Pilih 'Yes' untuk tetap update di sheet asal,\n"
-                        "'No' untuk membatalkan dan reset form."
-                    ),
                     old_sheet=self._editing_source_sheet,
                     new_sheet=target,
                 ),
@@ -378,14 +372,7 @@ class EditorTab(QWidget):
             QMessageBox.warning(
                 self,
                 tr("editor.message.validation_failed"),
-                tr(
-                    "editor.message.entry_not_found",
-                    default=(
-                        "Entry yang ingin di-update tidak ditemukan di sheet ini.\n\n"
-                        "Kemungkinan sudah dihapus dari sheet lain. "
-                        "Form akan di-reset. Klik 'Save as New' untuk menyimpan sebagai entry baru."
-                    ),
-                ),
+                tr("editor.message.entry_not_found"),
             )
             self.reset_form()
             return
