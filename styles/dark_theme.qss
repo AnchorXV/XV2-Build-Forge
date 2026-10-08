@@ -599,3 +599,16 @@ QLabel#previewLabel {
     font-size: 12px;
     padding: 8px 0;
 }
+
+/* ── Status Bar ─────────────────────────────────────────────────────── */
+QStatusBar {
+    background-color: #0a0a0c;
+    color: #8b8c93;
+    border-top: 1px solid #1a1b1f;
+    padding: 4px 12px;
+    font-size: 12px;
+}
+
+QStatusBar::item {
+    border: none;
+}

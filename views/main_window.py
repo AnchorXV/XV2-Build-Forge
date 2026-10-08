@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from app_config import APP_NAME, APP_VERSION
+from controllers.signal_bus import signal_bus
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from views.page_manager import PageManager
@@ -37,6 +38,11 @@ class MainWindow(QMainWindow):
         self._palette.action_selected.connect(self._on_palette_action)
 
         self._build_menu_bar()
+        self._connect_signals()
+
+        # Force-create status bar supaya muncul dari startup
+        self._status_bar = self.statusBar()
+        self._status_bar.show()
 
     def _build_menu_bar(self) -> None:
         menubar = self.menuBar()
@@ -77,6 +83,12 @@ class MainWindow(QMainWindow):
         self._act_about = QAction(tr("menu.about.title", default="About"), self)
         self._act_about.triggered.connect(self._show_about_dialog)
         self._menu_help.addAction(self._act_about)
+
+    def _connect_signals(self) -> None:
+        signal_bus.load_entry_to_editor.connect(self.page_manager._on_load_entry)
+        signal_bus.status_message.connect(
+            lambda msg: self.statusBar().showMessage(msg, 3000)
+        )
 
     def _open_command_palette(self) -> None:
         commands = self._build_commands()

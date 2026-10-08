@@ -4,7 +4,7 @@ import logging
 from typing import Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QUndoStack
+from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QComboBox,
     QCompleter,
@@ -245,6 +245,19 @@ class EditorTab(QWidget):
 
         signal_bus.data_changed.connect(self._refresh_combos)
 
+        QShortcut(
+            QKeySequence("Ctrl+Return"),
+            self,
+            self._on_save,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+Enter"),
+            self,
+            self._on_save,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+
     # ── Public API ─────────────────────────────────────────────────────
 
     def reset_form(self) -> None:
@@ -339,10 +352,8 @@ class EditorTab(QWidget):
     def _save_new(self, target: str, entry: PresetEntry) -> None:
         cmd = AddPresetWithAutoRegisterCommand(self._store, target, entry)
         self._undo_stack.push(cmd)
-        QMessageBox.information(
-            self,
-            tr("editor.message.save_success_title"),
-            tr("editor.message.save_success", sheet=target),
+        signal_bus.status_message.emit(
+            tr("editor.message.save_success", sheet=target)
         )
 
     def _save_update(self, target: str, entry: PresetEntry) -> None:
@@ -379,10 +390,8 @@ class EditorTab(QWidget):
 
         cmd = EditPresetEntryCommand(self._store, target, old_entry, entry)
         self._undo_stack.push(cmd)
-        QMessageBox.information(
-            self,
-            tr("editor.message.save_success_title"),
-            tr("editor.message.update_success", sheet=target),
+        signal_bus.status_message.emit(
+            tr("editor.message.update_success", sheet=target)
         )
         self._editing_entry_id = None
         self._editing_source_sheet = None
