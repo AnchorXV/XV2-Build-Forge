@@ -139,8 +139,8 @@
       "duplicate_sheet": "A sheet with that name already exists.",
       "confirm_delete": "Delete the entire sheet '{name}'?",
       "confirm_delete_multiple": "Delete {count} sheets?",
-      "confirm_delete_preset": "Delete preset '{name}' from this sheet?",
-      "confirm_delete_preset_multiple": "Delete {count} presets?",
+      "deleted_preset": "Preset deleted. Ctrl+Z to undo.",
+      "deleted_presets": "{count} presets deleted. Ctrl+Z to undo.",
       "select_export": "Please select at least one sheet to export!"
     }
   },
@@ -206,8 +206,7 @@
       "prompt": "New sheet name:"
     },
     "bulk_edit": {
-      "menu_title": "Bulk Edit Selected ({count} presets)",
-      "confirm_delete_multiple": "Delete {count} presets?"
+      "menu_title": "Bulk Edit Selected ({count} presets)"
     },
     "export": {
       "title": "Multi-Sheet Export Options",

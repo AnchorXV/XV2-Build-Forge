@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
     QMenu,
-    QMessageBox,
     QPushButton,
     QTableView,
     QToolTip,
@@ -178,38 +177,37 @@ class SheetDetailDialog(QDialog):
             return
 
         entries = self._store.get_sheet_entries(self._sheet_name)
+        valid_rows = sorted(
+            [idx.row() for idx in selected_rows if 0 <= idx.row() < len(entries)],
+            reverse=True,
+        )
+        if not valid_rows:
+            return
 
-        if len(selected_rows) == 1:
-            row = selected_rows[0].row()
-            if 0 <= row < len(entries):
-                entry = entries[row]
-                reply = QMessageBox.question(
-                    self,
-                    tr("dialog.common.confirm"),
-                    tr("roster.message.confirm_delete", name=entry.character_name),
-                )
-                if reply == QMessageBox.Yes:
-                    cmd = DeletePresetEntryCommand(self._store, self._sheet_name, entry, row)
-                    self._undo_stack.push(cmd)
-                    self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
+        count = len(valid_rows)
+        if count == 1:
+            row = valid_rows[0]
+            cmd = DeletePresetEntryCommand(self._store, self._sheet_name, entries[row], row)
+            self._undo_stack.push(cmd)
+            message = tr("roster.message.deleted_preset")
         else:
-            reply = QMessageBox.question(
-                self,
-                tr("dialog.common.confirm"),
-                tr("dialog.bulk_edit.confirm_delete_multiple", count=len(selected_rows)),
+            self._undo_stack.beginMacro(
+                tr("undo.macro.delete_presets", count=count, sheet=self._sheet_name)
             )
-            if reply == QMessageBox.Yes:
-                self._undo_stack.beginMacro(
-                    tr("undo.macro.delete_presets", count=len(selected_rows), sheet=self._sheet_name)
-                )
-                for idx in sorted(selected_rows, key=lambda x: x.row(), reverse=True):
-                    r = idx.row()
-                    if 0 <= r < len(entries):
-                        cmd = DeletePresetEntryCommand(self._store, self._sheet_name, entries[r], r)
-                        self._undo_stack.push(cmd)
-                self._undo_stack.endMacro()
+            for row in valid_rows:
+                if 0 <= row < len(entries):
+                    cmd = DeletePresetEntryCommand(self._store, self._sheet_name, entries[row], row)
+                    self._undo_stack.push(cmd)
+            self._undo_stack.endMacro()
+            message = tr("roster.message.deleted_presets", count=count)
 
-                self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
+        self._model.update_data(self._store.get_sheet_entries(self._sheet_name))
+
+        QToolTip.showText(
+            QCursor.pos(),
+            message,
+            self._table,
+        )
 
     def _on_presets_reordered(self, old_order: list[str], new_order: list[str]) -> None:
         cmd = ReorderPresetsCommand(self._store, self._sheet_name, old_order, new_order)
