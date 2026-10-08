@@ -10,83 +10,86 @@ Built with Python and PySide6 (Qt 6).
 ## Overview
 
 DBXV2 Build Forge is a pre-production planning tool for DBXV2 modders. It provides a
-structured workspace to design character skillsets, costume configurations, model
-presets, and Super Souls, then export the results in a portable format for use in
-external build tools.
+workspace to design character skillsets, costume configurations, model presets, and
+Super Souls, then export the results in a portable format for use in external build
+tools.
 
-The application is optimized for personal workflow: fast startup, keyboard-driven
-navigation, and automatic data persistence.
+It was built around a specific daily workflow: open it, make a few edits, close it,
+without waiting on load times or hunting through menus for a shortcut.
 
 ---
 
 ## Features
 
 ### Workspace
-- Sidebar navigation with three main workspaces: Editor, Roster, Database
-- Keyboard-first interface with global shortcuts
-- Persistent window state across sessions
+- Sidebar navigation across three workspaces: Editor, Roster, Database
+- Global keyboard shortcuts for navigation
+- Window state (size, position, last active tab) persists across sessions
 
-### Skillset Editor
-- Card-based form layout with clear visual hierarchy
+### Skillset editor
+- Card-based form layout
 - Searchable dropdowns for all skill fields (type-to-filter, case-insensitive)
-- Automatic character ID lookup based on character name
-- Automatic master pool registration: new characters, skills, and Super Souls are
-  added to the reference database on first save
-- Two-button save flow: "Save as New" and "Update This Entry" (via UUID tracking)
+- Character ID lookup based on the name entered
+- New characters, skills, and Super Souls are registered to the reference database
+  automatically on first save
+- Two save actions, "Save as New" and "Update This Entry," tracked by UUID so the two
+  never get confused
 
-### Roster Management
-- Split-view layout: sheet list on the left, preset detail on the right
+### Roster management
+- Split view: sheet list on the left, preset detail on the right
 - Multi-sheet management with drag-and-drop reordering
-- Per-sheet metadata: notes and tags
-- Duplicate sheet, rename sheet, delete sheet (all undoable)
-- Bulk operations via Ctrl+Click, Ctrl+Shift+Click, and Ctrl+A
+- Per-sheet notes and tags
+- Duplicate, rename, or delete a sheet, all undoable
+- Bulk selection via Ctrl+Click, Ctrl+Shift+Click, and Ctrl+A
 
-### Command Palette (Ctrl+P)
-- Quick navigation to any sheet or character by name
-- Keyboard-driven: type to filter, arrow keys to navigate, Enter to select
-- Search across all sheets in the current project
+### Command palette (Ctrl+P)
+- Jump to any sheet or character by name
+- Type to filter, arrow keys to move through results, Enter to select
+- Searches across every sheet in the current project
 
-### Find and Replace (Ctrl+R)
-- Field-scoped or all-field search
-- Scope selection: current sheet or all sheets
+### Find and replace (Ctrl+R)
+- Scope a search to one field or all fields, one sheet or all sheets
 - Case-sensitive toggle
-- Live preview showing the number of matches before applying
-- Replace All operation is fully undoable in a single step
+- Shows the match count before you apply anything
+- Replace All undoes in a single step
 
-### Clipboard Operations (Ctrl+C, Ctrl+X, Ctrl+V)
+### Clipboard operations (Ctrl+C, Ctrl+X, Ctrl+V)
 - Copy or cut presets from one sheet and paste into another
-- Cloned presets receive new UUIDs to preserve data integrity
-- Works across the roster panel and the sheet detail dialog
+- Pasted or cloned presets get new UUIDs so they never collide with the originals
+- Works from both the roster panel and the sheet detail dialog
 
-### Data Persistence
-- Crash-safe JSON persistence using atomic write-to-temp with os.replace
-- Automatic backup rotation (.bak file)
-- Transparent recovery from corrupted primary file via backup
-- Timestamped backups stored in `backups/` directory every 10 minutes
-- Real-time auto-save on every data mutation
+### Data persistence
+- Writes are atomic: data is written to a temp file, then swapped in with os.replace,
+  so a crash mid-write cannot corrupt the main file
+- Rotating .bak backup, with a full timestamped backup written to `backups/` every
+  10 minutes
+- If the primary file turns out corrupted, the app falls back to the backup on load
+  without asking
+- Every mutation triggers a save, so there is nothing to lose between saves
 
 ### Export
 - Multi-sheet export to Excel (.xlsx) via openpyxl
-- CSV export with section-separated structure
-- Single-file or per-sheet export modes
-- No dependency on pandas or other heavy libraries
+- CSV export with sections separated
+- Single-file or per-sheet export
+- openpyxl is the only export dependency; no pandas
 
-### Undo/Redo
-- Complete undo stack for all CRUD operations
-- Grouped operations (bulk delete, paste multiple, cut multiple) undo in a single step
-- Keyboard shortcuts: Ctrl+Z (undo), Ctrl+Y (redo)
+### Undo/redo
+- Every CRUD operation is undoable
+- Bulk actions (deleting several presets, pasting several, cutting several) undo as
+  one step rather than one per item
+- Ctrl+Z to undo, Ctrl+Y to redo
 
 ---
 
 ## Requirements
 
 - Windows 10 or Windows 11 (64-bit)
-- Python 3.10 or later (for source execution)
-- No Python installation required for the compiled executable
+- Python 3.10 or later, if running from source
+- No Python installation needed for the compiled executable
 
 ---
 
-## Running from Source
+## Running from source
 
 Install dependencies:
 
@@ -98,12 +101,12 @@ Launch the application:
 
 ---
 
-## Keyboard Shortcuts
+## Keyboard shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+P` | Command Palette |
-| `Ctrl+R` | Find and Replace |
+| `Ctrl+P` | Command palette |
+| `Ctrl+R` | Find and replace |
 | `Ctrl+C` | Copy selected preset(s) |
 | `Ctrl+X` | Cut selected preset(s) |
 | `Ctrl+V` | Paste preset(s) into current sheet |
@@ -118,7 +121,7 @@ Launch the application:
 
 ---
 
-## Project Structure
+## Project structure
 
     DBXV2_Build_Forge/
     |
@@ -185,23 +188,21 @@ Launch the application:
 
 ---
 
-## Running Tests
+## Running tests
 
     pytest -v
 
-Test coverage includes:
-- UUID serialization integrity of PresetEntry and recovery from corrupted files via .bak
-- Skill input deduplication and normalization
-- Undo/redo command behavior across all CRUD operations
-- Find and Replace matching logic with case sensitivity
-- Locale key resolution and translation fallback
+The test suite covers UUID serialization and recovery from a corrupted file via
+.bak, skill input deduplication and normalization, undo/redo across all CRUD
+operations, Find and Replace matching with case sensitivity on and off, and locale
+key resolution with translation fallback.
 
 ---
 
-## Building a Standalone Executable
+## Building a standalone executable
 
-To package the application as a single Windows executable without Python dependencies,
-use Nuitka:
+To package the application as a single Windows executable with no Python
+dependency, use Nuitka:
 
     python -m nuitka ^
         --onefile ^
@@ -220,29 +221,28 @@ use Nuitka:
         --assume-yes-for-downloads ^
         main.py
 
-Output: `build_nuitka/DBXV2_Build_Forge.exe` (~23 MB, compressed).
+Output: `build_nuitka/DBXV2_Build_Forge.exe` (about 23 MB, compressed).
 
-The first build takes approximately 6 to 10 minutes. Subsequent builds with compiler
-caching complete in 2 to 3 minutes.
+The first build takes 6 to 10 minutes. Later builds reuse the compiler cache and
+finish in 2 to 3 minutes.
 
-### Data File Location
+### Data file location
 
-In compiled mode, the data file (`build_forge_data.json`) is created next to the
-executable, not in the temporary extraction directory. This ensures data persists
-across application restarts.
+In compiled mode, `build_forge_data.json` is written next to the executable, not
+into the temporary extraction directory, so data survives a restart.
 
 ---
 
-## Technology Stack
+## Technology stack
 
-- PySide6 (Qt for Python) - GUI framework
-- openpyxl - Excel file writing
-- Nuitka - Python to C compilation for distribution
-- pytest - Test framework
+- PySide6 (Qt for Python) for the GUI
+- openpyxl for writing Excel files
+- Nuitka to compile to a standalone executable
+- pytest for the test suite
 
 ---
 
 ## License
 
-This project is developed for the Dragon Ball Xenoverse 2 modding community.
-See the LICENSE file for details.
+This project is developed for the Dragon Ball Xenoverse 2 modding community. See
+the LICENSE file for details.
