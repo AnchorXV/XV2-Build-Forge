@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QMenu,
     QMessageBox,
+    QSplitter,
     QVBoxLayout,
     QWidget,
 )
@@ -20,8 +21,8 @@ from controllers.undo_commands import (
     DeleteCacheItemCommand,
     EditCacheItemCommand,
 )
-from models.character_usage import find_character_variants
 from locales.i18n_manager import tr
+from models.character_usage import find_character_variants
 from models.data_store import AppDataStore
 from models.table_models import DatabaseTableModel
 from views.dialogs.db_entry_dialog import (
@@ -30,10 +31,14 @@ from views.dialogs.db_entry_dialog import (
     SourceDialog,
     SuperSoulDialog,
 )
+from views.widgets.character_detail_panel import CharacterDetailPanel
 from views.widgets.searchable_table_view import SearchableTableView
 from views.widgets.toolbar_widget import ToolbarWidget
 
 logger = logging.getLogger(__name__)
+
+
+SPLIT_MODE_KEYS: set[str] = {"characters"}
 
 
 class DatabaseTab(QWidget):
@@ -51,11 +56,22 @@ class DatabaseTab(QWidget):
         self._display = display_name
         self._store = data_store
         self._undo_stack = undo_stack
-        self._model = DatabaseTableModel(data_store, category_key)
+        self._split_mode = category_key in SPLIT_MODE_KEYS
+
+        if self._split_mode:
+            self._model = DatabaseTableModel(
+                data_store, category_key, columns=["Name"], entry_type="char"
+            )
+        else:
+            self._model = DatabaseTableModel(data_store, category_key)
+
+        self._detail_panel: Optional[CharacterDetailPanel] = None
 
         self._build_ui()
         self._connect_signals()
         self._setup_shortcuts()
+
+    # ── UI ──────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -70,6 +86,12 @@ class DatabaseTab(QWidget):
         )
         layout.addWidget(self._toolbar)
 
+        if self._split_mode:
+            self._build_split_ui(layout)
+        else:
+            self._build_table_ui(layout)
+
+    def _build_table_ui(self, parent_layout: QVBoxLayout) -> None:
         self._stv = SearchableTableView(
             self,
             sortable=True,
@@ -78,7 +100,44 @@ class DatabaseTab(QWidget):
         self._stv.set_source_model(self._model)
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
-        layout.addWidget(self._stv)
+        parent_layout.addWidget(self._stv)
+
+    def _build_split_ui(self, parent_layout: QVBoxLayout) -> None:
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setChildrenCollapsible(False)
+        splitter.setHandleWidth(4)
+        splitter.setObjectName("databaseSplitter")
+
+        left = QWidget()
+        left_layout = QVBoxLayout(left)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._stv = SearchableTableView(
+            self,
+            sortable=True,
+            selection_mode=QAbstractItemView.SingleSelection,
+            stretch_columns=False,
+        )
+        self._stv.set_source_model(self._model)
+        self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
+
+        header = self._stv.table_view.horizontalHeader()
+        header.setSectionResizeMode(0, header.ResizeMode.Stretch)
+
+        left_layout.addWidget(self._stv)
+        splitter.addWidget(left)
+
+        self._detail_panel = CharacterDetailPanel()
+        splitter.addWidget(self._detail_panel)
+
+        splitter.setStretchFactor(0, 0)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([320, 700])
+
+        parent_layout.addWidget(splitter, 1)
+
+    # ── Signals ─────────────────────────────────────────────────────────
 
     def _connect_signals(self) -> None:
         self._toolbar.add_clicked.connect(self._on_add)
@@ -88,7 +147,12 @@ class DatabaseTab(QWidget):
         self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
         self._stv.table_view.doubleClicked.connect(self._on_edit)
 
-        signal_bus.data_changed.connect(self._model.refresh)
+        if self._split_mode:
+            self._stv.table_view.selectionModel().selectionChanged.connect(
+                self._on_selection_changed
+            )
+
+        signal_bus.data_changed.connect(self._on_data_changed)
 
     def _setup_shortcuts(self) -> None:
         QShortcut(
@@ -106,6 +170,30 @@ class DatabaseTab(QWidget):
     def _focus_search(self) -> None:
         self._toolbar.search_input.setFocus()
         self._toolbar.search_input.selectAll()
+
+    # ── Data refresh ────────────────────────────────────────────────────
+
+    def _on_data_changed(self) -> None:
+        self._model.refresh()
+        if self._split_mode:
+            self._refresh_detail_panel()
+
+    def _on_selection_changed(self, *_args) -> None:
+        self._refresh_detail_panel()
+
+    def _refresh_detail_panel(self) -> None:
+        if self._detail_panel is None:
+            return
+
+        rows = self._stv.selected_source_rows()
+        items = self._store.get_cache(self._key)
+        if not rows or rows[0] >= len(items):
+            self._detail_panel.clear()
+            return
+
+        self._detail_panel.set_character(items[rows[0]])
+
+    # ── Handlers ────────────────────────────────────────────────────────
 
     def _on_add(self) -> None:
         dlg = self._make_dialog()

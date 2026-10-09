@@ -194,7 +194,14 @@
       "cache_migrated": "Cache migrated successfully to dictionary schema.",
       "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema.",
       "cascade_rename": "There are {count} variant(s) based on '{old}'. Rename them too to '{new}'?"
-    }
+    },
+      "character_panel": {
+        "no_selection": "Select a character",
+        "code": "Code",
+        "base": "Base",
+        "playable": "Playable",
+        "episodes": "Appears on Source"
+      }
   },
   "dialog": {
     "character": {

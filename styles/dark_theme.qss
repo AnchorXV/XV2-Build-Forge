@@ -680,3 +680,36 @@ QPlainTextEdit:focus, QTextEdit:focus {
     border: 1px solid #6366f1;
     background-color: #16171a;
 }
+
+/* ── Database Splitter ──────────────────────────────────────────────── */
+QSplitter#databaseSplitter::handle {
+    background-color: transparent;
+}
+
+QSplitter#databaseSplitter::handle:horizontal {
+    width: 6px;
+}
+
+QSplitter#databaseSplitter::handle:hover {
+    background-color: #1a1b1f;
+}
+
+/* ── Character Detail Panel ─────────────────────────────────────────── */
+QFrame#characterDetailPanel {
+    background-color: #0f1013;
+    border: 1px solid #1a1b1f;
+    border-radius: 10px;
+}
+
+QLabel#panelTitle {
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+QLabel#panelInfo {
+    color: #b0b0b8;
+    font-size: 12px;
+    padding: 4px 0;
+}
