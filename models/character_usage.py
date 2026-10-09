@@ -167,14 +167,6 @@ def find_character_skills(
     store: "AppDataStore",
     char_name: str,
 ) -> list[tuple[str, int]]:
-    """Return list of (display_label, preset_count) untuk skill yang dipakai
-    oleh char_name (exact match di semua costume).
-
-    Display label dapat suffix (Super) / (Ultimate) / (Awoken) / (Evasive)
-    ketika nama skill yang sama muncul di 2+ kategori berbeda.
-
-    Sorted alphabetically (case-insensitive).
-    """
     if not char_name:
         return []
 
@@ -192,19 +184,11 @@ def find_character_skills(
                     if s:
                         category_uses[cat_key].setdefault(s, set()).add(preset.entry_id)
 
-    name_to_categories: dict[str, list[str]] = {}
-    for cat_key, skills in category_uses.items():
-        for name in skills:
-            name_to_categories.setdefault(name, []).append(cat_key)
-
     result: list[tuple[str, int]] = []
     for cat_key, skills in category_uses.items():
         suffix = SKILL_CATEGORIES[cat_key]["suffix"]
         for skill_name, entry_ids in skills.items():
-            if len(name_to_categories.get(skill_name, [])) > 1:
-                display = f"{skill_name} ({suffix})"
-            else:
-                display = skill_name
+            display = f"{skill_name} ({suffix})"
             result.append((display, len(entry_ids)))
 
     result.sort(key=lambda x: x[0].lower())

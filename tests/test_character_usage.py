@@ -140,29 +140,29 @@ class TestFindCharacterSkills:
         _add_preset(store, "Sheet1", "Vegeta", super_skills=["Galick Gun", "", "", ""])
         results = find_character_skills(store, "Goku")
         assert len(results) == 1
-        assert results[0][0] == "Kamehameha"
+        assert results[0][0] == "Kamehameha (Super)"
 
     def test_exact_match_not_variant(self, store):
         _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""])
         _add_preset(store, "Sheet1", "Goku (SSG)", super_skills=["God Kamehameha", "", "", ""])
         results = find_character_skills(store, "Goku")
         names = [r[0] for r in results]
-        assert "Kamehameha" in names
-        assert "God Kamehameha" not in names
+        assert "Kamehameha (Super)" in names
+        assert "God Kamehameha (Super)" not in names
 
     def test_across_costumes(self, store):
         _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""], costume="A")
         _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""], costume="B")
         results = find_character_skills(store, "Goku")
         assert len(results) == 1
-        assert results[0] == ("Kamehameha", 2)
+        assert results[0] == ("Kamehameha (Super)", 2)
 
     def test_duplicate_in_same_preset_counted_once(self, store):
         _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", "Kamehameha"])
         results = find_character_skills(store, "Goku")
-        assert results[0] == ("Kamehameha", 1)
+        assert results[0] == ("Kamehameha (Super)", 1)
 
-    def test_suffix_when_same_name_in_two_categories(self, store):
+    def test_same_name_in_two_categories(self, store):
         _add_preset(
             store, "Sheet1", "Goku",
             super_skills=["Eagle Kick", "", "", ""],
@@ -173,10 +173,10 @@ class TestFindCharacterSkills:
         assert "Eagle Kick (Super)" in labels
         assert "Eagle Kick (Evasive)" in labels
 
-    def test_no_suffix_when_unique(self, store):
+    def test_always_suffix(self, store):
         _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""])
         results = find_character_skills(store, "Goku")
-        assert results[0][0] == "Kamehameha"
+        assert results[0][0] == "Kamehameha (Super)"
 
     def test_all_four_categories(self, store):
         _add_preset(
@@ -188,13 +188,13 @@ class TestFindCharacterSkills:
         )
         results = find_character_skills(store, "Goku")
         labels = {r[0] for r in results}
-        assert labels == {"S1", "U1", "A1", "E1"}
+        assert labels == {"S1 (Super)", "U1 (Ultimate)", "A1 (Awoken)", "E1 (Evasive)"}
 
     def test_sorted_alphabetically(self, store):
         _add_preset(store, "Sheet1", "Goku", super_skills=["Zebra", "Apple", "Mango", ""])
         results = find_character_skills(store, "Goku")
         labels = [r[0] for r in results]
-        assert labels == ["Apple", "Mango", "Zebra"]
+        assert labels == ["Apple (Super)", "Mango (Super)", "Zebra (Super)"]
 
 
 class TestFindCharacterSouls:
@@ -209,13 +209,15 @@ class TestFindCharacterSouls:
         assert results == [("Hope", 1)]
 
     def test_across_costumes(self, store):
-        _add_preset(store, "Sheet1", "Goku", soul="Hope", costume="A")
-        _add_preset(store, "Sheet1", "Goku", soul="Hope", costume="B")
-        results = find_character_souls(store, "Goku")
-        assert results == [("Hope", 2)]
+        _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""], costume="A")
+        _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""], costume="B")
+        results = find_character_skills(store, "Goku")
+        assert len(results) == 1
+        assert results[0] == ("Kamehameha (Super)", 2)
 
     def test_only_matching_character(self, store):
-        _add_preset(store, "Sheet1", "Goku", soul="Hope")
-        _add_preset(store, "Sheet1", "Vegeta", soul="Pride")
-        results = find_character_souls(store, "Goku")
-        assert results == [("Hope", 1)]
+        _add_preset(store, "Sheet1", "Goku", super_skills=["Kamehameha", "", "", ""])
+        _add_preset(store, "Sheet1", "Vegeta", super_skills=["Galick Gun", "", "", ""])
+        results = find_character_skills(store, "Goku")
+        assert len(results) == 1
+        assert results[0][0] == "Kamehameha (Super)"
