@@ -7,6 +7,8 @@ from PySide6.QtGui import QBrush, QColor
 
 from app_config import TABLE_COLUMNS
 
+from locales.i18n_manager import tr
+
 if TYPE_CHECKING:
     from models.data_store import AppDataStore
 
@@ -56,15 +58,18 @@ class DatabaseTableModel(QAbstractTableModel):
         elif self._entry_type == "supersoul":
             mapping = {
                 "Super Soul": "name",
+                "Owner": "owner",
                 "Effect 1": "effect_1",
                 "Effect 2": "effect_2",
-                "Note": "note",
+                "Limit Burst": "limit_burst",
             }
         else:
             mapping = {
                 "Skill Name": "name",
                 "Is CaC Skill?": "is_cac",
-                "Note": "note",
+                "Skill Type": "skill_type",
+                "Ki Used": "ki_used",
+                "Description": "note",
             }
         return mapping.get(col_name, col_name.lower())
 
@@ -92,6 +97,13 @@ class DatabaseTableModel(QAbstractTableModel):
 
         if isinstance(val, bool):
             val = "Yes" if val else "No"
+        elif val is None:
+            val = "—"
+        elif col_name == "Skill Type":
+            if val:
+                val = tr(f"dialog.skill.type.{val}")
+            else:
+                val = "—"
 
         if role in (Qt.DisplayRole, Qt.EditRole):
             return str(val)
@@ -106,28 +118,7 @@ class DatabaseTableModel(QAbstractTableModel):
         return None
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
-        base = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if not index.isValid():
-            return base
-        col_name = self._columns[index.column()]
-        if col_name == "Note" and self._entry_type in ("skill", "supersoul"):
-            return base | Qt.ItemIsEditable
-        return base
-
-    def setData(self, index: QModelIndex, value: Any, role: int = Qt.EditRole) -> bool:
-        if role != Qt.EditRole or not index.isValid():
-            return False
-        row, col = index.row(), index.column()
-        col_name = self._columns[col]
-        dict_key = self._map_col_to_key(col_name)
-
-        if dict_key == "note" and self._entry_type in ("skill", "supersoul"):
-            if row < len(self._entries):
-                self._entries[row]["note"] = str(value).strip()
-                self._store.save()
-                self.dataChanged.emit(index, index, [Qt.DisplayRole])
-                return True
-        return False
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def refresh(self) -> None:
         self.beginResetModel()

@@ -100,6 +100,8 @@ class AddPresetWithAutoRegisterCommand(QUndoCommand):
                 skills.append({
                     "name": skill_name,
                     "is_cac": False,
+                    "skill_type": "",
+                    "ki_used": None,
                     "note": "",
                 })
 
@@ -115,9 +117,10 @@ class AddPresetWithAutoRegisterCommand(QUndoCommand):
             if not any(s.get("name") == entry.super_soul for s in souls):
                 souls.append({
                     "name": entry.super_soul,
+                    "owner": "",
                     "effect_1": "",
                     "effect_2": "",
-                    "note": "",
+                    "limit_burst": "",
                 })
 
 

@@ -212,9 +212,18 @@ class DatabaseTab(QWidget):
         if self._key == "characters":
             return CharacterDialog(self, edit_data=edit_data)
         elif self._key == "super_souls":
-            return SuperSoulDialog(self, edit_data=edit_data)
+            return SuperSoulDialog(
+                characters_provider=lambda: self._store.get_cache("characters"),
+                parent=self,
+                edit_data=edit_data,
+            )
         else:
-            return SkillDialog(self._display, self, edit_data=edit_data)
+            return SkillDialog(
+                self._key,
+                self._display,
+                self,
+                edit_data=edit_data,
+            )
 
     def retranslate_ui(self, display_title: str) -> None:
         self._display = display_title

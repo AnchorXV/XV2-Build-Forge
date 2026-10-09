@@ -202,27 +202,54 @@ class AppDataStore:
             if key == "characters":
                 return {"code": "MOD", "name": item, "is_playable": True}
             if key == "super_souls":
-                return {"name": item, "effect_1": "", "effect_2": "", "note": ""}
+                return {
+                    "name": item,
+                    "owner": "",
+                    "effect_1": "",
+                    "effect_2": "",
+                    "limit_burst": "",
+                }
             if key in ("super_skills", "ultimate_skills", "awoken_skills", "evasive_skills"):
-                return {"name": item, "is_cac": False, "note": ""}
+                return {
+                    "name": item,
+                    "is_cac": False,
+                    "skill_type": "",
+                    "ki_used": None,
+                    "note": "",
+                }
             return item
 
         if not isinstance(item, dict):
             return item
 
-        if key == "characters" and any(k in item for k in ("Code", "Name", "Playable Character")):
+        if key == "characters":
+            if any(k in item for k in ("Code", "Name", "Playable Character")):
+                return {
+                    "code": item.get("Code", ""),
+                    "name": item.get("Name", ""),
+                    "is_playable": str(item.get("Playable Character", "Yes")).lower() == "yes",
+                }
             return {
-                "code": item.get("Code", ""),
-                "name": item.get("Name", ""),
-                "is_playable": str(item.get("Playable Character", "Yes")).lower() == "yes",
+                "code": item.get("code", ""),
+                "name": item.get("name", ""),
+                "is_playable": bool(item.get("is_playable", True)),
             }
 
-        if key == "super_souls" and any(k in item for k in ("Super Soul", "Effect 1", "Effect 2")):
+        if key == "super_souls":
+            if any(k in item for k in ("Super Soul", "Effect 1", "Effect 2")):
+                return {
+                    "name": item.get("Super Soul", ""),
+                    "owner": item.get("Owner", ""),
+                    "effect_1": item.get("Effect 1", ""),
+                    "effect_2": item.get("Effect 2", ""),
+                    "limit_burst": item.get("Limit Burst", ""),
+                }
             return {
-                "name": item.get("Super Soul", ""),
-                "effect_1": item.get("Effect 1", ""),
-                "effect_2": item.get("Effect 2", ""),
-                "note": item.get("Note", ""),
+                "name": item.get("name", ""),
+                "owner": item.get("owner", ""),
+                "effect_1": item.get("effect_1", ""),
+                "effect_2": item.get("effect_2", ""),
+                "limit_burst": item.get("limit_burst", ""),
             }
 
         if key in ("super_skills", "ultimate_skills", "awoken_skills", "evasive_skills"):
@@ -230,11 +257,23 @@ class AppDataStore:
                 result: dict[str, Any] = {
                     "name": item.get("Skill Name", ""),
                     "is_cac": str(item.get("Is CaC Skill?", "No")).lower() == "yes",
+                    "skill_type": item.get("Skill Type", ""),
+                    "ki_used": item.get("Ki Used"),
                     "note": item.get("Note", ""),
                 }
                 if "Skill ID" in item:
                     result["skill_id"] = item["Skill ID"]
                 return result
+            result = {
+                "name": item.get("name", ""),
+                "is_cac": bool(item.get("is_cac", False)),
+                "skill_type": item.get("skill_type", ""),
+                "ki_used": item.get("ki_used"),
+                "note": item.get("note", ""),
+            }
+            if "skill_id" in item:
+                result["skill_id"] = item["skill_id"]
+            return result
 
         return item
 

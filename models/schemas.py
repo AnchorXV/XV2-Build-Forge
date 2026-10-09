@@ -51,12 +51,16 @@ class SkillEntry:
     skill_name: str
     skill_id: Optional[str] = None
     is_cac_skill: bool = False
+    skill_type: str = ""
+    ki_used: Optional[int] = None
     note: str = ""
 
     def to_dict(self) -> dict:
         d: dict = {
             "name": self.skill_name,
             "is_cac": self.is_cac_skill,
+            "skill_type": self.skill_type,
+            "ki_used": self.ki_used,
             "note": self.note,
         }
         if self.skill_id is not None:
@@ -70,31 +74,37 @@ class SkillEntry:
                 skill_name=d.get("Skill Name", ""),
                 skill_id=d.get("Skill ID"),
                 is_cac_skill=str(d.get("Is CaC Skill?", "No")).lower() == "yes",
+                skill_type=d.get("Skill Type", ""),
+                ki_used=d.get("Ki Used"),
                 note=d.get("Note", ""),
             )
         return cls(
             skill_name=d.get("name", ""),
             skill_id=d.get("skill_id"),
             is_cac_skill=bool(d.get("is_cac", False)),
+            skill_type=d.get("skill_type", ""),
+            ki_used=d.get("ki_used"),
             note=d.get("note", ""),
         )
 
 
 @dataclass
 class SuperSoulEntry:
-    """A Super Soul with up to two effect descriptions."""
+    """A Super Soul with owner, effects, and limit burst."""
 
     name: str
+    owner: str = ""
     effect_1: str = ""
     effect_2: str = ""
-    note: str = ""
+    limit_burst: str = ""
 
     def to_dict(self) -> dict:
         return {
             "name": self.name,
+            "owner": self.owner,
             "effect_1": self.effect_1,
             "effect_2": self.effect_2,
-            "note": self.note,
+            "limit_burst": self.limit_burst,
         }
 
     @classmethod
@@ -102,15 +112,17 @@ class SuperSoulEntry:
         if "Super Soul" in d or "Effect 1" in d:
             return cls(
                 name=d.get("Super Soul", ""),
+                owner=d.get("Owner", ""),
                 effect_1=d.get("Effect 1", ""),
                 effect_2=d.get("Effect 2", ""),
-                note=d.get("Note", ""),
+                limit_burst=d.get("Limit Burst", ""),
             )
         return cls(
             name=d.get("name", ""),
+            owner=d.get("owner", ""),
             effect_1=d.get("effect_1", ""),
             effect_2=d.get("effect_2", ""),
-            note=d.get("note", ""),
+            limit_burst=d.get("limit_burst", ""),
         )
 
 

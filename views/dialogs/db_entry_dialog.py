@@ -2,18 +2,31 @@ from __future__ import annotations
 
 from typing import Optional
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
+    QCompleter,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QLabel,
     QLineEdit,
+    QPlainTextEdit,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
 
 from locales.i18n_manager import tr
+
+
+SKILL_TYPES_BY_CATEGORY: dict[str, list[str]] = {
+    "super_skills": ["strike", "ki_blast", "buff", "other", "strike_raid", "ki_blast_raid"],
+    "ultimate_skills": ["strike", "ki_blast", "buff", "other", "strike_raid", "ki_blast_raid"],
+    "evasive_skills": ["strike", "ki_blast", "buff", "other", "strike_raid", "ki_blast_raid"],
+    "awoken_skills": ["transformation"],
+}
 
 
 class CharacterDialog(QDialog):
@@ -63,22 +76,28 @@ class CharacterDialog(QDialog):
 
 class SkillDialog(QDialog):
 
+    KI_USED_NONE = -1
+
     def __init__(
         self,
-        skill_type_label: str,
+        category_key: str,
+        display_label: str,
         parent: Optional[QWidget] = None,
         *,
         edit_data: Optional[dict] = None,
     ) -> None:
         super().__init__(parent)
         self._is_edit = edit_data is not None
-        self._type_label = skill_type_label
+        self._category_key = category_key
+        self._display_label = display_label
+        self._skill_types = SKILL_TYPES_BY_CATEGORY.get(category_key, [])
+
         self.setWindowTitle(
-            tr("dialog.skill.edit_title", type=skill_type_label)
+            tr("dialog.skill.edit_title", type=display_label)
             if self._is_edit
-            else tr("dialog.skill.add_title", type=skill_type_label)
+            else tr("dialog.skill.add_title", type=display_label)
         )
-        self.setMinimumWidth(380)
+        self.setMinimumWidth(440)
 
         layout = QVBoxLayout(self)
         form = QFormLayout()
@@ -86,12 +105,27 @@ class SkillDialog(QDialog):
         self.name_input = QLineEdit()
         form.addRow(QLabel(tr("dialog.skill.label_name")), self.name_input)
 
+        self.type_combo: Optional[QComboBox] = None
+        if self._skill_types:
+            self.type_combo = QComboBox()
+            self.type_combo.addItem(tr("dialog.skill.type.none"), "")
+            for code in self._skill_types:
+                self.type_combo.addItem(tr(f"dialog.skill.type.{code}"), code)
+            form.addRow(QLabel(tr("dialog.skill.label_skill_type")), self.type_combo)
+
+        self.ki_used_spin = QSpinBox()
+        self.ki_used_spin.setMinimum(self.KI_USED_NONE)
+        self.ki_used_spin.setMaximum(9999)
+        self.ki_used_spin.setSpecialValueText("—")
+        form.addRow(QLabel(tr("dialog.skill.label_ki_used")), self.ki_used_spin)
+
         self.cac_cb = QCheckBox()
         form.addRow(QLabel(tr("dialog.skill.label_cac")), self.cac_cb)
 
-        self.note_input = QLineEdit()
-        self.note_input.setPlaceholderText(tr("dialog.skill.placeholder_note"))
-        form.addRow(QLabel(tr("dialog.skill.label_note")), self.note_input)
+        self.description_input = QPlainTextEdit()
+        self.description_input.setPlaceholderText(tr("dialog.skill.placeholder_description"))
+        self.description_input.setMinimumHeight(80)
+        form.addRow(QLabel(tr("dialog.skill.label_description")), self.description_input)
 
         layout.addLayout(form)
 
@@ -103,25 +137,58 @@ class SkillDialog(QDialog):
         if edit_data:
             self.name_input.setText(edit_data.get("name", ""))
             self.cac_cb.setChecked(edit_data.get("is_cac", False))
-            self.note_input.setText(edit_data.get("note", ""))
+
+            ki = edit_data.get("ki_used")
+            if ki is None:
+                self.ki_used_spin.setValue(self.KI_USED_NONE)
+            else:
+                try:
+                    self.ki_used_spin.setValue(int(ki))
+                except (ValueError, TypeError):
+                    self.ki_used_spin.setValue(self.KI_USED_NONE)
+
+            if self.type_combo is not None:
+                current_type = edit_data.get("skill_type", "")
+                idx = self.type_combo.findData(current_type)
+                if idx >= 0:
+                    self.type_combo.setCurrentIndex(idx)
+
+            self.description_input.setPlainText(edit_data.get("note", ""))
 
     def get_data(self) -> dict:
+        ki = self.ki_used_spin.value()
+        ki_used = None if ki == self.KI_USED_NONE else ki
+
+        skill_type = ""
+        if self.type_combo is not None:
+            skill_type = self.type_combo.currentData() or ""
+
         return {
             "name": self.name_input.text().strip(),
             "is_cac": self.cac_cb.isChecked(),
-            "note": self.note_input.text().strip(),
+            "skill_type": skill_type,
+            "ki_used": ki_used,
+            "note": self.description_input.toPlainText().strip(),
         }
 
 
 class SuperSoulDialog(QDialog):
 
-    def __init__(self, parent: Optional[QWidget] = None, *, edit_data: Optional[dict] = None) -> None:
+    def __init__(
+        self,
+        characters_provider,
+        parent: Optional[QWidget] = None,
+        *,
+        edit_data: Optional[dict] = None,
+    ) -> None:
         super().__init__(parent)
         self._is_edit = edit_data is not None
+        self._characters_provider = characters_provider
+
         self.setWindowTitle(
             tr("dialog.super_soul.edit_title") if self._is_edit else tr("dialog.super_soul.add_title")
         )
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(480)
 
         layout = QVBoxLayout(self)
         form = QFormLayout()
@@ -129,14 +196,30 @@ class SuperSoulDialog(QDialog):
         self.name_input = QLineEdit()
         form.addRow(QLabel(tr("dialog.super_soul.label_name")), self.name_input)
 
-        self.effect1_input = QLineEdit()
+        self.owner_combo = QComboBox()
+        self.owner_combo.setEditable(True)
+        self.owner_combo.setInsertPolicy(QComboBox.NoInsert)
+        self.owner_combo.setPlaceholderText(tr("dialog.super_soul.placeholder_owner"))
+        completer = QCompleter(self.owner_combo.model(), self.owner_combo)
+        completer.setCompletionMode(QCompleter.PopupCompletion)
+        completer.setFilterMode(Qt.MatchContains)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setMaxVisibleItems(15)
+        self.owner_combo.setCompleter(completer)
+        self._populate_owners()
+        form.addRow(QLabel(tr("dialog.super_soul.label_owner")), self.owner_combo)
+
+        self.effect1_input = QPlainTextEdit()
+        self.effect1_input.setMinimumHeight(60)
         form.addRow(QLabel(tr("dialog.super_soul.label_effect1")), self.effect1_input)
 
-        self.effect2_input = QLineEdit()
+        self.effect2_input = QPlainTextEdit()
+        self.effect2_input.setMinimumHeight(60)
         form.addRow(QLabel(tr("dialog.super_soul.label_effect2")), self.effect2_input)
 
-        self.note_input = QLineEdit()
-        form.addRow(QLabel(tr("dialog.super_soul.label_note")), self.note_input)
+        self.limit_burst_input = QPlainTextEdit()
+        self.limit_burst_input.setMinimumHeight(60)
+        form.addRow(QLabel(tr("dialog.super_soul.label_limit_burst")), self.limit_burst_input)
 
         layout.addLayout(form)
 
@@ -147,14 +230,24 @@ class SuperSoulDialog(QDialog):
 
         if edit_data:
             self.name_input.setText(edit_data.get("name", ""))
-            self.effect1_input.setText(edit_data.get("effect_1", ""))
-            self.effect2_input.setText(edit_data.get("effect_2", ""))
-            self.note_input.setText(edit_data.get("note", ""))
+            self.owner_combo.setCurrentText(edit_data.get("owner", ""))
+            self.effect1_input.setPlainText(edit_data.get("effect_1", ""))
+            self.effect2_input.setPlainText(edit_data.get("effect_2", ""))
+            self.limit_burst_input.setPlainText(edit_data.get("limit_burst", ""))
+
+    def _populate_owners(self) -> None:
+        try:
+            chars = self._characters_provider()
+        except Exception:
+            chars = []
+        names = [c.get("name", "") for c in chars if c.get("name")]
+        self.owner_combo.addItems(sorted(names))
 
     def get_data(self) -> dict:
         return {
             "name": self.name_input.text().strip(),
-            "effect_1": self.effect1_input.text().strip(),
-            "effect_2": self.effect2_input.text().strip(),
-            "note": self.note_input.text().strip(),
+            "owner": self.owner_combo.currentText().strip(),
+            "effect_1": self.effect1_input.toPlainText().strip(),
+            "effect_2": self.effect2_input.toPlainText().strip(),
+            "limit_burst": self.limit_burst_input.toPlainText().strip(),
         }

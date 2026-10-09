@@ -191,17 +191,31 @@
       "add_title": "Add {type}",
       "edit_title": "Edit {type}",
       "label_name": "Skill Name:",
+      "label_skill_type": "Skill Type:",
+      "label_ki_used": "Ki Used:",
       "label_cac": "Is CaC Skill?:",
-      "label_note": "Note:",
-      "placeholder_note": "e.g. Goku (Super Saiyan Blue)"
+      "label_description": "Description:",
+      "placeholder_description": "Optional description or notes",
+      "type": {
+        "none": "—",
+        "strike": "Strike Skill",
+        "ki_blast": "Ki Blast Skill",
+        "buff": "Power Up",
+        "other": "Other",
+        "strike_raid": "Strike Skill (Crystal Raid)",
+        "ki_blast_raid": "Ki Blast Skill (Crystal Raid)",
+        "transformation": "Transformation"
+      }
     },
     "super_soul": {
       "add_title": "Add Super Soul",
       "edit_title": "Edit Super Soul",
       "label_name": "Super Soul Name:",
+      "label_owner": "Owner:",
+      "placeholder_owner": "Character name or empty",
       "label_effect1": "Effect 1:",
       "label_effect2": "Effect 2:",
-      "label_note": "Note:"
+      "label_limit_burst": "Limit Burst:"
     },
     "sheet_detail": {
       "close": "Close",

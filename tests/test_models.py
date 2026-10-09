@@ -208,4 +208,84 @@ class TestModels:
             assert result == canonical
 
             result = store._canonicalize_cache_item("super_souls", "Hope")
-            assert result == {"name": "Hope", "effect_1": "", "effect_2": "", "note": ""}
+            assert result == {
+                "name": "Hope",
+                "owner": "",
+                "effect_1": "",
+                "effect_2": "",
+                "limit_burst": "",
+            }
+
+            result = store._canonicalize_cache_item("super_skills", "Kamehameha")
+            assert result == {
+                "name": "Kamehameha",
+                "is_cac": False,
+                "skill_type": "",
+                "ki_used": None,
+                "note": "",
+            }
+
+    def test_skill_entry_new_fields_roundtrip(self):
+        from models.schemas import SkillEntry
+
+        s = SkillEntry(
+            skill_name="Kamehameha",
+            skill_type="ki_blast",
+            ki_used=100,
+            note="test note",
+        )
+        d = s.to_dict()
+        assert d["skill_type"] == "ki_blast"
+        assert d["ki_used"] == 100
+        assert d["note"] == "test note"
+
+        restored = SkillEntry.from_dict(d)
+        assert restored.skill_type == "ki_blast"
+        assert restored.ki_used == 100
+        assert restored.note == "test note"
+
+    def test_supersoul_entry_new_fields_roundtrip(self):
+        from models.schemas import SuperSoulEntry
+
+        ss = SuperSoulEntry(
+            name="Hope of Universe",
+            owner="Goku",
+            effect_1="ATK+20%",
+            effect_2="DEF+20%",
+            limit_burst="Massive damage",
+        )
+        d = ss.to_dict()
+        assert d["owner"] == "Goku"
+        assert d["limit_burst"] == "Massive damage"
+        assert "note" not in d
+
+        restored = SuperSoulEntry.from_dict(d)
+        assert restored.owner == "Goku"
+        assert restored.limit_burst == "Massive damage"
+
+    def test_canonicalize_skill_with_new_fields(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.json"
+            store = AppDataStore(data_file=file_path)
+
+            legacy = {"name": "Kamehameha", "is_cac": False, "note": "old"}
+            result = store._canonicalize_cache_item("super_skills", legacy)
+            assert result["skill_type"] == ""
+            assert result["ki_used"] is None
+            assert result["note"] == "old"
+
+            result = store._canonicalize_cache_item("super_skills", "Kamehameha")
+            assert result["skill_type"] == ""
+            assert result["ki_used"] is None
+
+    def test_canonicalize_supersoul_strips_note(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.json"
+            store = AppDataStore(data_file=file_path)
+
+            legacy = {"name": "Hope", "effect_1": "ATK+", "effect_2": "DEF+", "note": "hapus ini"}
+            result = store._canonicalize_cache_item("super_souls", legacy)
+            assert "note" not in result
+            assert result["owner"] == ""
+            assert result["limit_burst"] == ""
+            assert result["effect_1"] == "ATK+"

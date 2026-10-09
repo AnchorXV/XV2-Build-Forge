@@ -171,13 +171,25 @@ class BulkEditDialog(QDialog):
         if field == "super_soul" and new_val:
             souls = self._store.dropdown_cache.get("super_souls", [])
             if not any(s.get("name") == new_val for s in souls):
-                souls.append({"name": new_val, "effect_1": "", "effect_2": "", "note": ""})
+                souls.append({
+                    "name": new_val,
+                    "owner": "",
+                    "effect_1": "",
+                    "effect_2": "",
+                    "limit_burst": "",
+                })
                 self._store.save()
         elif field in ["awoken_skill", "evasive_skill"] and new_val:
             cat = "awoken_skills" if field == "awoken_skill" else "evasive_skills"
             skills = self._store.dropdown_cache.get(cat, [])
             if not any(s.get("name") == new_val for s in skills):
-                skills.append({"name": new_val, "is_cac": False, "note": ""})
+                skills.append({
+                    "name": new_val,
+                    "is_cac": False,
+                    "skill_type": "",
+                    "ki_used": None,
+                    "note": "",
+                })
                 self._store.save()
 
         self.accept()

@@ -18,8 +18,8 @@ TABLE_COLUMNS: Final[list[str]] = [
 ]
 
 CHAR_DB_COLUMNS: Final[list[str]] = ["Code", "Name", "Playable Character"]
-SKILL_DB_COLUMNS: Final[list[str]] = ["Skill Name", "Is CaC Skill?", "Note"]
-SUPERSOUL_DB_COLUMNS: Final[list[str]] = ["Super Soul", "Effect 1", "Effect 2", "Note"]
+SKILL_DB_COLUMNS: Final[list[str]] = ["Skill Name", "Is CaC Skill?", "Skill Type", "Ki Used", "Description"]
+SUPERSOUL_DB_COLUMNS: Final[list[str]] = ["Super Soul", "Owner", "Effect 1", "Effect 2", "Limit Burst"]
 
 CACHE_KEYS: Final[list[str]] = [
     "characters", "character_ids", "costume_names",

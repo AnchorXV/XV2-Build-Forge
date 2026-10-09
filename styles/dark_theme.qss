@@ -663,3 +663,20 @@ QPushButton#updateButton:hover {
 QPushButton#updateButton:pressed {
     background-color: #b86208;
 }
+
+/* ── PlainTextEdit / TextEdit ───────────────────────────────────────── */
+QPlainTextEdit, QTextEdit {
+    background-color: #131418;
+    color: #e8e8ec;
+    border: 1px solid #232428;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    selection-background-color: #6366f1;
+    selection-color: #ffffff;
+}
+
+QPlainTextEdit:focus, QTextEdit:focus {
+    border: 1px solid #6366f1;
+    background-color: #16171a;
+}
