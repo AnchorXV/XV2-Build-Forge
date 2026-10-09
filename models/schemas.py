@@ -125,11 +125,46 @@ class SuperSoulEntry:
             limit_burst=d.get("limit_burst", ""),
         )
 
+@dataclass
+class SourceEntry:
+    """A source (Series / Manga / Movie / Game / etc.) that a character appears in."""
+
+    name: str
+    source_type: str = ""
+    day: Optional[int] = None
+    month: Optional[int] = None
+    year: Optional[int] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "source_type": self.source_type,
+            "day": self.day,
+            "month": self.month,
+            "year": self.year,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "SourceEntry":
+        def _to_int_or_none(v):
+            if v is None:
+                return None
+            try:
+                return int(v)
+            except (ValueError, TypeError):
+                return None
+
+        return cls(
+            name=d.get("name", ""),
+            source_type=d.get("source_type", ""),
+            day=_to_int_or_none(d.get("day")),
+            month=_to_int_or_none(d.get("month")),
+            year=_to_int_or_none(d.get("year")),
+        )
 
 def _generate_entry_id() -> str:
     """Generate a new UUID4 string for a preset entry."""
     return str(uuid.uuid4())
-
 
 @dataclass
 class PresetEntry:
@@ -238,3 +273,4 @@ class RosterSheet:
 Character = CharacterEntry
 Skill = SkillEntry
 SuperSoul = SuperSoulEntry
+Source = SourceEntry

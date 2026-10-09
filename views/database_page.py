@@ -24,6 +24,7 @@ CATEGORIES = [
     ("awoken_skills", "awoken_skill"),
     ("evasive_skills", "evasive_skill"),
     ("super_souls", "super_soul"),
+    ("sources", "source"),
 ]
 
 

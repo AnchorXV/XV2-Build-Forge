@@ -47,15 +47,32 @@
       "pasted": "Pasted {count} preset(s) into '{sheet}'."
     }
   },
+  "date": {
+      "month": {
+          "1": "January",
+          "2": "February",
+          "3": "March",
+          "4": "April",
+          "5": "May",
+          "6": "June",
+          "7": "July",
+          "8": "August",
+          "9": "September",
+          "10": "October",
+          "11": "November",
+          "12": "December"
+      }
+  },
   "tabs": {
-    "editor": "Skillset Editor",
-    "roster_preview": "Roster Table Preview",
-    "character": "Character",
-    "super_skill": "Super Skill",
-    "ultimate_skill": "Ultimate Skill",
-    "awoken_skill": "Awoken Skill",
-    "evasive_skill": "Evasive Skill",
-    "super_soul": "Super Soul"
+      "editor": "Skillset Editor",
+      "roster_preview": "Roster Table Preview",
+      "character": "Character",
+      "super_skill": "Super Skill",
+      "ultimate_skill": "Ultimate Skill",
+      "awoken_skill": "Awoken Skill",
+      "evasive_skill": "Evasive Skill",
+      "super_soul": "Super Soul",
+      "source": "Source"
   },
   "editor": {
     "group": {
@@ -216,6 +233,26 @@
       "label_effect1": "Effect 1:",
       "label_effect2": "Effect 2:",
       "label_limit_burst": "Limit Burst:"
+    },
+    "source": {
+        "add_title": "Add Source",
+        "edit_title": "Edit Source",
+        "label_name": "Source Name:",
+        "label_type": "Type:",
+        "label_date": "Release Date:",
+        "label_year": "Year:",
+        "label_month": "Month:",
+        "label_day": "Day:",
+        "type": {
+            "series": "Series",
+            "manga": "Manga",
+            "movie": "Movie",
+            "game": "Game",
+            "fan_made": "Fan-Made",
+            "ova_special": "OVA Special",
+            "live_action": "Live Action",
+            "unknown": "Unknown"
+        }
     },
     "sheet_detail": {
       "close": "Close",

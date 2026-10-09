@@ -12,6 +12,15 @@ from locales.i18n_manager import tr
 if TYPE_CHECKING:
     from models.data_store import AppDataStore
 
+def _format_source_date(day, month, year) -> str:
+    if not year:
+        return "—"
+    if not month:
+        return str(year)
+    month_name = tr(f"date.month.{month}")
+    if not day:
+        return f"{month_name} {year}"
+    return f"{day} {month_name} {year}"
 
 class DatabaseTableModel(QAbstractTableModel):
 
@@ -36,6 +45,10 @@ class DatabaseTableModel(QAbstractTableModel):
                 from app_config import SUPERSOUL_DB_COLUMNS
                 self._columns = SUPERSOUL_DB_COLUMNS
                 self._entry_type = entry_type or "supersoul"
+            elif cache_key == "sources":
+                from app_config import SOURCE_DB_COLUMNS
+                self._columns = SOURCE_DB_COLUMNS
+                self._entry_type = entry_type or "source"
             else:
                 from app_config import SKILL_DB_COLUMNS
                 self._columns = SKILL_DB_COLUMNS
@@ -62,6 +75,12 @@ class DatabaseTableModel(QAbstractTableModel):
                 "Effect 1": "effect_1",
                 "Effect 2": "effect_2",
                 "Limit Burst": "limit_burst",
+            }
+        elif self._entry_type == "source":
+            mapping = {
+                "Source Name": "name",
+                "Type": "source_type",
+                "Date": "date",
             }
         else:
             mapping = {
@@ -99,9 +118,17 @@ class DatabaseTableModel(QAbstractTableModel):
             val = "Yes" if val else "No"
         elif val is None:
             val = "—"
-        elif col_name == "Skill Type":
-            if val:
-                val = tr(f"dialog.skill.type.{val}")
+        elif self._entry_type == "skill" and col_name == "Skill Type":
+            val = tr(f"dialog.skill.type.{val}") if val else "—"
+        elif self._entry_type == "source" and col_name == "Type":
+            val = tr(f"dialog.source.type.{val}") if val else "—"
+        elif self._entry_type == "source" and col_name == "Date":
+            if isinstance(entry, dict):
+                val = _format_source_date(
+                    entry.get("day"),
+                    entry.get("month"),
+                    entry.get("year"),
+                )
             else:
                 val = "—"
 

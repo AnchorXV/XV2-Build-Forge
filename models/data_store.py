@@ -209,6 +209,14 @@ class AppDataStore:
                     "effect_2": "",
                     "limit_burst": "",
                 }
+            if key == "sources":
+                return {
+                    "name": item,
+                    "source_type": "",
+                    "day": None,
+                    "month": None,
+                    "year": None,
+                }
             if key in ("super_skills", "ultimate_skills", "awoken_skills", "evasive_skills"):
                 return {
                     "name": item,
@@ -250,6 +258,23 @@ class AppDataStore:
                 "effect_1": item.get("effect_1", ""),
                 "effect_2": item.get("effect_2", ""),
                 "limit_burst": item.get("limit_burst", ""),
+            }
+
+        if key == "sources":
+            def _to_int_or_none(v):
+                if v is None:
+                    return None
+                try:
+                    return int(v)
+                except (ValueError, TypeError):
+                    return None
+
+            return {
+                "name": item.get("name", ""),
+                "source_type": item.get("source_type", ""),
+                "day": _to_int_or_none(item.get("day")),
+                "month": _to_int_or_none(item.get("month")),
+                "year": _to_int_or_none(item.get("year")),
             }
 
         if key in ("super_skills", "ultimate_skills", "awoken_skills", "evasive_skills"):

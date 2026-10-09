@@ -25,6 +25,7 @@ from models.table_models import DatabaseTableModel
 from views.dialogs.db_entry_dialog import (
     CharacterDialog,
     SkillDialog,
+    SourceDialog,
     SuperSoulDialog,
 )
 from views.widgets.searchable_table_view import SearchableTableView
@@ -217,13 +218,10 @@ class DatabaseTab(QWidget):
                 parent=self,
                 edit_data=edit_data,
             )
+        elif self._key == "sources":
+            return SourceDialog(self, edit_data=edit_data)
         else:
-            return SkillDialog(
-                self._key,
-                self._display,
-                self,
-                edit_data=edit_data,
-            )
+            return SkillDialog(self._key, self._display, self, edit_data=edit_data)
 
     def retranslate_ui(self, display_title: str) -> None:
         self._display = display_title
