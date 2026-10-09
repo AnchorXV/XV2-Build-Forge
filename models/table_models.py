@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional, TYPE_CHECKING
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
+from PySide6.QtGui import QBrush, QColor
 
 from app_config import TABLE_COLUMNS
 
@@ -276,6 +277,15 @@ class RosterSummaryTableModel(QAbstractTableModel):
 
 class PresetDetailTableModel(QAbstractTableModel):
 
+    SKILL_COLUMNS: set[str] = {
+        "Super Skill 1", "Super Skill 2", "Super Skill 3", "Super Skill 4",
+        "Ultimate Skill 1", "Ultimate Skill 2",
+        "Awoken Skill", "Evasive Skill", "Super Soul",
+    }
+
+    EMPTY_DISPLAY = "—"
+    EMPTY_FOREGROUND = QColor("#52535c")
+
     presets_reordered = Signal(list, list)
 
     def __init__(self, presets: list, parent: Any = None) -> None:
@@ -295,17 +305,34 @@ class PresetDetailTableModel(QAbstractTableModel):
         if row >= len(self._presets):
             return None
 
-        p = self._presets[row]
+        entry = self._presets[row]
         col_name = TABLE_COLUMNS[col]
 
+        if hasattr(entry, "to_dict"):
+            raw = entry.to_dict().get(col_name, "")
+        elif isinstance(entry, dict):
+            raw = entry.get(col_name, "")
+        else:
+            raw = ""
+        value = "" if raw is None else str(raw)
+
+        is_skill_col = col_name in self.SKILL_COLUMNS
+        is_empty = not value.strip()
+
         if role == Qt.DisplayRole:
-            if hasattr(p, "to_dict"):
-                val = str(p.to_dict().get(col_name, ""))
-            else:
-                val = str(p.get(col_name, ""))
-            return val
+            if is_skill_col and is_empty:
+                return self.EMPTY_DISPLAY
+            return value
+        if role == Qt.ToolTipRole:
+            if is_empty:
+                return None
+            return value
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
+        if role == Qt.ForegroundRole:
+            if is_skill_col and is_empty:
+                return QBrush(self.EMPTY_FOREGROUND)
+            return None
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
