@@ -22,7 +22,10 @@ from PySide6.QtWidgets import (
 )
 
 from controllers.signal_bus import signal_bus
-from controllers.undo_commands import AddPresetWithAutoRegisterCommand, EditPresetEntryCommand
+from controllers.undo_commands import (
+    AddPresetWithAutoRegisterCommand,
+    EditPresetWithAutoRegisterCommand,
+)
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from models.schemas import PresetEntry
@@ -469,7 +472,7 @@ class EditorTab(QWidget):
             self.reset_form()
             return
 
-        cmd = EditPresetEntryCommand(self._store, target, old_entry, entry)
+        cmd = EditPresetWithAutoRegisterCommand(self._store, target, old_entry, entry)
         self._undo_stack.push(cmd)
         signal_bus.status_message.emit(
             tr("editor.message.update_success", sheet=target)

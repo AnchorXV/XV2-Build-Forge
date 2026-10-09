@@ -11,6 +11,60 @@ from models.schemas import PresetEntry
 
 logger = logging.getLogger(__name__)
 
+def _register_entry_to_cache(
+    store,
+    entry: PresetEntry,
+    target_sheet: str,
+) -> None:
+    """Register character, skills, dan super soul baru dari entry ke dropdown_cache.
+
+    Dipanggil dari Add dan Edit command. Owner Super Soul hanya diisi saat
+    entry baru dibuat, tidak menimpa owner yang sudah ada.
+    Tidak save ke disk — caller yang bertanggung jawab save.
+    """
+    tables = store.dropdown_cache.get("table_names", [])
+    if target_sheet and target_sheet not in tables:
+        tables.append(target_sheet)
+
+    if entry.character_name:
+        chars = store.dropdown_cache.get("characters", [])
+        if not any(c.get("name") == entry.character_name for c in chars):
+            chars.append({
+                "code": entry.character_id if entry.character_id else "MOD",
+                "name": entry.character_name,
+                "is_playable": True,
+            })
+
+    def _register_skill(category: str, skill_name: str) -> None:
+        if not skill_name:
+            return
+        skills = store.dropdown_cache.get(category, [])
+        if not any(s.get("name") == skill_name for s in skills):
+            skills.append({
+                "name": skill_name,
+                "is_cac": False,
+                "skill_type": "",
+                "ki_used": None,
+                "note": "",
+            })
+
+    for s in entry.super_skills:
+        _register_skill("super_skills", s)
+    for s in entry.ultimate_skills:
+        _register_skill("ultimate_skills", s)
+    _register_skill("awoken_skills", entry.awoken_skill)
+    _register_skill("evasive_skills", entry.evasive_skill)
+
+    if entry.super_soul:
+        souls = store.dropdown_cache.get("super_souls", [])
+        if not any(s.get("name") == entry.super_soul for s in souls):
+            souls.append({
+                "name": entry.super_soul,
+                "owner": entry.character_name or "",
+                "effect_1": "",
+                "effect_2": "",
+                "limit_burst": "",
+            })
 
 class AddPresetEntryCommand(QUndoCommand):
 
@@ -67,7 +121,7 @@ class AddPresetWithAutoRegisterCommand(QUndoCommand):
         if self._cache_before is None:
             self._cache_before = copy.deepcopy(self._store.dropdown_cache)
 
-        self._auto_register_master_pool(self._entry, self._sheet)
+        _register_entry_to_cache(self._store, self._entry, self._sheet)
         self._add_cmd.redo()
 
     def undo(self) -> None:
@@ -78,51 +132,37 @@ class AddPresetWithAutoRegisterCommand(QUndoCommand):
             self._store.save()
             signal_bus.data_changed.emit()
 
-    def _auto_register_master_pool(self, entry: PresetEntry, target: str) -> None:
-        tables = self._store.dropdown_cache.get("table_names", [])
-        if target and target not in tables:
-            tables.append(target)
+class EditPresetWithAutoRegisterCommand(QUndoCommand):
 
-        if entry.character_name:
-            chars = self._store.dropdown_cache.get("characters", [])
-            if not any(c.get("name") == entry.character_name for c in chars):
-                chars.append({
-                    "code": entry.character_id if entry.character_id else "MOD",
-                    "name": entry.character_name,
-                    "is_playable": True,
-                })
+    def __init__(
+        self,
+        data_store,
+        sheet_name: str,
+        old_entry: PresetEntry,
+        new_entry: PresetEntry,
+    ) -> None:
+        super().__init__(f"Edit Preset '{new_entry.character_name}' in '{sheet_name}'")
+        self._store = data_store
+        self._sheet = sheet_name
+        self._old = old_entry
+        self._new = new_entry
+        self._cache_before: dict[str, list[Any]] | None = None
+        self._edit_cmd = EditPresetEntryCommand(data_store, sheet_name, old_entry, new_entry)
 
-        def _register_skill(category: str, skill_name: str) -> None:
-            if not skill_name:
-                return
-            skills = self._store.dropdown_cache.get(category, [])
-            if not any(s.get("name") == skill_name for s in skills):
-                skills.append({
-                    "name": skill_name,
-                    "is_cac": False,
-                    "skill_type": "",
-                    "ki_used": None,
-                    "note": "",
-                })
+    def redo(self) -> None:
+        if self._cache_before is None:
+            self._cache_before = copy.deepcopy(self._store.dropdown_cache)
 
-        for s in entry.super_skills:
-            _register_skill("super_skills", s)
-        for s in entry.ultimate_skills:
-            _register_skill("ultimate_skills", s)
-        _register_skill("awoken_skills", entry.awoken_skill)
-        _register_skill("evasive_skills", entry.evasive_skill)
+        _register_entry_to_cache(self._store, self._new, self._sheet)
+        self._edit_cmd.redo()
 
-        if entry.super_soul:
-            souls = self._store.dropdown_cache.get("super_souls", [])
-            if not any(s.get("name") == entry.super_soul for s in souls):
-                souls.append({
-                    "name": entry.super_soul,
-                    "owner": "",
-                    "effect_1": "",
-                    "effect_2": "",
-                    "limit_burst": "",
-                })
+    def undo(self) -> None:
+        self._edit_cmd.undo()
 
+        if self._cache_before is not None:
+            self._store.dropdown_cache = copy.deepcopy(self._cache_before)
+            self._store.save()
+            signal_bus.data_changed.emit()
 
 class EditPresetEntryCommand(QUndoCommand):
 
