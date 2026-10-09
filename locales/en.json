@@ -187,12 +187,13 @@
       "edit": "Edit",
       "delete": "Delete"
     },
-    "message": {
+      "message": {
       "empty_name": "Name field must not be empty.",
       "confirm_delete": "Delete '{name}' from database?",
       "confirm_delete_multiple": "Delete {count} items from database?",
       "cache_migrated": "Cache migrated successfully to dictionary schema.",
-      "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema."
+      "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema.",
+      "cascade_rename": "There are {count} variant(s) based on '{old}'. Rename them too to '{new}'?"
     }
   },
   "dialog": {
