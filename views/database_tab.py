@@ -100,7 +100,7 @@ class DatabaseTab(QWidget):
         self._stv.set_source_model(self._model)
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
-        parent_layout.addWidget(self._stv)
+        parent_layout.addWidget(self._stv, 1)
 
     def _build_split_ui(self, parent_layout: QVBoxLayout) -> None:
         splitter = QSplitter(Qt.Horizontal)
@@ -128,7 +128,9 @@ class DatabaseTab(QWidget):
         left_layout.addWidget(self._stv)
         splitter.addWidget(left)
 
-        self._detail_panel = CharacterDetailPanel()
+        self._detail_panel = CharacterDetailPanel(self._store)
+        self._detail_panel.edit_requested.connect(self._on_edit_panel)
+        self._detail_panel.delete_requested.connect(self._on_delete_panel)
         splitter.addWidget(self._detail_panel)
 
         splitter.setStretchFactor(0, 0)
@@ -191,7 +193,78 @@ class DatabaseTab(QWidget):
             self._detail_panel.clear()
             return
 
-        self._detail_panel.set_character(items[rows[0]])
+        row = rows[0]
+        self._detail_panel.set_character(row, items[row])
+
+    def _on_edit_panel(self) -> None:
+        if self._detail_panel is None:
+            return
+        row = self._detail_panel.current_row()
+        if row < 0:
+            return
+        self._on_edit_for_row(row)
+
+    def _on_delete_panel(self) -> None:
+        if self._detail_panel is None:
+            return
+        row = self._detail_panel.current_row()
+        if row < 0:
+            return
+        self._on_delete_for_row(row)
+
+    def _on_edit_for_row(self, row: int) -> None:
+        items = self._store.get_cache(self._key)
+        if row >= len(items):
+            return
+
+        dlg = self._make_dialog(edit_data=items[row])
+        if not dlg or not dlg.exec():
+            return
+
+        data = dlg.get_data()
+        name = data.get("name", "").strip()
+        if not name:
+            QMessageBox.warning(self, tr("dialog.common.warning"), tr("database.message.empty_name"))
+            return
+
+        old_name = items[row].get("name", "")
+
+        if self._key == "characters" and old_name and old_name != name:
+            variants = find_character_variants(self._store, old_name)
+            if variants:
+                reply = QMessageBox.question(
+                    self,
+                    tr("dialog.common.confirm"),
+                    tr(
+                        "database.message.cascade_rename",
+                        count=len(variants),
+                        old=old_name,
+                        new=name,
+                    ),
+                )
+                if reply != QMessageBox.Yes:
+                    return
+                cmd = CascadeRenameCharacterCommand(self._store, old_name, name)
+                self._undo_stack.push(cmd)
+                return
+
+        cmd = EditCacheItemCommand(self._store, self._key, row, items[row], data)
+        self._undo_stack.push(cmd)
+
+    def _on_delete_for_row(self, row: int) -> None:
+        items = self._store.get_cache(self._key)
+        if row >= len(items):
+            return
+        name = items[row].get("name", "???")
+        reply = QMessageBox.question(
+            self,
+            tr("dialog.common.confirm"),
+            tr("database.message.confirm_delete", name=name),
+        )
+        if reply == QMessageBox.Yes:
+            item = items[row]
+            cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
+            self._undo_stack.push(cmd)
 
     # ── Handlers ────────────────────────────────────────────────────────
 
@@ -231,44 +304,7 @@ class DatabaseTab(QWidget):
             if not rows:
                 return
             row = rows[0]
-
-        items = self._store.get_cache(self._key)
-        if row >= len(items):
-            return
-
-        dlg = self._make_dialog(edit_data=items[row])
-        if not dlg or not dlg.exec():
-            return
-
-        data = dlg.get_data()
-        name = data.get("name", "").strip()
-        if not name:
-            QMessageBox.warning(self, tr("dialog.common.warning"), tr("database.message.empty_name"))
-            return
-
-        old_name = items[row].get("name", "")
-
-        if self._key == "characters" and old_name and old_name != name:
-            variants = find_character_variants(self._store, old_name)
-            if variants:
-                reply = QMessageBox.question(
-                    self,
-                    tr("dialog.common.confirm"),
-                    tr(
-                        "database.message.cascade_rename",
-                        count=len(variants),
-                        old=old_name,
-                        new=name,
-                    ),
-                )
-                if reply != QMessageBox.Yes:
-                    return
-                cmd = CascadeRenameCharacterCommand(self._store, old_name, name)
-                self._undo_stack.push(cmd)
-                return
-
-        cmd = EditCacheItemCommand(self._store, self._key, row, items[row], data)
-        self._undo_stack.push(cmd)
+        self._on_edit_for_row(row)
 
     def _on_context_menu(self, pos) -> None:
         index = self._stv.table_view.indexAt(pos)
@@ -295,17 +331,7 @@ class DatabaseTab(QWidget):
             return
 
         if len(valid_rows) == 1:
-            row = valid_rows[0]
-            name = items[row].get("name", "???")
-            reply = QMessageBox.question(
-                self,
-                tr("dialog.common.confirm"),
-                tr("database.message.confirm_delete", name=name),
-            )
-            if reply == QMessageBox.Yes:
-                item = items[row]
-                cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
-                self._undo_stack.push(cmd)
+            self._on_delete_for_row(valid_rows[0])
         else:
             reply = QMessageBox.question(
                 self,

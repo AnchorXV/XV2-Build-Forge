@@ -713,3 +713,53 @@ QLabel#panelInfo {
     font-size: 12px;
     padding: 4px 0;
 }
+
+/* ── Character Detail — Panel Fields ────────────────────────────────── */
+QLabel#panelFieldLabel {
+    color: #8b8c93;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 2px 0;
+}
+
+QLabel#panelValue {
+    color: #e8e8ec;
+    font-size: 13px;
+    padding: 2px 0;
+}
+
+QLabel#panelValueInline {
+    color: #e8e8ec;
+    font-size: 13px;
+    padding: 2px 0;
+}
+
+QListWidget#panelList {
+    background-color: #16171a;
+    border: 1px solid #1a1b1f;
+    border-radius: 6px;
+    padding: 4px;
+    outline: none;
+    font-size: 12px;
+}
+
+QListWidget#panelList::item {
+    color: #d8d8dc;
+    padding: 5px 8px;
+    border-radius: 4px;
+}
+
+QListWidget#panelList::item:selected {
+    background-color: #6366f1;
+    color: #ffffff;
+}
+
+QListWidget#panelList::item:hover {
+    background-color: #1a1b1f;
+}
+
+QScrollArea#characterDetailScroll {
+    background-color: transparent;
+    border: none;
+}

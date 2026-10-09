@@ -48,31 +48,31 @@
     }
   },
   "date": {
-      "month": {
-          "1": "January",
-          "2": "February",
-          "3": "March",
-          "4": "April",
-          "5": "May",
-          "6": "June",
-          "7": "July",
-          "8": "August",
-          "9": "September",
-          "10": "October",
-          "11": "November",
-          "12": "December"
-      }
+    "month": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    }
   },
   "tabs": {
-      "editor": "Skillset Editor",
-      "roster_preview": "Roster Table Preview",
-      "character": "Character",
-      "super_skill": "Super Skill",
-      "ultimate_skill": "Ultimate Skill",
-      "awoken_skill": "Awoken Skill",
-      "evasive_skill": "Evasive Skill",
-      "super_soul": "Super Soul",
-      "source": "Source"
+    "editor": "Skillset Editor",
+    "roster_preview": "Roster Table Preview",
+    "character": "Character",
+    "super_skill": "Super Skill",
+    "ultimate_skill": "Ultimate Skill",
+    "awoken_skill": "Awoken Skill",
+    "evasive_skill": "Evasive Skill",
+    "super_soul": "Super Soul",
+    "source": "Source"
   },
   "editor": {
     "group": {
@@ -187,7 +187,7 @@
       "edit": "Edit",
       "delete": "Delete"
     },
-      "message": {
+    "message": {
       "empty_name": "Name field must not be empty.",
       "confirm_delete": "Delete '{name}' from database?",
       "confirm_delete_multiple": "Delete {count} items from database?",
@@ -195,28 +195,35 @@
       "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema.",
       "cascade_rename": "There are {count} variant(s) based on '{old}'. Rename them too to '{new}'?"
     },
-      "character_panel": {
-        "no_selection": "Select a character",
-        "code": "Code",
-        "base": "Base",
-        "playable": "Playable",
-        "episodes": "Appears on Source"
-      }
+    "character_panel": {
+      "no_selection": "Select a character",
+      "code": "Code",
+      "base": "Base",
+      "character": "Character",
+      "playable": "Playable",
+      "episodes": "Appear on Source",
+      "episodes_with_count": "Appear on Source ({count})",
+      "skill_used_by": "Skill used by {name}",
+      "soul_used_by": "Super Soul used by {name}",
+      "list_item": "{name}    ({count})",
+      "edit": "Edit",
+      "delete": "Delete"
+    }
   },
   "dialog": {
     "character": {
-        "add_title": "Add Character",
-        "edit_title": "Edit Character",
-        "label_code": "Character Code:",
-        "label_name": "Character Name:",
-        "label_base": "Base Character:",
-        "label_playable": "Playable Character:",
-        "label_episodes": "Appear on Source:",
-        "placeholder_code": "e.g. GOK",
-        "placeholder_name": "e.g. Goku (Super Saiyan God)",
-        "placeholder_base": "e.g. Goku",
-        "button_add_episode": "Add",
-        "button_remove_episode": "Remove"
+      "add_title": "Add Character",
+      "edit_title": "Edit Character",
+      "label_code": "Character Code:",
+      "label_name": "Character Name:",
+      "label_base": "Base Character:",
+      "label_playable": "Playable Character:",
+      "label_episodes": "Appear on Source:",
+      "placeholder_code": "e.g. GOK",
+      "placeholder_name": "e.g. Goku (Super Saiyan God)",
+      "placeholder_base": "e.g. Goku",
+      "button_add_episode": "Add",
+      "button_remove_episode": "Remove"
     },
     "skill": {
       "add_title": "Add {type}",
@@ -249,24 +256,24 @@
       "label_limit_burst": "Limit Burst:"
     },
     "source": {
-        "add_title": "Add Source",
-        "edit_title": "Edit Source",
-        "label_name": "Source Name:",
-        "label_type": "Type:",
-        "label_date": "Release Date:",
-        "label_year": "Year:",
-        "label_month": "Month:",
-        "label_day": "Day:",
-        "type": {
-            "series": "Series",
-            "manga": "Manga",
-            "movie": "Movie",
-            "game": "Game",
-            "fan_made": "Fan-Made",
-            "ova_special": "OVA Special",
-            "live_action": "Live Action",
-            "unknown": "Unknown"
-        }
+      "add_title": "Add Source",
+      "edit_title": "Edit Source",
+      "label_name": "Source Name:",
+      "label_type": "Type:",
+      "label_date": "Release Date:",
+      "label_year": "Year:",
+      "label_month": "Month:",
+      "label_day": "Day:",
+      "type": {
+        "series": "Series",
+        "manga": "Manga",
+        "movie": "Movie",
+        "game": "Game",
+        "fan_made": "Fan-Made",
+        "ova_special": "OVA Special",
+        "live_action": "Live Action",
+        "unknown": "Unknown"
+      }
     },
     "sheet_detail": {
       "close": "Close",
