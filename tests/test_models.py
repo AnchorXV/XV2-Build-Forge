@@ -195,15 +195,33 @@ class TestModels:
             store = AppDataStore(data_file=file_path)
 
             result = store._canonicalize_cache_item("characters", "Goku")
-            assert result == {"code": "MOD", "name": "Goku", "is_playable": True}
+            assert result == {
+                "code": "MOD",
+                "name": "Goku",
+                "is_playable": True,
+                "base_character": "",
+                "episodes": [],
+            }
 
             result = store._canonicalize_cache_item(
                 "characters",
                 {"Code": "GOK", "Name": "Goku", "Playable Character": "Yes"},
             )
-            assert result == {"code": "GOK", "name": "Goku", "is_playable": True}
+            assert result == {
+                "code": "GOK",
+                "name": "Goku",
+                "is_playable": True,
+                "base_character": "",
+                "episodes": [],
+            }
 
-            canonical = {"code": "GOK", "name": "Goku", "is_playable": True}
+            canonical = {
+                "code": "GOK",
+                "name": "Goku",
+                "is_playable": True,
+                "base_character": "Goku",
+                "episodes": ["Battle of Gods"],
+            }
             result = store._canonicalize_cache_item("characters", canonical)
             assert result == canonical
 

@@ -211,7 +211,11 @@ class DatabaseTab(QWidget):
 
     def _make_dialog(self, edit_data: Optional[dict] = None):
         if self._key == "characters":
-            return CharacterDialog(self, edit_data=edit_data)
+            return CharacterDialog(
+                episodes_provider=lambda: self._store.get_cache("sources"),
+                parent=self,
+                edit_data=edit_data,
+            )
         elif self._key == "super_souls":
             return SuperSoulDialog(
                 characters_provider=lambda: self._store.get_cache("characters"),

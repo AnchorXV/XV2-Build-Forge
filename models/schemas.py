@@ -20,27 +20,34 @@ class CharacterEntry:
     code: str
     name: str
     is_playable: bool = True
+    base_character: str = ""
+    episodes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
             "code": self.code,
             "name": self.name,
             "is_playable": self.is_playable,
+            "base_character": self.base_character,
+            "episodes": list(self.episodes),
         }
 
     @classmethod
     def from_dict(cls, d: dict) -> "CharacterEntry":
-        # Support both legacy Title Case and canonical lowercase
         if "Code" in d or "Name" in d or "Playable Character" in d:
             return cls(
                 code=d.get("Code", ""),
                 name=d.get("Name", ""),
                 is_playable=str(d.get("Playable Character", "Yes")).lower() == "yes",
+                base_character=d.get("Base Character", ""),
+                episodes=list(d.get("Episodes", [])),
             )
         return cls(
             code=d.get("code", ""),
             name=d.get("name", ""),
             is_playable=bool(d.get("is_playable", True)),
+            base_character=d.get("base_character", ""),
+            episodes=list(d.get("episodes", [])),
         )
 
 

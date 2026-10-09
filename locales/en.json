@@ -197,13 +197,18 @@
   },
   "dialog": {
     "character": {
-      "add_title": "Add Character",
-      "edit_title": "Edit Character",
-      "label_code": "Character Code:",
-      "label_name": "Character Name:",
-      "label_playable": "Playable Character:",
-      "placeholder_code": "e.g. GOK",
-      "placeholder_name": "e.g. Goku"
+        "add_title": "Add Character",
+        "edit_title": "Edit Character",
+        "label_code": "Character Code:",
+        "label_name": "Character Name:",
+        "label_base": "Base Character:",
+        "label_playable": "Playable Character:",
+        "label_episodes": "Appear on Source:",
+        "placeholder_code": "e.g. GOK",
+        "placeholder_name": "e.g. Goku (Super Saiyan God)",
+        "placeholder_base": "e.g. Goku",
+        "button_add_episode": "Add",
+        "button_remove_episode": "Remove"
     },
     "skill": {
       "add_title": "Add {type}",

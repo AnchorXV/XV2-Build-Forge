@@ -13,7 +13,9 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
     QPlainTextEdit,
+    QPushButton,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -32,28 +34,82 @@ SKILL_TYPES_BY_CATEGORY: dict[str, list[str]] = {
 
 class CharacterDialog(QDialog):
 
-    def __init__(self, parent: Optional[QWidget] = None, *, edit_data: Optional[dict] = None) -> None:
+    def __init__(
+        self,
+        episodes_provider=None,
+        parent: Optional[QWidget] = None,
+        *,
+        edit_data: Optional[dict] = None,
+    ) -> None:
         super().__init__(parent)
         self._is_edit = edit_data is not None
+        self._episodes_provider = episodes_provider
+        self._original_name = edit_data.get("name", "") if edit_data else ""
+        self._original_base = edit_data.get("base_character", "") if edit_data else ""
+
+        self._base_manually_edited = False
+        self._last_auto_base = ""
+
         self.setWindowTitle(
             tr("dialog.character.edit_title") if self._is_edit else tr("dialog.character.add_title")
         )
-        self.setMinimumWidth(380)
+        self.setMinimumWidth(480)
 
         layout = QVBoxLayout(self)
         form = QFormLayout()
-
-        self.code_input = QLineEdit()
-        self.code_input.setPlaceholderText(tr("dialog.character.placeholder_code"))
-        form.addRow(QLabel(tr("dialog.character.label_code")), self.code_input)
 
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText(tr("dialog.character.placeholder_name"))
         form.addRow(QLabel(tr("dialog.character.label_name")), self.name_input)
 
+        self.base_input = QLineEdit()
+        self.base_input.setPlaceholderText(tr("dialog.character.placeholder_base"))
+        form.addRow(QLabel(tr("dialog.character.label_base")), self.base_input)
+
+        self.code_input = QLineEdit()
+        self.code_input.setPlaceholderText(tr("dialog.character.placeholder_code"))
+        form.addRow(QLabel(tr("dialog.character.label_code")), self.code_input)
+
         self.playable_cb = QCheckBox()
         self.playable_cb.setChecked(True)
         form.addRow(QLabel(tr("dialog.character.label_playable")), self.playable_cb)
+
+        episodes_label = QLabel(tr("dialog.character.label_episodes"))
+        form.addRow(episodes_label)
+
+        episodes_container = QWidget()
+        episodes_layout = QVBoxLayout(episodes_container)
+        episodes_layout.setContentsMargins(0, 0, 0, 0)
+        episodes_layout.setSpacing(6)
+
+        self.episodes_list = QListWidget()
+        self.episodes_list.setMinimumHeight(80)
+        episodes_layout.addWidget(self.episodes_list)
+
+        add_row = QHBoxLayout()
+        add_row.setSpacing(6)
+
+        self.episodes_combo = QComboBox()
+        self.episodes_combo.setEditable(True)
+        self.episodes_combo.setInsertPolicy(QComboBox.NoInsert)
+        completer = QCompleter(self.episodes_combo.model(), self.episodes_combo)
+        completer.setCompletionMode(QCompleter.PopupCompletion)
+        completer.setFilterMode(Qt.MatchContains)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setMaxVisibleItems(15)
+        self.episodes_combo.setCompleter(completer)
+        add_row.addWidget(self.episodes_combo, 1)
+
+        add_btn = QPushButton(tr("dialog.character.button_add_episode"))
+        add_btn.clicked.connect(self._on_add_episode)
+        add_row.addWidget(add_btn)
+
+        remove_btn = QPushButton(tr("dialog.character.button_remove_episode"))
+        remove_btn.clicked.connect(self._on_remove_episode)
+        add_row.addWidget(remove_btn)
+
+        episodes_layout.addLayout(add_row)
+        form.addRow(episodes_container)
 
         layout.addLayout(form)
 
@@ -62,18 +118,87 @@ class CharacterDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+        self._populate_episodes_combo()
+
         if edit_data:
-            self.code_input.setText(edit_data.get("code", ""))
             self.name_input.setText(edit_data.get("name", ""))
+            base_val = edit_data.get("base_character", "")
+            self.base_input.setText(base_val)
+            self.code_input.setText(edit_data.get("code", ""))
             self.playable_cb.setChecked(edit_data.get("is_playable", True))
+            for ep in edit_data.get("episodes", []):
+                self.episodes_list.addItem(ep)
+
+            # Detect if stored base was manually edited (different from derived)
+            derived = self._original_name.split("(")[0].strip() if self._original_name else ""
+            if base_val.strip() and base_val.strip() != derived:
+                self._base_manually_edited = True
+
+        self.name_input.textChanged.connect(self._on_name_changed)
+        self.base_input.textEdited.connect(self._on_base_edited)
+
+        # Initial sync
+        self._last_auto_base = ""
+        self._sync_base_from_name()
+
+    def _populate_episodes_combo(self) -> None:
+        if self._episodes_provider is None:
+            return
+        try:
+            eps = self._episodes_provider()
+        except Exception:
+            eps = []
+        names = sorted([e.get("name", "") for e in eps if e.get("name")])
+        self.episodes_combo.addItems(names)
+
+    def _on_name_changed(self, new_name: str) -> None:
+        self._sync_base_from_name()
+
+    def _on_base_edited(self, text: str) -> None:
+        if not text.strip():
+            self._base_manually_edited = False
+            return
+
+        if text.strip() != self._last_auto_base:
+            self._base_manually_edited = True
+
+    def _sync_base_from_name(self) -> None:
+        new_name = self.name_input.text().strip()
+        new_derived = new_name.split("(")[0].strip() if new_name else ""
+        self._last_auto_base = new_derived
+
+        if self._base_manually_edited:
+            return
+
+        if self.base_input.text() != new_derived:
+            self.base_input.setText(new_derived)
+
+    def _on_add_episode(self) -> None:
+        text = self.episodes_combo.currentText().strip()
+        if not text:
+            return
+        existing = [self.episodes_list.item(i).text() for i in range(self.episodes_list.count())]
+        if text in existing:
+            return
+        self.episodes_list.addItem(text)
+        self.episodes_combo.setCurrentText("")
+
+    def _on_remove_episode(self) -> None:
+        for item in self.episodes_list.selectedItems():
+            self.episodes_list.takeItem(self.episodes_list.row(item))
 
     def get_data(self) -> dict:
+        episodes = [
+            self.episodes_list.item(i).text()
+            for i in range(self.episodes_list.count())
+        ]
         return {
             "code": self.code_input.text().strip(),
             "name": self.name_input.text().strip(),
             "is_playable": self.playable_cb.isChecked(),
+            "base_character": self.base_input.text().strip(),
+            "episodes": episodes,
         }
-
 
 class SkillDialog(QDialog):
 

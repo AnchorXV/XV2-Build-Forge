@@ -29,10 +29,13 @@ def _register_entry_to_cache(
     if entry.character_name:
         chars = store.dropdown_cache.get("characters", [])
         if not any(c.get("name") == entry.character_name for c in chars):
+            base = entry.character_name.split("(")[0].strip() or entry.character_name
             chars.append({
                 "code": entry.character_id if entry.character_id else "MOD",
                 "name": entry.character_name,
                 "is_playable": True,
+                "base_character": base,
+                "episodes": [],
             })
 
     def _register_skill(category: str, skill_name: str) -> None:

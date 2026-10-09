@@ -200,7 +200,13 @@ class AppDataStore:
     def _canonicalize_cache_item(self, key: str, item: Any) -> Any:
         if isinstance(item, str):
             if key == "characters":
-                return {"code": "MOD", "name": item, "is_playable": True}
+                return {
+                    "code": "MOD",
+                    "name": item,
+                    "is_playable": True,
+                    "base_character": "",
+                    "episodes": [],
+                }
             if key == "super_souls":
                 return {
                     "name": item,
@@ -236,11 +242,15 @@ class AppDataStore:
                     "code": item.get("Code", ""),
                     "name": item.get("Name", ""),
                     "is_playable": str(item.get("Playable Character", "Yes")).lower() == "yes",
+                    "base_character": item.get("Base Character", ""),
+                    "episodes": list(item.get("Episodes", [])),
                 }
             return {
                 "code": item.get("code", ""),
                 "name": item.get("name", ""),
                 "is_playable": bool(item.get("is_playable", True)),
+                "base_character": item.get("base_character", ""),
+                "episodes": list(item.get("episodes", [])),
             }
 
         if key == "super_souls":

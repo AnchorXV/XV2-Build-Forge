@@ -44,6 +44,7 @@ class EditorTab(QWidget):
         self._editing_entry_id: Optional[str] = None
         self._editing_source_sheet: Optional[str] = None
         self._editing_entry_name: Optional[str] = None
+        self._last_auto_target: str = ""
 
         self._build_ui()
         self._connect_signals()
@@ -329,6 +330,7 @@ class EditorTab(QWidget):
         self._editing_entry_id = None
         self._editing_source_sheet = None
         self._editing_entry_name = None
+        self._last_auto_target = ""
         self._update_edit_banner()
 
     def load_entry(self, entry: PresetEntry, sheet_name: str) -> None:
@@ -353,6 +355,7 @@ class EditorTab(QWidget):
         self.super_soul_combo.setCurrentText(entry.super_soul)
         self.target_sheet_combo.setCurrentText(sheet_name)
 
+        self._last_auto_target = ""
         self._editing_entry_id = entry.entry_id
         self._editing_source_sheet = sheet_name
         self._editing_entry_name = entry.character_name or tr("editor.banner.unnamed")
@@ -377,8 +380,15 @@ class EditorTab(QWidget):
 
     def _on_char_name_changed(self, name: str) -> None:
         base_name = name.split("(")[0].strip()
-        if base_name and not self.target_sheet_combo.currentText():
-            self.target_sheet_combo.setCurrentText(base_name)
+
+        current = self.target_sheet_combo.currentText().strip()
+        if not current or current == self._last_auto_target:
+            if base_name:
+                self.target_sheet_combo.setCurrentText(base_name)
+            else:
+                self.target_sheet_combo.clearEditText()
+
+        self._last_auto_target = base_name
 
         code = self._store.get_character_code(name)
         if code:
