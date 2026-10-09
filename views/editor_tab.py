@@ -40,6 +40,7 @@ class EditorTab(QWidget):
         self._undo_stack = undo_stack
         self._editing_entry_id: Optional[str] = None
         self._editing_source_sheet: Optional[str] = None
+        self._editing_entry_name: Optional[str] = None
 
         self._build_ui()
         self._connect_signals()
@@ -50,6 +51,9 @@ class EditorTab(QWidget):
     def _build_ui(self) -> None:
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
+
+        self._edit_banner = self._build_edit_banner()
+        root.addWidget(self._edit_banner)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -73,6 +77,29 @@ class EditorTab(QWidget):
         main_layout.addStretch()
         scroll.setWidget(container)
         root.addWidget(scroll)
+
+    def _build_edit_banner(self) -> QFrame:
+        banner = QFrame()
+        banner.setObjectName("editBanner")
+
+        layout = QHBoxLayout(banner)
+        layout.setContentsMargins(20, 10, 12, 10)
+        layout.setSpacing(12)
+
+        self._banner_label = QLabel()
+        self._banner_label.setObjectName("editBannerLabel")
+        layout.addWidget(self._banner_label, 1)
+
+        self._banner_cancel_btn = QPushButton("×")
+        self._banner_cancel_btn.setObjectName("editBannerCancel")
+        self._banner_cancel_btn.setFixedSize(26, 26)
+        self._banner_cancel_btn.setCursor(Qt.PointingHandCursor)
+        self._banner_cancel_btn.setToolTip(tr("editor.banner.cancel_tooltip"))
+        self._banner_cancel_btn.clicked.connect(self.reset_form)
+        layout.addWidget(self._banner_cancel_btn)
+
+        banner.hide()
+        return banner
 
     def _build_char_card(self) -> QFrame:
         card = QFrame()
@@ -198,10 +225,16 @@ class EditorTab(QWidget):
         self.reset_btn.setMinimumWidth(100)
         btn_row.addWidget(self.reset_btn)
 
-        self.save_btn = QPushButton(tr("editor.button.save"))
-        self.save_btn.setObjectName("saveButton")
-        self.save_btn.setMinimumWidth(120)
-        btn_row.addWidget(self.save_btn)
+        self.save_as_new_btn = QPushButton(tr("editor.button.save_as_new"))
+        self.save_as_new_btn.setObjectName("saveButton")
+        self.save_as_new_btn.setMinimumWidth(140)
+        btn_row.addWidget(self.save_as_new_btn)
+
+        self.update_entry_btn = QPushButton(tr("editor.button.update_entry"))
+        self.update_entry_btn.setObjectName("updateButton")
+        self.update_entry_btn.setMinimumWidth(170)
+        self.update_entry_btn.hide()
+        btn_row.addWidget(self.update_entry_btn)
 
         layout.addLayout(btn_row)
         return card
@@ -239,7 +272,8 @@ class EditorTab(QWidget):
 
     def _connect_signals(self) -> None:
         self.reset_btn.clicked.connect(self.reset_form)
-        self.save_btn.clicked.connect(self._on_save)
+        self.save_as_new_btn.clicked.connect(self._on_save_as_new)
+        self.update_entry_btn.clicked.connect(self._on_save_update)
 
         self.char_name_combo.currentTextChanged.connect(self._on_char_name_changed)
 
@@ -248,13 +282,13 @@ class EditorTab(QWidget):
         QShortcut(
             QKeySequence("Ctrl+Return"),
             self,
-            self._on_save,
+            self._on_save_default,
             context=Qt.WidgetWithChildrenShortcut,
         )
         QShortcut(
             QKeySequence("Ctrl+Enter"),
             self,
-            self._on_save,
+            self._on_save_default,
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -282,6 +316,8 @@ class EditorTab(QWidget):
         self.target_sheet_combo.clearEditText()
         self._editing_entry_id = None
         self._editing_source_sheet = None
+        self._editing_entry_name = None
+        self._update_edit_banner()
 
     def load_entry(self, entry: PresetEntry, sheet_name: str) -> None:
         self.char_name_combo.setCurrentText(entry.character_name)
@@ -306,6 +342,8 @@ class EditorTab(QWidget):
 
         self._editing_entry_id = entry.entry_id
         self._editing_source_sheet = sheet_name
+        self._editing_entry_name = entry.character_name or tr("editor.banner.unnamed")
+        self._update_edit_banner()
 
     # ── Internal ───────────────────────────────────────────────────────
 
@@ -332,7 +370,34 @@ class EditorTab(QWidget):
         if code:
             self.char_id_input.setCurrentText(code)
 
-    def _on_save(self) -> None:
+    def _update_edit_banner(self) -> None:
+        if self._editing_entry_id:
+            name = self._editing_entry_name or tr("editor.banner.unnamed")
+            sheet = self._editing_source_sheet or ""
+            self._banner_label.setText(
+                tr("editor.banner.editing", name=name, sheet=sheet)
+            )
+            self._edit_banner.show()
+            self.update_entry_btn.show()
+        else:
+            self._edit_banner.hide()
+            self.update_entry_btn.hide()
+
+    def _exit_edit_mode(self) -> None:
+        self._editing_entry_id = None
+        self._editing_source_sheet = None
+        self._editing_entry_name = None
+        self._update_edit_banner()
+
+    # ── Save handlers ──────────────────────────────────────────────────
+
+    def _on_save_default(self) -> None:
+        if self._editing_entry_id:
+            self._on_save_update()
+        else:
+            self._on_save_as_new()
+
+    def _on_save_as_new(self) -> None:
         target = self.target_sheet_combo.currentText().strip()
         if not target:
             QMessageBox.warning(self, tr("editor.message.validation_failed"), tr("editor.message.empty_target"))
@@ -344,10 +409,26 @@ class EditorTab(QWidget):
             QMessageBox.warning(self, tr("editor.message.validation_failed"), "\n".join(errors))
             return
 
-        if self._editing_entry_id:
-            self._save_update(target, entry)
-        else:
-            self._save_new(target, entry)
+        self._save_new(target, entry)
+        self._exit_edit_mode()
+
+    def _on_save_update(self) -> None:
+        if not self._editing_entry_id:
+            return
+
+        target = self.target_sheet_combo.currentText().strip()
+        if not target:
+            QMessageBox.warning(self, tr("editor.message.validation_failed"), tr("editor.message.empty_target"))
+            return
+
+        entry = self._collect_entry()
+        errors = validate_preset_entry(entry)
+        if errors:
+            QMessageBox.warning(self, tr("editor.message.validation_failed"), "\n".join(errors))
+            return
+
+        self._save_update(target, entry)
+        self._update_edit_banner()
 
     def _save_new(self, target: str, entry: PresetEntry) -> None:
         cmd = AddPresetWithAutoRegisterCommand(self._store, target, entry)
@@ -395,6 +476,10 @@ class EditorTab(QWidget):
         )
         self._editing_entry_id = None
         self._editing_source_sheet = None
+        self._editing_entry_name = None
+        self._update_edit_banner()
+
+    # ── Combo management ───────────────────────────────────────────────
 
     def _refresh_combos(self) -> None:
         chars = self._store.get_cache("characters")

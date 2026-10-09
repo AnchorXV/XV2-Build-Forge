@@ -78,7 +78,13 @@
     },
     "button": {
       "reset": "Reset",
-      "save": "Save"
+      "save_as_new": "Save as New",
+      "update_entry": "Update This Entry"
+    },
+    "banner": {
+      "editing": "Editing: {name} in sheet '{sheet}'",
+      "unnamed": "(unnamed)",
+      "cancel_tooltip": "Cancel edit and clear form"
     },
     "placeholder": {
       "target_sheet": "Type target sheet name (e.g. Goku)"
