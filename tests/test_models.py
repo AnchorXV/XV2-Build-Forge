@@ -289,3 +289,24 @@ class TestModels:
             assert result["owner"] == ""
             assert result["limit_burst"] == ""
             assert result["effect_1"] == "ATK+"
+
+    def test_preset_entry_source_roundtrip(self):
+        entry = PresetEntry(
+            character_name="Goku",
+            source="Dragon Ball Super: Broly",
+        )
+        d = entry.to_dict()
+        assert d["Source"] == "Dragon Ball Super: Broly"
+
+        restored = PresetEntry.from_dict(d)
+        assert restored.source == "Dragon Ball Super: Broly"
+
+    def test_preset_entry_source_default_empty(self):
+        entry = PresetEntry(character_name="Goku")
+        assert entry.source == ""
+
+        d = entry.to_dict()
+        assert d["Source"] == ""
+
+        restored = PresetEntry.from_dict({"Character Name": "Goku"})
+        assert restored.source == ""

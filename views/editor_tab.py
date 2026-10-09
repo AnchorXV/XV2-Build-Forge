@@ -121,17 +121,24 @@ class EditorTab(QWidget):
             0, 0, 1, 2,
         )
 
+        self.source_combo = QComboBox()
+        self._setup_searchable_combo(self.source_combo)
+        grid.addWidget(
+            self._make_field(tr("editor.label.source"), self.source_combo),
+            1, 0, 1, 2,
+        )
+
         self.char_id_input = QComboBox()
         self._setup_searchable_combo(self.char_id_input)
         grid.addWidget(
             self._make_field(tr("editor.label.character_id"), self.char_id_input),
-            1, 0,
+            2, 0,
         )
 
         self.costume_name_input = QLineEdit()
         grid.addWidget(
             self._make_field(tr("editor.label.costume_name"), self.costume_name_input),
-            1, 1,
+            2, 1,
         )
 
         self.costume_index_spin = QSpinBox()
@@ -139,7 +146,7 @@ class EditorTab(QWidget):
         self.costume_index_spin.setMaximum(99)
         grid.addWidget(
             self._make_field(tr("editor.label.costume_index"), self.costume_index_spin),
-            2, 0,
+            3, 0,
         )
 
         self.model_preset_spin = QSpinBox()
@@ -147,7 +154,7 @@ class EditorTab(QWidget):
         self.model_preset_spin.setMaximum(9999)
         grid.addWidget(
             self._make_field(tr("editor.label.model_preset"), self.model_preset_spin),
-            2, 1,
+            3, 1,
         )
 
         return card
@@ -300,6 +307,8 @@ class EditorTab(QWidget):
     def reset_form(self) -> None:
         self.char_name_combo.setCurrentIndex(-1)
         self.char_name_combo.clearEditText()
+        self.source_combo.setCurrentIndex(-1)
+        self.source_combo.clearEditText()
         self.char_id_input.setCurrentIndex(-1)
         self.char_id_input.clearEditText()
         self.costume_name_input.clear()
@@ -324,6 +333,7 @@ class EditorTab(QWidget):
 
     def load_entry(self, entry: PresetEntry, sheet_name: str) -> None:
         self.char_name_combo.setCurrentText(entry.character_name)
+        self.source_combo.setCurrentText(entry.source)
         self.char_id_input.setCurrentText(entry.character_id)
         self.costume_name_input.setText(entry.costume_name)
         self.costume_index_spin.setValue(entry.costume_index)
@@ -353,6 +363,7 @@ class EditorTab(QWidget):
     def _collect_entry(self) -> PresetEntry:
         return PresetEntry(
             character_name=self.char_name_combo.currentText().strip(),
+            source=self.source_combo.currentText().strip(),
             character_id=self.char_id_input.currentText().strip(),
             costume_name=self.costume_name_input.text().strip(),
             costume_index=self.costume_index_spin.value(),
@@ -506,6 +517,9 @@ class EditorTab(QWidget):
         self._refill_combo(self.awoken_combo, [s.get("name", "") for s in awokens])
         self._refill_combo(self.evasive_combo, [s.get("name", "") for s in evasives])
         self._refill_combo(self.super_soul_combo, [s.get("name", "") for s in super_souls])
+
+        sources = self._store.get_cache("sources")
+        self._refill_combo(self.source_combo, [s.get("name", "") for s in sources])
 
         sheets = list(self._store.get_all_sheets().keys())
         self._refill_combo(self.target_sheet_combo, sheets)

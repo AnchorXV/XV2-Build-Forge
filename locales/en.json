@@ -83,6 +83,7 @@
     "label": {
       "character_name": "Character Name:",
       "character_id": "Character ID / Code:",
+      "source": "Source:",
       "costume_name": "Costume Name:",
       "costume_index": "Costume Index:",
       "model_preset": "Model Preset:",

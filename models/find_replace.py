@@ -8,6 +8,7 @@ from models.schemas import PresetEntry
 FIELD_KEYS: list[str] = [
     "character_name",
     "costume_name",
+    "source",
     "super_skill_1",
     "super_skill_2",
     "super_skill_3",
@@ -23,6 +24,7 @@ FIELD_KEYS: list[str] = [
 FIELD_LABELS: dict[str, str] = {
     "character_name": "Character Name",
     "costume_name": "Costume Name",
+    "source": "Source",
     "super_skill_1": "Super Skill 1",
     "super_skill_2": "Super Skill 2",
     "super_skill_3": "Super Skill 3",
@@ -40,6 +42,8 @@ def get_field_value(entry: PresetEntry, field_key: str) -> str:
         return entry.character_name
     if field_key == "costume_name":
         return entry.costume_name
+    if field_key == "source":
+        return entry.source
     if field_key.startswith("super_skill_"):
         i = int(field_key.split("_")[-1]) - 1
         return entry.super_skills[i] if 0 <= i < len(entry.super_skills) else ""
@@ -54,12 +58,13 @@ def get_field_value(entry: PresetEntry, field_key: str) -> str:
         return entry.super_soul
     return ""
 
-
 def set_field_value(entry: PresetEntry, field_key: str, value: str) -> None:
     if field_key == "character_name":
         entry.character_name = value
     elif field_key == "costume_name":
         entry.costume_name = value
+    elif field_key == "source":
+        entry.source = value
     elif field_key.startswith("super_skill_"):
         i = int(field_key.split("_")[-1]) - 1
         if 0 <= i < len(entry.super_skills):
@@ -78,7 +83,6 @@ def set_field_value(entry: PresetEntry, field_key: str, value: str) -> None:
         entry.evasive_skill = value
     elif field_key == "super_soul":
         entry.super_soul = value
-
 
 def _matches(haystack: str, needle: str, case_sensitive: bool) -> bool:
     if not needle:

@@ -66,6 +66,17 @@ def _register_entry_to_cache(
                 "limit_burst": "",
             })
 
+    if entry.source:
+        sources = store.dropdown_cache.get("sources", [])
+        if not any(s.get("name") == entry.source for s in sources):
+            sources.append({
+                "name": entry.source,
+                "source_type": "",
+                "day": None,
+                "month": None,
+                "year": None,
+            })
+
 class AddPresetEntryCommand(QUndoCommand):
 
     def __init__(self, data_store, sheet_name: str, entry: PresetEntry) -> None:
@@ -510,6 +521,8 @@ class BulkEditCommand(QUndoCommand):
             entry.character_id = value
         elif field == "costume_name":
             entry.costume_name = value
+        elif field == "source":
+            entry.source = value
 
     @staticmethod
     def get_field_value(entry: PresetEntry, field_name: str) -> str:
@@ -531,6 +544,8 @@ class BulkEditCommand(QUndoCommand):
             return entry.character_id
         elif field_name == "costume_name":
             return entry.costume_name
+        elif field_name == "source":
+            return entry.source
         return ""
 
 

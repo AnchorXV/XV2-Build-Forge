@@ -43,6 +43,7 @@ class BulkEditDialog(QDialog):
             "super_soul": tr("editor.label.super_soul"),
             "awoken_skill": tr("editor.label.awoken_skill"),
             "evasive_skill": tr("editor.label.evasive_skill"),
+            "source": tr("editor.label.source"),
             "costume_index": tr("editor.label.costume_index"),
             "model_preset": tr("editor.label.model_preset"),
         }
@@ -121,6 +122,8 @@ class BulkEditDialog(QDialog):
                 items = [s.get("name", "") for s in self._store.get_cache("awoken_skills")]
             elif field == "evasive_skill":
                 items = [s.get("name", "") for s in self._store.get_cache("evasive_skills")]
+            elif field == "source":
+                items = [s.get("name", "") for s in self._store.get_cache("sources")]
             else:
                 items = []
             self.val_combo.addItems(items)

@@ -24,6 +24,7 @@ HEADER_COLUMNS = [
     "Awoken Skill",
     "Evasive Skill",
     "Super Soul",
+    "Source",
 ]
 
 
@@ -45,6 +46,7 @@ def _entry_to_row(entry: PresetEntry) -> list[str]:
         entry.awoken_skill,
         entry.evasive_skill,
         entry.super_soul,
+        entry.source,
     ]
 
 

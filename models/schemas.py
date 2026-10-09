@@ -184,6 +184,7 @@ class PresetEntry:
     awoken_skill: str = ""
     evasive_skill: str = ""
     super_soul: str = ""
+    source: str = ""
     entry_id: str = field(default_factory=_generate_entry_id)
 
     def to_dict(self) -> dict:
@@ -203,6 +204,7 @@ class PresetEntry:
             "Awoken Skill": self.awoken_skill,
             "Evasive Skill": self.evasive_skill,
             "Super Soul": self.super_soul,
+            "Source": self.source,
         }
 
     @classmethod
@@ -239,6 +241,7 @@ class PresetEntry:
             awoken_skill=d.get("Awoken Skill", ""),
             evasive_skill=d.get("Evasive Skill", ""),
             super_soul=d.get("Super Soul", ""),
+            source=d.get("Source", ""),
         )
 
 

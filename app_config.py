@@ -15,6 +15,7 @@ TABLE_COLUMNS: Final[list[str]] = [
     "Super Skill 1", "Super Skill 2", "Super Skill 3", "Super Skill 4",
     "Ultimate Skill 1", "Ultimate Skill 2",
     "Awoken Skill", "Evasive Skill", "Super Soul",
+    "Source",
 ]
 
 CHAR_DB_COLUMNS: Final[list[str]] = ["Code", "Name", "Playable Character"]
