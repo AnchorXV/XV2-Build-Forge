@@ -353,6 +353,42 @@ class TestCacheItemCommands:
         cmd.undo()
         assert [x["name"] for x in store.dropdown_cache["characters"]] == ["A", "B", "C"]
 
+    def test_add_cache_item_sets_timestamps(self, store):
+        item = {"name": "Goku", "code": "GOK", "is_playable": True}
+        cmd = AddCacheItemCommand(store, "characters", item)
+        cmd.redo()
+
+        stored = store.dropdown_cache["characters"][0]
+        assert stored["created_at"] != ""
+        assert stored["modified_at"] != ""
+        assert stored["created_at"] == stored["modified_at"]
+
+    def test_edit_cache_item_updates_modified_preserves_created(self, store):
+        old = {"name": "Goku", "code": "GOK", "is_playable": True,
+               "created_at": "2026-01-01T00:00:00+00:00",
+               "modified_at": "2026-01-01T00:00:00+00:00"}
+        store.dropdown_cache["characters"] = [old]
+
+        new = {"name": "Goku SSJ", "code": "GOK", "is_playable": True}
+        cmd = EditCacheItemCommand(store, "characters", 0, old, new)
+        cmd.redo()
+
+        stored = store.dropdown_cache["characters"][0]
+        assert stored["created_at"] == "2026-01-01T00:00:00+00:00"
+        assert stored["modified_at"] != "2026-01-01T00:00:00+00:00"
+
+    def test_add_cache_item_redo_preserves_timestamps(self, store):
+        item = {"name": "Goku", "code": "GOK", "is_playable": True}
+        cmd = AddCacheItemCommand(store, "characters", item)
+        cmd.redo()
+        first_created = store.dropdown_cache["characters"][0]["created_at"]
+
+        cmd.undo()
+        cmd.redo()
+
+        stored = store.dropdown_cache["characters"][0]
+        assert stored["created_at"] == first_created
+
 
 class TestAddPresetWithAutoRegisterCommand:
 

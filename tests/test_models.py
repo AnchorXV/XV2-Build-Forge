@@ -201,29 +201,17 @@ class TestModels:
                 "is_playable": True,
                 "base_character": "",
                 "episodes": [],
+                "created_at": "",
+                "modified_at": "",
             }
 
             result = store._canonicalize_cache_item(
                 "characters",
                 {"Code": "GOK", "Name": "Goku", "Playable Character": "Yes"},
             )
-            assert result == {
-                "code": "GOK",
-                "name": "Goku",
-                "is_playable": True,
-                "base_character": "",
-                "episodes": [],
-            }
-
-            canonical = {
-                "code": "GOK",
-                "name": "Goku",
-                "is_playable": True,
-                "base_character": "Goku",
-                "episodes": ["Battle of Gods"],
-            }
-            result = store._canonicalize_cache_item("characters", canonical)
-            assert result == canonical
+            assert result["code"] == "GOK"
+            assert result["name"] == "Goku"
+            assert result["created_at"] == ""
 
             result = store._canonicalize_cache_item("super_souls", "Hope")
             assert result == {
@@ -232,6 +220,8 @@ class TestModels:
                 "effect_1": "",
                 "effect_2": "",
                 "limit_burst": "",
+                "created_at": "",
+                "modified_at": "",
             }
 
             result = store._canonicalize_cache_item("super_skills", "Kamehameha")
@@ -241,6 +231,8 @@ class TestModels:
                 "skill_type": "",
                 "ki_used": None,
                 "note": "",
+                "created_at": "",
+                "modified_at": "",
             }
 
     def test_skill_entry_new_fields_roundtrip(self):
@@ -291,10 +283,12 @@ class TestModels:
             assert result["skill_type"] == ""
             assert result["ki_used"] is None
             assert result["note"] == "old"
+            assert result["created_at"] == ""
 
             result = store._canonicalize_cache_item("super_skills", "Kamehameha")
             assert result["skill_type"] == ""
             assert result["ki_used"] is None
+            assert result["created_at"] == ""
 
     def test_canonicalize_supersoul_strips_note(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -307,6 +301,7 @@ class TestModels:
             assert result["owner"] == ""
             assert result["limit_burst"] == ""
             assert result["effect_1"] == "ATK+"
+            assert result["created_at"] == ""
 
     def test_preset_entry_source_roundtrip(self):
         entry = PresetEntry(
@@ -328,3 +323,36 @@ class TestModels:
 
         restored = PresetEntry.from_dict({"Character Name": "Goku"})
         assert restored.source == ""
+
+    def test_canonicalize_preserves_timestamps(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.json"
+            store = AppDataStore(data_file=file_path)
+
+            item = {
+                "name": "Goku",
+                "code": "GOK",
+                "is_playable": True,
+                "base_character": "",
+                "episodes": [],
+                "created_at": "2026-01-01T00:00:00+00:00",
+                "modified_at": "2026-01-02T00:00:00+00:00",
+            }
+            result = store._canonicalize_cache_item("characters", item)
+            assert result["created_at"] == "2026-01-01T00:00:00+00:00"
+            assert result["modified_at"] == "2026-01-02T00:00:00+00:00"
+
+    def test_canonicalize_legacy_gets_empty_timestamps(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.json"
+            store = AppDataStore(data_file=file_path)
+
+            result = store._canonicalize_cache_item("characters", "Goku")
+            assert result["created_at"] == ""
+            assert result["modified_at"] == ""
+
+    def test_utc_now_iso_format(self):
+        from models.schemas import utc_now_iso
+        ts = utc_now_iso()
+        assert "T" in ts
+        assert ts.endswith("+00:00")

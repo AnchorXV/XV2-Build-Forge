@@ -1,27 +1,22 @@
-"""
-DBXV2 Build Forge — Data Schemas.
-
-Immutable dataclasses representing the core domain objects.
-Every ``PresetEntry`` carries a UUID ``entry_id`` generated on first save,
-enabling the *Load into Editor → Update* workflow (PRD §3.3).
-"""
-
 from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Optional, Union
 
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 @dataclass
 class CharacterEntry:
-    """A playable or modded character in the database."""
-
     code: str
     name: str
     is_playable: bool = True
     base_character: str = ""
     episodes: list[str] = field(default_factory=list)
+    created_at: str = ""
+    modified_at: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -53,14 +48,14 @@ class CharacterEntry:
 
 @dataclass
 class SkillEntry:
-    """A skill entry (Super / Ultimate / Awoken / Evasive)."""
-
     skill_name: str
     skill_id: Optional[str] = None
     is_cac_skill: bool = False
     skill_type: str = ""
     ki_used: Optional[int] = None
     note: str = ""
+    created_at: str = ""
+    modified_at: str = ""
 
     def to_dict(self) -> dict:
         d: dict = {
@@ -97,13 +92,13 @@ class SkillEntry:
 
 @dataclass
 class SuperSoulEntry:
-    """A Super Soul with owner, effects, and limit burst."""
-
     name: str
     owner: str = ""
     effect_1: str = ""
     effect_2: str = ""
     limit_burst: str = ""
+    created_at: str = ""
+    modified_at: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -134,13 +129,13 @@ class SuperSoulEntry:
 
 @dataclass
 class SourceEntry:
-    """A source (Series / Manga / Movie / Game / etc.) that a character appears in."""
-
     name: str
     source_type: str = ""
     day: Optional[int] = None
     month: Optional[int] = None
     year: Optional[int] = None
+    created_at: str = ""
+    modified_at: str = ""
 
     def to_dict(self) -> dict:
         return {

@@ -7,7 +7,7 @@ from typing import Any
 from PySide6.QtGui import QUndoCommand
 
 from controllers.signal_bus import signal_bus
-from models.schemas import PresetEntry
+from models.schemas import PresetEntry, utc_now_iso
 from models.character_usage import apply_cascade_rename
 
 logger = logging.getLogger(__name__)
@@ -17,12 +17,8 @@ def _register_entry_to_cache(
     entry: PresetEntry,
     target_sheet: str,
 ) -> None:
-    """Register character, skills, dan super soul baru dari entry ke dropdown_cache.
+    now = utc_now_iso()
 
-    Dipanggil dari Add dan Edit command. Owner Super Soul hanya diisi saat
-    entry baru dibuat, tidak menimpa owner yang sudah ada.
-    Tidak save ke disk — caller yang bertanggung jawab save.
-    """
     tables = store.dropdown_cache.get("table_names", [])
     if target_sheet and target_sheet not in tables:
         tables.append(target_sheet)
@@ -37,6 +33,8 @@ def _register_entry_to_cache(
                 "is_playable": True,
                 "base_character": base,
                 "episodes": [],
+                "created_at": now,
+                "modified_at": now,
             })
 
     def _register_skill(category: str, skill_name: str) -> None:
@@ -50,6 +48,8 @@ def _register_entry_to_cache(
                 "skill_type": "",
                 "ki_used": None,
                 "note": "",
+                "created_at": now,
+                "modified_at": now,
             })
 
     for s in entry.super_skills:
@@ -68,6 +68,8 @@ def _register_entry_to_cache(
                 "effect_1": "",
                 "effect_2": "",
                 "limit_burst": "",
+                "created_at": now,
+                "modified_at": now,
             })
 
     if entry.source:
@@ -79,6 +81,8 @@ def _register_entry_to_cache(
                 "day": None,
                 "month": None,
                 "year": None,
+                "created_at": now,
+                "modified_at": now,
             })
 
 class AddPresetEntryCommand(QUndoCommand):
@@ -387,6 +391,10 @@ class AddCacheItemCommand(QUndoCommand):
 
     def redo(self) -> None:
         items = self._store.dropdown_cache.get(self._category, [])
+        if not self._item.get("created_at"):
+            now = utc_now_iso()
+            self._item["created_at"] = now
+            self._item["modified_at"] = now
         items.append(self._item)
         self._store.save()
         signal_bus.data_changed.emit()
@@ -422,6 +430,8 @@ class EditCacheItemCommand(QUndoCommand):
     def redo(self) -> None:
         items = self._store.dropdown_cache.get(self._category, [])
         if 0 <= self._index < len(items):
+            self._new["created_at"] = self._old.get("created_at", "")
+            self._new["modified_at"] = utc_now_iso()
             items[self._index] = self._new
         self._store.save()
         signal_bus.data_changed.emit()

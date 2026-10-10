@@ -198,6 +198,14 @@ class AppDataStore:
     # ── Cache Normalization ────────────────────────────────────────────
 
     def _canonicalize_cache_item(self, key: str, item: Any) -> Any:
+        result = self._canonicalize_core(key, item)
+        if isinstance(result, dict):
+            source = item if isinstance(item, dict) else {}
+            result["created_at"] = source.get("created_at", "")
+            result["modified_at"] = source.get("modified_at", "")
+        return result
+
+    def _canonicalize_core(self, key: str, item: Any) -> Any:
         if isinstance(item, str):
             if key == "characters":
                 return {
