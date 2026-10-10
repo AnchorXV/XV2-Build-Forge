@@ -126,7 +126,7 @@
     },
     "warning": {
       "new_text": "'{value}' is not in the Database yet. It will be added when you save.",
-      "new_text_with_suggestions": "'{value}' is not in the Database yet. It will be added when you save.\n\nDid you mean: {suggestions}?"
+"new_text_with_suggestions": "'{value}' is not in the Database yet. It will be added when you save.<br><br>Did you mean: <b>{suggestions}</b>?"
     }
   },
   "roster": {

@@ -338,9 +338,15 @@ class EditorTab(QWidget):
                 else:
                     tooltip = tr("editor.warning.new_text", value=value)
                 combo.setToolTip(tooltip)
+                le = combo.lineEdit()
+                if le is not None:
+                    le.setToolTip(tooltip)
             else:
                 combo.setProperty("warningState", False)
                 combo.setToolTip("")
+                le = combo.lineEdit()
+                if le is not None:
+                    le.setToolTip("")
 
             style = combo.style()
             style.unpolish(combo)
