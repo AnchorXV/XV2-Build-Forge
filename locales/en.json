@@ -200,6 +200,7 @@
     },
     "context_menu": {
       "edit": "Edit",
+      "merge": "Merge with...",
       "delete": "Delete"
     },
     "message": {
@@ -208,7 +209,8 @@
       "confirm_delete_multiple": "Delete {count} items from database?",
       "cache_migrated": "Cache migrated successfully to dictionary schema.",
       "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema.",
-      "cascade_rename": "There are {count} variant(s) based on '{old}'. Rename them too to '{new}'?"
+      "cascade_rename": "There are {count} variant(s) based on '{old}'. Rename them too to '{new}'?",
+      "merge_no_target": "No other entry to merge with."
     },
     "character_panel": {
       "no_selection": "Select a character",
@@ -289,6 +291,15 @@
         "live_action": "Live Action",
         "unknown": "Unknown"
       }
+    },
+    "merge": {
+      "title": "Merge {type}",
+      "source": "Source:",
+      "target": "Merge into:",
+      "merge_button": "Merge",
+      "impact": "Merge '{source}' into '{target}'? {count} preset(s) will be updated.",
+      "no_impact": "No preset uses '{source}'. Entry will be removed.",
+      "invalid_target": "Choose a different target."
     },
     "sheet_detail": {
       "close": "Close",

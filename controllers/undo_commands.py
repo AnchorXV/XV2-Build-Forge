@@ -9,6 +9,7 @@ from PySide6.QtGui import QUndoCommand
 from controllers.signal_bus import signal_bus
 from models.schemas import PresetEntry, utc_now_iso
 from models.character_usage import apply_cascade_rename
+from models.merge import merge_entry
 
 logger = logging.getLogger(__name__)
 
@@ -459,6 +460,40 @@ class CascadeRenameCharacterCommand(QUndoCommand):
             self._rosters_snapshot = copy.deepcopy(self._store.rosters)
 
         apply_cascade_rename(self._store, self._old, self._new)
+        self._store.save()
+        signal_bus.data_changed.emit()
+
+    def undo(self) -> None:
+        if self._cache_snapshot is not None:
+            self._store.dropdown_cache = copy.deepcopy(self._cache_snapshot)
+        if self._rosters_snapshot is not None:
+            self._store.rosters = copy.deepcopy(self._rosters_snapshot)
+        self._store.save()
+        signal_bus.data_changed.emit()
+
+class MergeEntryCommand(QUndoCommand):
+
+    def __init__(
+        self,
+        data_store,
+        category: str,
+        source_name: str,
+        target_name: str,
+    ) -> None:
+        super().__init__(f"Merge '{source_name}' → '{target_name}' in {category}")
+        self._store = data_store
+        self._category = category
+        self._source = source_name
+        self._target = target_name
+        self._cache_snapshot: dict | None = None
+        self._rosters_snapshot: dict | None = None
+
+    def redo(self) -> None:
+        if self._cache_snapshot is None:
+            self._cache_snapshot = copy.deepcopy(self._store.dropdown_cache)
+            self._rosters_snapshot = copy.deepcopy(self._store.rosters)
+
+        merge_entry(self._store, self._category, self._source, self._target)
         self._store.save()
         signal_bus.data_changed.emit()
 

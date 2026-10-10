@@ -763,3 +763,15 @@ QScrollArea#characterDetailScroll {
     background-color: transparent;
     border: none;
 }
+
+QLabel#mergeSourceLabel {
+    color: #ffffff;
+    font-weight: 600;
+    padding: 2px 0;
+}
+
+QLabel#mergePreviewLabel {
+    color: #8b8c93;
+    font-size: 12px;
+    padding: 12px 4px;
+}

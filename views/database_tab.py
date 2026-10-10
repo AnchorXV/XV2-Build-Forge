@@ -20,8 +20,11 @@ from controllers.undo_commands import (
     CascadeRenameCharacterCommand,
     DeleteCacheItemCommand,
     EditCacheItemCommand,
+    MergeEntryCommand,
 )
 from locales.i18n_manager import tr
+from views.dialogs.merge_dialog import MergeDialog
+from models.merge import count_merge_impact
 from models.character_usage import find_character_variants
 from models.data_store import AppDataStore
 from models.table_models import (
@@ -300,6 +303,55 @@ class DatabaseTab(QWidget):
         cmd = EditCacheItemCommand(self._store, self._key, row, items[row], data)
         self._undo_stack.push(cmd)
 
+    def _on_merge(self) -> None:
+        rows = self._stv.selected_source_rows()
+        if not rows:
+            return
+        row = rows[0]
+        items = self._store.get_cache(self._key)
+        if row >= len(items):
+            return
+
+        source_name = items[row].get("name", "")
+        if not source_name:
+            return
+
+        target_candidates = sorted(
+            [
+                i.get("name", "")
+                for i in items
+                if isinstance(i, dict) and i.get("name", "") and i.get("name", "") != source_name
+            ],
+            key=lambda s: s.lower(),
+        )
+
+        if not target_candidates:
+            QMessageBox.information(
+                self,
+                tr("dialog.common.warning"),
+                tr("database.message.merge_no_target"),
+            )
+            return
+
+        impact = count_merge_impact(self._store, self._key, source_name)
+
+        dlg = MergeDialog(
+            category_display=self._display,
+            source_name=source_name,
+            target_candidates=target_candidates,
+            impact_count=impact,
+            parent=self,
+        )
+        if not dlg.exec():
+            return
+
+        target = dlg.selected_target()
+        if not target or target == source_name:
+            return
+
+        cmd = MergeEntryCommand(self._store, self._key, source_name, target)
+        self._undo_stack.push(cmd)
+
     def _on_delete_for_row(self, row: int) -> None:
         items = self._store.get_cache(self._key)
         if row >= len(items):
@@ -360,13 +412,25 @@ class DatabaseTab(QWidget):
         if not index.isValid():
             return
 
+        source_row = self._stv.proxy_model.mapToSource(index).row()
+        if source_row not in self._stv.selected_source_rows():
+            sel = self._stv.table_view.selectionModel()
+            sel.select(
+                index,
+                sel.SelectionFlag.Clear | sel.SelectionFlag.Select,
+            )
+            self._stv.table_view.setCurrentIndex(index)
+
         menu = QMenu(self)
         edit_action = menu.addAction(tr("database.context_menu.edit"))
+        merge_action = menu.addAction(tr("database.context_menu.merge"))
         delete_action = menu.addAction(tr("database.context_menu.delete"))
 
         action = menu.exec(self._stv.table_view.viewport().mapToGlobal(pos))
         if action == edit_action:
             self._on_edit()
+        elif action == merge_action:
+            self._on_merge()
         elif action == delete_action:
             self._on_delete()
 
