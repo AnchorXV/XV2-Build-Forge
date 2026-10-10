@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import Optional
 
+from app_config import TABLE_COLUMNS
 from models.schemas import PresetEntry
 
 
@@ -43,3 +44,14 @@ class PresetClipboard:
     @staticmethod
     def _clone(entry: PresetEntry) -> PresetEntry:
         return PresetEntry.from_dict(entry.to_dict())
+
+    @staticmethod
+    def to_tsv(entries: list[PresetEntry]) -> str:
+        if not entries:
+            return ""
+        lines = []
+        for entry in entries:
+            d = entry.to_dict()
+            row = [str(d.get(col, "")) for col in TABLE_COLUMNS]
+            lines.append("\t".join(row))
+        return "\n".join(lines)

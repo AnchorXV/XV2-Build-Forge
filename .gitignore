@@ -76,3 +76,7 @@ desktop.ini
 
 # ── Ad-hoc test scripts ──────────────────────────────────────────────
 test_f*.py
+
+# ── Miscellaneous ─────────────────────────────────────────────────────
+*.before_*
+build_forge_data.json.before_*

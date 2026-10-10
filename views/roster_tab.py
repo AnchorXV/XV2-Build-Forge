@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor, QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QApplication,
     QHBoxLayout,
     QHeaderView,
     QInputDialog,
@@ -583,6 +584,11 @@ class RosterTab(QWidget):
         if not selected:
             return
         PresetClipboard.instance().set(selected)
+
+        app = QApplication.instance()
+        if app is not None:
+            app.clipboard().setText(PresetClipboard.to_tsv(selected))
+
         QToolTip.showText(
             QCursor.pos(),
             tr("preset.clipboard.copied", count=len(selected)),
