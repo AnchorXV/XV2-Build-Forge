@@ -41,6 +41,7 @@ from models.preset_clipboard import PresetClipboard
 from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
 from views.dialogs.find_replace_dialog import FindReplaceDialog
 from views.dialogs.export_dialog import run_export_flow
+from views.dialogs.bulk_edit_dialog import BulkEditDialog
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
@@ -249,6 +250,12 @@ class RosterTab(QWidget):
             QKeySequence("Ctrl+V"),
             self._preset_view.table_view,
             self._on_preset_paste,
+            context=Qt.WidgetWithChildrenShortcut,
+        )
+        QShortcut(
+            QKeySequence("Ctrl+D"),
+            self._preset_view.table_view,
+            self._on_preset_duplicate,
             context=Qt.WidgetWithChildrenShortcut,
         )
         QShortcut(
@@ -722,12 +729,48 @@ class RosterTab(QWidget):
         index = self._preset_view.table_view.indexAt(pos)
         if not index.isValid():
             return
+
+        source_row = self._preset_view.proxy_model.mapToSource(index).row()
+        if source_row not in self._preset_view.selected_source_rows():
+            sel = self._preset_view.table_view.selectionModel()
+            sel.select(
+                index,
+                sel.SelectionFlag.Clear | sel.SelectionFlag.Select,
+            )
+            self._preset_view.table_view.setCurrentIndex(index)
+
+        selected_rows = self._preset_view.selected_source_rows()
+
         menu = QMenu(self)
         load_action = menu.addAction(tr("dialog.sheet_detail.load_into_editor"))
+        menu.addSeparator()
+        copy_action = menu.addAction(tr("roster.context_menu.preset_copy"))
+        cut_action = menu.addAction(tr("roster.context_menu.preset_cut"))
+        paste_action = menu.addAction(tr("roster.context_menu.preset_paste"))
+        duplicate_action = menu.addAction(tr("roster.context_menu.preset_duplicate"))
+
+        bulk_edit_action = None
+        if len(selected_rows) > 1:
+            bulk_edit_action = menu.addAction(
+                tr("dialog.bulk_edit.menu_title", count=len(selected_rows))
+            )
+
+        menu.addSeparator()
         delete_action = menu.addAction(tr("roster.context_menu.delete_preset"))
+
         action = menu.exec(self._preset_view.table_view.viewport().mapToGlobal(pos))
         if action == load_action:
             self._on_load_clicked()
+        elif action == copy_action:
+            self._on_preset_copy()
+        elif action == cut_action:
+            self._on_preset_cut()
+        elif action == paste_action:
+            self._on_preset_paste()
+        elif action == duplicate_action:
+            self._on_preset_duplicate()
+        elif bulk_edit_action and action == bulk_edit_action:
+            self._on_preset_bulk_edit()
         elif action == delete_action:
             self._on_delete_preset_clicked()
 
@@ -835,6 +878,52 @@ class RosterTab(QWidget):
             tr("preset.clipboard.pasted", count=count, sheet=self._current_sheet),
             self._preset_view.table_view,
         )
+
+    def _on_preset_duplicate(self) -> None:
+        if not self._current_sheet:
+            return
+        rows = sorted(self._preset_view.selected_source_rows())
+        if not rows:
+            return
+        entries = self._store.get_sheet_entries(self._current_sheet)
+        selected = [entries[r] for r in rows if 0 <= r < len(entries)]
+        if not selected:
+            return
+
+        count = len(selected)
+        self._undo_stack.beginMacro(
+            tr("undo.macro.duplicate_presets", count=count, sheet=self._current_sheet)
+        )
+        for entry in selected:
+            cloned = PresetClipboard.clone_with_new_id(entry)
+            cmd = AddPresetEntryCommand(self._store, self._current_sheet, cloned)
+            self._undo_stack.push(cmd)
+        self._undo_stack.endMacro()
+
+        QToolTip.showText(
+            QCursor.pos(),
+            tr("preset.clipboard.duplicated", count=count, sheet=self._current_sheet),
+            self._preset_view.table_view,
+        )
+
+    def _on_preset_bulk_edit(self) -> None:
+        if not self._current_sheet:
+            return
+        rows = self._preset_view.selected_source_rows()
+        if len(rows) < 2:
+            return
+        entries = self._store.get_sheet_entries(self._current_sheet)
+        selected = [entries[r] for r in rows if 0 <= r < len(entries)]
+        if not selected:
+            return
+        dlg = BulkEditDialog(
+            self._current_sheet,
+            selected,
+            self._store,
+            self._undo_stack,
+            self,
+        )
+        dlg.exec()
 
     # ── Find & Replace ─────────────────────────────────────────────────
 

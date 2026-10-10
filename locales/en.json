@@ -148,7 +148,11 @@
       "duplicate": "Duplicate Sheet",
       "delete": "Delete Sheet",
       "delete_preset": "Delete Preset",
-      "edit_note_tags": "Edit Note and Tags"
+      "edit_note_tags": "Edit Note and Tags",
+      "preset_copy": "Copy Preset",
+      "preset_cut": "Cut Preset",
+      "preset_paste": "Paste Preset",
+      "preset_duplicate": "Duplicate Preset"
     },
     "dialog": {
       "create_title": "Create New Roster Sheet",
