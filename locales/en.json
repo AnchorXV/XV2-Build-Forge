@@ -166,6 +166,10 @@
       "deleted_preset": "Preset deleted. Ctrl+Z to undo.",
       "deleted_presets": "{count} presets deleted. Ctrl+Z to undo.",
       "select_export": "Please select at least one sheet to export!"
+    },
+    "column_menu": {
+      "reset": "Reset to Default",
+      "min_columns": "At least one column must remain visible."
     }
   },
   "database": {

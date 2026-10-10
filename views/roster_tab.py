@@ -61,6 +61,7 @@ class RosterTab(QWidget):
         self._build_ui()
         self._connect_signals()
         self._setup_shortcuts()
+        self._setup_column_visibility()
 
         if self._sheet_model.rowCount() > 0:
             self._select_sheet_row(0)
@@ -262,6 +263,75 @@ class RosterTab(QWidget):
             self._preset_view.table_view.selectAll,
             context=Qt.WidgetWithChildrenShortcut,
         )
+
+    def _setup_column_visibility(self) -> None:
+        header = self._preset_view.table_view.horizontalHeader()
+        header.setContextMenuPolicy(Qt.CustomContextMenu)
+        header.customContextMenuRequested.connect(self._on_header_context_menu)
+        self._apply_column_visibility()
+
+    def _on_header_context_menu(self, pos) -> None:
+        header = self._preset_view.table_view.horizontalHeader()
+        hidden = set(self._get_hidden_columns())
+
+        menu = QMenu(self)
+        actions: dict = {}
+
+        for col_name in TABLE_COLUMNS:
+            is_locked = (col_name == "Character Name")
+            action = menu.addAction(col_name)
+            action.setCheckable(True)
+            action.setChecked(is_locked or col_name not in hidden)
+            if is_locked:
+                action.setEnabled(False)
+            actions[action] = col_name
+
+        menu.addSeparator()
+        reset_action = menu.addAction(tr("roster.column_menu.reset"))
+
+        chosen = menu.exec(header.mapToGlobal(pos))
+        if chosen is None:
+            return
+        if chosen == reset_action:
+            self._set_hidden_columns([])
+            return
+        if chosen in actions:
+            self._toggle_column(actions[chosen])
+
+    def _toggle_column(self, col_name: str) -> None:
+        if col_name == "Character Name":
+            return
+        hidden = self._get_hidden_columns()
+        if col_name in hidden:
+            hidden.remove(col_name)
+        else:
+            visible_count = len(TABLE_COLUMNS) - len(hidden)
+            if visible_count <= 1:
+                QMessageBox.information(
+                    self,
+                    tr("dialog.common.warning"),
+                    tr("roster.column_menu.min_columns"),
+                )
+                return
+            hidden.append(col_name)
+        self._set_hidden_columns(hidden)
+
+    def _get_hidden_columns(self) -> list[str]:
+        raw = self._store.settings.get("roster_hidden_columns", [])
+        if not isinstance(raw, list):
+            return []
+        return [str(x) for x in raw if isinstance(x, str) and x in TABLE_COLUMNS]
+
+    def _set_hidden_columns(self, hidden: list[str]) -> None:
+        self._store.settings["roster_hidden_columns"] = list(hidden)
+        self._store.save()
+        self._apply_column_visibility()
+
+    def _apply_column_visibility(self) -> None:
+        hidden = set(self._get_hidden_columns())
+        table = self._preset_view.table_view
+        for i, col_name in enumerate(TABLE_COLUMNS):
+            table.setColumnHidden(i, col_name in hidden)
 
     # ── Navigation ─────────────────────────────────────────────────────
 
