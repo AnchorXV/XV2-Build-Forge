@@ -40,6 +40,7 @@ from models.data_store import AppDataStore
 from models.preset_clipboard import PresetClipboard
 from models.table_models import PresetDetailTableModel, RosterSummaryTableModel
 from views.dialogs.find_replace_dialog import FindReplaceDialog
+from views.dialogs.export_dialog import run_export_flow
 from views.dialogs.sheet_detail_dialog import SheetDetailDialog
 from views.dialogs.sheet_note_tags_dialog import SheetNoteTagsDialog
 from views.widgets.searchable_table_view import SearchableTableView
@@ -125,6 +126,11 @@ class RosterTab(QWidget):
         self._delete_sheet_btn.setObjectName("dangerButton")
         self._delete_sheet_btn.clicked.connect(self._on_delete_sheet_clicked)
         left_btn_row.addWidget(self._delete_sheet_btn)
+
+        self._export_btn = QPushButton(tr("roster.button.export_selected"))
+        self._export_btn.setObjectName("exportButton")
+        self._export_btn.clicked.connect(self._on_export)
+        left_btn_row.addWidget(self._export_btn)
 
         left_layout.addLayout(left_btn_row)
         splitter.addWidget(left)
@@ -569,6 +575,22 @@ class RosterTab(QWidget):
                     cmd = DeleteSheetCommand(self._store, name)
                     self._undo_stack.push(cmd)
                 self._undo_stack.endMacro()
+
+    def _on_export(self) -> None:
+        names = self._get_selected_sheet_names()
+        if not names:
+            QMessageBox.warning(
+                self,
+                tr("dialog.common.warning"),
+                tr("roster.message.select_export"),
+            )
+            return
+
+        sheets: dict[str, list] = {}
+        for name in names:
+            sheets[name] = self._store.get_sheet_entries(name)
+
+        run_export_flow(self, sheets)
 
     def _on_sheet_double_clicked(self, proxy_index) -> None:
         self._on_open_detail_clicked()

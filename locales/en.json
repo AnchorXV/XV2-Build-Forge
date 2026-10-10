@@ -335,7 +335,11 @@
       "save_file": "Save Export File",
       "success_title": "Success",
       "success_multi": "Successfully exported {count} files to:\n{folder}",
-      "success_single": "Data exported successfully to:\n{path}"
+      "success_single": "Data exported successfully to:\n{path}",
+      "columns_title": "Select Columns",
+      "columns_info": "Choose which columns to include in the export:",
+      "select_all": "Select All",
+      "deselect_all": "Deselect All"
     },
     "settings": {
       "title": "Settings",

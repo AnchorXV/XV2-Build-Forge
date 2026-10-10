@@ -15,16 +15,29 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app_config import TABLE_COLUMNS
 from locales.i18n_manager import tr
 from models.exporters import (
     write_csv_multi,
     write_csv_single,
+    write_md_multi,
+    write_md_single,
+    write_text_multi,
+    write_text_single,
     write_xlsx_multi,
     write_xlsx_single,
 )
 from models.schemas import PresetEntry
+from views.dialogs.column_select_dialog import ColumnSelectDialog
 
 logger = logging.getLogger(__name__)
+
+FILE_FILTERS = (
+    "Excel Workbook (*.xlsx);;"
+    "CSV File (*.csv);;"
+    "Text File (*.txt);;"
+    "Markdown File (*.md)"
+)
 
 
 class ExportMethodDialog(QDialog):
@@ -61,6 +74,19 @@ class ExportMethodDialog(QDialog):
         self.accept()
 
 
+def _detect_format(path: Path, chosen_filter: str) -> str:
+    suffix = path.suffix.lower()
+    if chosen_filter.startswith("Excel") or suffix == ".xlsx":
+        return "xlsx"
+    if chosen_filter.startswith("CSV") or suffix == ".csv":
+        return "csv"
+    if chosen_filter.startswith("Text") or suffix == ".txt":
+        return "txt"
+    if chosen_filter.startswith("Markdown") or suffix in (".md", ".markdown"):
+        return "md"
+    return "xlsx"
+
+
 def run_export_flow(
     parent: QWidget,
     sheets: dict[str, list[PresetEntry]],
@@ -75,28 +101,47 @@ def run_export_flow(
             return
         method = dlg.result_choice
 
+    col_dlg = ColumnSelectDialog(list(TABLE_COLUMNS), parent=parent)
+    if col_dlg.exec() != QDialog.Accepted:
+        return
+    columns = col_dlg.selected_columns()
+    if not columns:
+        return
+
     if method == ExportMethodDialog.SINGLE:
-        _run_single_export(parent, sheets)
+        _run_single_export(parent, sheets, columns)
     else:
-        _run_multi_export(parent, sheets)
+        _run_multi_export(parent, sheets, columns)
 
 
-def _run_single_export(parent: QWidget, sheets: dict[str, list[PresetEntry]]) -> None:
+def _run_single_export(
+    parent: QWidget,
+    sheets: dict[str, list[PresetEntry]],
+    columns: list[str],
+) -> None:
     path, chosen_filter = QFileDialog.getSaveFileName(
         parent,
         tr("dialog.export.save_file"),
         "",
-        "Excel Workbook (*.xlsx);;CSV File (*.csv)",
+        FILE_FILTERS,
     )
     if not path:
         return
 
     p = Path(path)
+    fmt = _detect_format(p, chosen_filter)
     try:
-        if chosen_filter.startswith("Excel") or p.suffix.lower() == ".xlsx":
-            write_xlsx_single(p, sheets)
+        if fmt == "xlsx":
+            write_xlsx_single(p, sheets, columns)
+        elif fmt == "csv":
+            write_csv_single(p, sheets, columns)
+        elif fmt == "txt":
+            write_text_single(p, sheets, columns)
+        elif fmt == "md":
+            write_md_single(p, sheets, columns)
         else:
-            write_csv_single(p, sheets)
+            write_xlsx_single(p, sheets, columns)
+
         QMessageBox.information(
             parent,
             tr("dialog.export.success_title"),
@@ -107,7 +152,11 @@ def _run_single_export(parent: QWidget, sheets: dict[str, list[PresetEntry]]) ->
         QMessageBox.warning(parent, tr("dialog.common.warning"), str(exc))
 
 
-def _run_multi_export(parent: QWidget, sheets: dict[str, list[PresetEntry]]) -> None:
+def _run_multi_export(
+    parent: QWidget,
+    sheets: dict[str, list[PresetEntry]],
+    columns: list[str],
+) -> None:
     folder = QFileDialog.getExistingDirectory(
         parent, tr("dialog.export.choose_folder")
     )
@@ -119,16 +168,24 @@ def _run_multi_export(parent: QWidget, sheets: dict[str, list[PresetEntry]]) -> 
         parent,
         tr("dialog.export.format_title"),
         str(fp / "sample.xlsx"),
-        "Excel Workbook (*.xlsx);;CSV File (*.csv)",
+        FILE_FILTERS,
     )
     if not fmt_path:
         return
 
-    use_xlsx = fmt_filter.startswith("Excel") or Path(fmt_path).suffix.lower() == ".xlsx"
+    fmt = _detect_format(Path(fmt_path), fmt_filter)
     try:
-        count = (
-            write_xlsx_multi(fp, sheets) if use_xlsx else write_csv_multi(fp, sheets)
-        )
+        if fmt == "xlsx":
+            count = write_xlsx_multi(fp, sheets, columns)
+        elif fmt == "csv":
+            count = write_csv_multi(fp, sheets, columns)
+        elif fmt == "txt":
+            count = write_text_multi(fp, sheets, columns)
+        elif fmt == "md":
+            count = write_md_multi(fp, sheets, columns)
+        else:
+            count = write_xlsx_multi(fp, sheets, columns)
+
         QMessageBox.information(
             parent,
             tr("dialog.export.success_title"),
