@@ -28,6 +28,7 @@ from controllers.undo_commands import (
 )
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
+from models.field_validator import check_field
 from models.schemas import PresetEntry
 from models.validators import validate_preset_entry
 from views.widgets.section_header import SectionHeader
@@ -45,10 +46,12 @@ class EditorTab(QWidget):
         self._editing_source_sheet: Optional[str] = None
         self._editing_entry_name: Optional[str] = None
         self._last_auto_target: str = ""
+        self._watched_fields: list[tuple[str, QComboBox]] = []
 
         self._build_ui()
         self._connect_signals()
         self._refresh_combos()
+        self._setup_field_watchers()
 
     # ── UI Construction ────────────────────────────────────────────────
 
@@ -303,6 +306,49 @@ class EditorTab(QWidget):
             context=Qt.WidgetWithChildrenShortcut,
         )
 
+    def _setup_field_watchers(self) -> None:
+        self._watched_fields = [
+            ("character_name", self.char_name_combo),
+            ("super_skill_0", self.super_combos[0]),
+            ("super_skill_1", self.super_combos[1]),
+            ("super_skill_2", self.super_combos[2]),
+            ("super_skill_3", self.super_combos[3]),
+            ("ultimate_skill_0", self.ult_combos[0]),
+            ("ultimate_skill_1", self.ult_combos[1]),
+            ("awoken_skill", self.awoken_combo),
+            ("evasive_skill", self.evasive_combo),
+            ("super_soul", self.super_soul_combo),
+        ]
+        for _, combo in self._watched_fields:
+            combo.currentTextChanged.connect(self._update_field_warnings)
+
+    def _update_field_warnings(self, *_args) -> None:
+        for field_key, combo in self._watched_fields:
+            value = combo.currentText().strip()
+            suggestions = check_field(self._store, field_key, value)
+
+            if value and suggestions is not None:
+                combo.setProperty("warningState", True)
+                if suggestions:
+                    tooltip = tr(
+                        "editor.warning.new_text_with_suggestions",
+                        value=value,
+                        suggestions=", ".join(suggestions),
+                    )
+                else:
+                    tooltip = tr("editor.warning.new_text", value=value)
+                combo.setToolTip(tooltip)
+            else:
+                combo.setProperty("warningState", False)
+                combo.setToolTip("")
+
+            style = combo.style()
+            style.unpolish(combo)
+            style.polish(combo)
+
+    def _update_all_field_warnings(self) -> None:
+        self._update_field_warnings()
+
     # ── Public API ─────────────────────────────────────────────────────
 
     def reset_form(self) -> None:
@@ -533,6 +579,8 @@ class EditorTab(QWidget):
 
         sheets = list(self._store.get_all_sheets().keys())
         self._refill_combo(self.target_sheet_combo, sheets)
+
+        self._update_field_warnings()
 
     @staticmethod
     def _refill_combo(combo: QComboBox, items: list[str]) -> None:

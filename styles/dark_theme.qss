@@ -810,3 +810,13 @@ QLabel#restoreWarning {
     font-size: 11px;
     padding: 4px;
 }
+
+QComboBox[warningState="true"] {
+    border: 1px solid #d4740a;
+    background-color: #1e1610;
+}
+
+QComboBox[warningState="true"]:focus {
+    border: 1px solid #e68a1a;
+    background-color: #251a12;
+}

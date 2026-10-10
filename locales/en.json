@@ -38,14 +38,16 @@
       "delete_presets": "Delete {count} presets from '{sheet}'",
       "delete_sheets": "Delete {count} sheets",
       "cut_presets": "Cut {count} presets from '{sheet}'",
-      "paste_presets": "Paste {count} presets into '{sheet}'"
+      "paste_presets": "Paste {count} presets into '{sheet}'",
+      "duplicate_presets": "Duplicate {count} presets in '{sheet}'"
     }
   },
   "preset": {
     "clipboard": {
       "copied": "Copied {count} preset(s). Ctrl+V to paste.",
       "cut": "Cut {count} preset(s). Ctrl+V to paste.",
-      "pasted": "Pasted {count} preset(s) into '{sheet}'."
+      "pasted": "Pasted {count} preset(s) into '{sheet}'.",
+      "duplicated": "Duplicated {count} preset(s) in '{sheet}'."
     }
   },
   "command_palette": {
@@ -121,6 +123,10 @@
       "validation_failed": "Validation Failed",
       "empty_target": "Please specify a Target Table / Sheet name!",
       "empty_char_name": "Character Name field must not be empty!"
+    },
+    "warning": {
+      "new_text": "'{value}' is not in the Database yet. It will be added when you save.",
+      "new_text_with_suggestions": "'{value}' is not in the Database yet. It will be added when you save.\n\nDid you mean: {suggestions}?"
     }
   },
   "roster": {
