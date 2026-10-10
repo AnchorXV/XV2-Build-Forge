@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QtMsgType, qInstallMessageHandler
 from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont, QFontDatabase
@@ -18,6 +18,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("DBXV2BuildForge")
 
+def _qt_msg_handler(msg_type, context, message):
+    if "setPointSize" in message:
+        return
+    if msg_type in (QtMsgType.QtWarningMsg, QtMsgType.QtCriticalMsg, QtMsgType.QtFatalMsg):
+        sys.stderr.write(f"[Qt] {message}\n")
 
 def _load_fonts(app: QApplication) -> None:
     font_files = [
@@ -58,6 +63,7 @@ def is_compiled() -> bool:
 
 
 def main() -> int:
+    qInstallMessageHandler(_qt_msg_handler)
     logger.info("Starting %s v%s (compiled=%s)...", APP_NAME, APP_VERSION, is_compiled())
 
     QApplication.setHighDpiScaleFactorRoundingPolicy(

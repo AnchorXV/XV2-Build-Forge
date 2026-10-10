@@ -170,12 +170,20 @@
   },
   "database": {
     "button": {
-      "sort_az": "Sort A-Z",
       "fix_cache": "Fix Cache"
     },
     "label": {
       "search": "Search:",
-      "category": "Category:"
+      "category": "Category:",
+      "sort": "Sort:"
+    },
+    "sort": {
+      "az": "A-Z",
+      "za": "Z-A",
+      "date_created": "Date Created",
+      "date_modified": "Date Modified",
+      "date": "Date",
+      "source": "Source"
     },
     "placeholder": {
       "search": "Search {type}..."

@@ -24,7 +24,16 @@ from controllers.undo_commands import (
 from locales.i18n_manager import tr
 from models.character_usage import find_character_variants
 from models.data_store import AppDataStore
-from models.table_models import DatabaseTableModel
+from models.table_models import (
+    SORT_AZ,
+    SORT_DATE,
+    SORT_DATE_CREATED,
+    SORT_DATE_MODIFIED,
+    SORT_ROLE,
+    SORT_SOURCE,
+    SORT_ZA,
+    DatabaseTableModel,
+)
 from views.dialogs.db_entry_dialog import (
     CharacterDialog,
     SkillDialog,
@@ -71,6 +80,46 @@ class DatabaseTab(QWidget):
         self._connect_signals()
         self._setup_shortcuts()
 
+    def _sort_options(self) -> list[tuple[str, str]]:
+        az = tr("database.sort.az")
+        za = tr("database.sort.za")
+        if self._key == "sources":
+            return [
+                (az, SORT_AZ),
+                (za, SORT_ZA),
+                (tr("database.sort.date"), SORT_DATE),
+            ]
+        if self._key == "characters":
+            return [
+                (az, SORT_AZ),
+                (za, SORT_ZA),
+                (tr("database.sort.date_created"), SORT_DATE_CREATED),
+                (tr("database.sort.date_modified"), SORT_DATE_MODIFIED),
+                (tr("database.sort.source"), SORT_SOURCE),
+            ]
+        return [
+            (az, SORT_AZ),
+            (za, SORT_ZA),
+            (tr("database.sort.date_created"), SORT_DATE_CREATED),
+            (tr("database.sort.date_modified"), SORT_DATE_MODIFIED),
+        ]
+
+    def _apply_sort_mode(self, mode: str) -> None:
+        self._model.set_sort_mode(mode)
+        self._stv.proxy_model.setSortRole(SORT_ROLE)
+        self._stv.proxy_model.setSortCaseSensitivity(Qt.CaseInsensitive)
+
+        if mode == SORT_ZA:
+            self._stv.proxy_model.sort(0, Qt.DescendingOrder)
+        elif mode in (SORT_DATE_CREATED, SORT_DATE_MODIFIED):
+            self._stv.proxy_model.sort(0, Qt.DescendingOrder)
+        elif mode == SORT_DATE:
+            self._stv.proxy_model.sort(2, Qt.AscendingOrder)
+        elif mode == SORT_SOURCE:
+            self._stv.proxy_model.sort(0, Qt.AscendingOrder)
+        else:
+            self._stv.proxy_model.sort(0, Qt.AscendingOrder)
+
     # ── UI ──────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
@@ -80,7 +129,7 @@ class DatabaseTab(QWidget):
             add_tooltip=tr("database.tooltip.add", type=self._display),
             search_placeholder=tr("database.placeholder.search", type=self._display),
             search_label=tr("database.label.search"),
-            sort_label=tr("database.button.sort_az"),
+            sort_options=self._sort_options(),
             fix_cache_label=tr("database.button.fix_cache"),
             parent=self,
         )
@@ -143,7 +192,7 @@ class DatabaseTab(QWidget):
 
     def _connect_signals(self) -> None:
         self._toolbar.add_clicked.connect(self._on_add)
-        self._toolbar.sort_clicked.connect(lambda: self._stv.sort_toggle(0))
+        self._toolbar.sort_changed.connect(self._apply_sort_mode)
         self._toolbar.search_changed.connect(self._stv.set_filter_text)
         self._toolbar.fix_cache_clicked.connect(self._on_fix_cache)
         self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
@@ -369,10 +418,19 @@ class DatabaseTab(QWidget):
 
     def retranslate_ui(self, display_title: str) -> None:
         self._display = display_title
+        current = self._toolbar.current_sort_value()
+        self._toolbar.sort_combo.blockSignals(True)
+        self._toolbar.sort_combo.clear()
+        for display, value in self._sort_options():
+            self._toolbar.sort_combo.addItem(display, value)
+        idx = self._toolbar.sort_combo.findData(current)
+        if idx >= 0:
+            self._toolbar.sort_combo.setCurrentIndex(idx)
+        self._toolbar.sort_combo.blockSignals(False)
         self._toolbar.retranslate(
             add_tooltip=tr("database.tooltip.add", type=display_title),
             search_placeholder=tr("database.placeholder.search", type=display_title),
             search_label=tr("database.label.search"),
-            sort_label=tr("database.button.sort_az"),
+            sort_label=tr("database.label.sort", default="Sort:"),
             fix_cache_label=tr("database.button.fix_cache"),
         )

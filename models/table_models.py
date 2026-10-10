@@ -9,6 +9,15 @@ from app_config import TABLE_COLUMNS
 
 from locales.i18n_manager import tr
 
+SORT_ROLE = Qt.UserRole + 1
+
+SORT_AZ = "az"
+SORT_ZA = "za"
+SORT_DATE_CREATED = "date_created"
+SORT_DATE_MODIFIED = "date_modified"
+SORT_DATE = "date"
+SORT_SOURCE = "source"
+
 if TYPE_CHECKING:
     from models.data_store import AppDataStore
 
@@ -35,6 +44,7 @@ class DatabaseTableModel(QAbstractTableModel):
         super().__init__(parent)
         self._store = data_store
         self._cache_key = cache_key
+        self._sort_mode = SORT_AZ
 
         if columns is None:
             if cache_key == "characters":
@@ -60,6 +70,12 @@ class DatabaseTableModel(QAbstractTableModel):
     @property
     def _entries(self) -> list[dict]:
         return self._store.dropdown_cache.get(self._cache_key, [])
+
+    def set_sort_mode(self, mode: str) -> None:
+        if mode == self._sort_mode:
+            return
+        self._sort_mode = mode
+        self.layoutChanged.emit()
 
     def _map_col_to_key(self, col_name: str) -> str:
         if self._entry_type == "char":
@@ -136,6 +152,8 @@ class DatabaseTableModel(QAbstractTableModel):
             return str(val)
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
+        if role == SORT_ROLE:
+            return self._sort_value(entry, col_name)
         return None
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> Any:
@@ -157,6 +175,49 @@ class DatabaseTableModel(QAbstractTableModel):
             return entries[row]
         return None
 
+    def _sort_value(self, entry: Any, col_name: str):
+        if not isinstance(entry, dict):
+            return ""
+
+        if col_name == "Skill Type":
+            return str(entry.get("skill_type", "")).lower()
+
+        if col_name == "Type" and self._entry_type == "source":
+            return str(entry.get("source_type", "")).lower()
+
+        if col_name == "Date" and self._entry_type == "source":
+            year = entry.get("year") or 0
+            month = entry.get("month") or 0
+            day = entry.get("day") or 0
+            try:
+                return int(year) * 10000 + int(month) * 100 + int(day)
+            except (ValueError, TypeError):
+                return 0
+
+        if self._sort_mode == SORT_DATE_CREATED:
+            return str(entry.get("created_at", ""))
+
+        if self._sort_mode == SORT_DATE_MODIFIED:
+            return str(entry.get("modified_at", ""))
+
+        if self._sort_mode == SORT_SOURCE and self._entry_type == "char":
+            episodes = entry.get("episodes", [])
+            sources = self._store.dropdown_cache.get("sources", [])
+            years = []
+            for ep in episodes:
+                for s in sources:
+                    if s.get("name") == ep:
+                        y = s.get("year")
+                        if y:
+                            try:
+                                years.append(int(y))
+                            except (ValueError, TypeError):
+                                pass
+            if years:
+                return min(years)
+            return 9999
+
+        return str(entry.get("name", "")).lower()
 
 class RosterSummaryTableModel(QAbstractTableModel):
 
