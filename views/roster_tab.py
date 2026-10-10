@@ -394,12 +394,6 @@ class RosterTab(QWidget):
         idx = TABLE_COLUMNS.index(col_name)
         order = Qt.AscendingOrder if state.get("order") == "asc" else Qt.DescendingOrder
 
-    def _update_drag_drop_state_after_sort(self) -> None:
-        try:
-            self._preset_view._update_drag_drop_state()
-        except AttributeError:
-            pass
-
         header = self._preset_view.table_view.horizontalHeader()
         header.blockSignals(True)
         self._preset_view.table_view.sortByColumn(idx, order)
@@ -428,6 +422,36 @@ class RosterTab(QWidget):
                 self._select_sheet_row(i)
                 return True
         return False
+
+    def open_preset_by_id(self, sheet_name: str, entry_id: str) -> bool:
+        if sheet_name not in self._store.rosters:
+            return False
+
+        self.select_sheet_by_name(sheet_name)
+
+        entries = self._store.get_sheet_entries(sheet_name)
+        row = -1
+        for i, e in enumerate(entries):
+            if e.entry_id == entry_id:
+                row = i
+                break
+        if row < 0:
+            return False
+
+        proxy_idx = self._preset_view.proxy_model.mapFromSource(
+            self._preset_model.index(row, 0)
+        )
+        if not proxy_idx.isValid():
+            return False
+
+        sel = self._preset_view.table_view.selectionModel()
+        sel.select(
+            proxy_idx,
+            sel.SelectionFlag.Select | sel.SelectionFlag.Clear,
+        )
+        self._preset_view.table_view.setCurrentIndex(proxy_idx)
+        self._preset_view.table_view.scrollTo(proxy_idx)
+        return True
 
     def _get_selected_sheet_name(self) -> Optional[str]:
         sel = self._sheet_view.table_view.selectionModel()

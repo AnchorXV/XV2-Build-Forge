@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self._store = data_store
         self._undo_stack = undo_stack
+        self._commands_cache: Optional[list[dict]] = None
 
         self.setWindowTitle(f"{tr('app.title', default=APP_NAME)} v{APP_VERSION}")
         self.setMinimumSize(1050, 720)
@@ -40,7 +41,6 @@ class MainWindow(QMainWindow):
         self._build_menu_bar()
         self._connect_signals()
 
-        # Force-create status bar supaya muncul dari startup
         self._status_bar = self.statusBar()
         self._status_bar.show()
 
@@ -89,10 +89,15 @@ class MainWindow(QMainWindow):
         signal_bus.status_message.connect(
             lambda msg: self.statusBar().showMessage(msg, 3000)
         )
+        signal_bus.data_changed.connect(self._invalidate_commands_cache)
+
+    def _invalidate_commands_cache(self) -> None:
+        self._commands_cache = None
 
     def _open_command_palette(self) -> None:
-        commands = self._build_commands()
-        self._palette.register_commands(commands)
+        if self._commands_cache is None:
+            self._commands_cache = self._build_commands()
+        self._palette.register_commands(self._commands_cache)
         self._palette.open_palette()
 
     def _build_commands(self) -> list[dict]:
@@ -106,6 +111,26 @@ class MainWindow(QMainWindow):
                 "action": "open_sheet",
                 "data": {"sheet": sheet_name},
             })
+
+        for sheet_name, presets in self._store.get_all_sheets().items():
+            for preset in presets:
+                char = preset.character_name or tr("command_palette.unnamed")
+                costume = preset.costume_name
+                if costume:
+                    label = f"{sheet_name} → {char} · {costume}"
+                    search_blob = f"preset {char} {costume} {sheet_name}"
+                else:
+                    label = f"{sheet_name} → {char}"
+                    search_blob = f"preset {char} {sheet_name}"
+                commands.append({
+                    "label": label,
+                    "search": search_blob,
+                    "action": "open_preset",
+                    "data": {
+                        "sheet": sheet_name,
+                        "entry_id": preset.entry_id,
+                    },
+                })
 
         for char in self._store.get_cache("characters"):
             name = char.get("name", "")
@@ -139,6 +164,12 @@ class MainWindow(QMainWindow):
             if sheet_name:
                 self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
                 self.page_manager.roster_tab.select_sheet_by_name(sheet_name)
+        elif action == "open_preset":
+            sheet_name = data.get("sheet")
+            entry_id = data.get("entry_id")
+            if sheet_name and entry_id:
+                self.page_manager.set_current_page(PageManager.PAGE_ROSTER)
+                self.page_manager.roster_tab.open_preset_by_id(sheet_name, entry_id)
         elif action == "find_character":
             self.page_manager.set_current_page(PageManager.PAGE_DATABASE)
             name = data.get("name", "")

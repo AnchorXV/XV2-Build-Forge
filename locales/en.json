@@ -47,6 +47,9 @@
       "pasted": "Pasted {count} preset(s) into '{sheet}'."
     }
   },
+  "command_palette": {
+    "unnamed": "(unnamed)"
+  },
   "date": {
     "month": {
       "1": "January",
