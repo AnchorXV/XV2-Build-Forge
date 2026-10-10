@@ -14,6 +14,8 @@ from app_config import APP_NAME, APP_VERSION
 from controllers.signal_bus import signal_bus
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
+from models.backup_scanner import list_backups
+from views.dialogs.restore_backup_dialog import RestoreBackupDialog
 from views.page_manager import PageManager
 from views.widgets.command_palette import CommandPalette
 
@@ -59,6 +61,10 @@ class MainWindow(QMainWindow):
         self._act_save.setShortcut("Ctrl+S")
         self._act_save.triggered.connect(self._on_save)
         self._menu_file.addAction(self._act_save)
+
+        self._act_restore = QAction(tr("menu.file.restore_backup", default="Restore from Backup..."), self)
+        self._act_restore.triggered.connect(self._on_restore_backup)
+        self._menu_file.addAction(self._act_restore)
 
         self._menu_recent = self._menu_file.addMenu(
             tr("menu.file.recent_sheets", default="Recent Sheets")
@@ -207,6 +213,48 @@ class MainWindow(QMainWindow):
         self._store.save()
         self._store._persistence.backup()
         self.statusBar().showMessage(tr("status.saved"), 3000)
+
+    def _on_restore_backup(self) -> None:
+        backups = list_backups(self._store.data_file)
+        if not backups:
+            QMessageBox.information(
+                self,
+                tr("dialog.common.warning"),
+                tr("dialog.restore.no_backups"),
+            )
+            return
+
+        dlg = RestoreBackupDialog(backups, self)
+        if not dlg.exec():
+            return
+
+        chosen = dlg.selected_backup()
+        if chosen is None:
+            return
+
+        reply = QMessageBox.question(
+            self,
+            tr("dialog.common.confirm"),
+            tr("dialog.restore.confirm", label=chosen.display_label()),
+        )
+        if reply != QMessageBox.Yes:
+            return
+
+        ok = self._store.restore_from_backup(chosen.path)
+        if not ok:
+            QMessageBox.warning(
+                self,
+                tr("dialog.common.warning"),
+                tr("dialog.restore.failed"),
+            )
+            return
+
+        signal_bus.data_changed.emit()
+        self._invalidate_commands_cache()
+        self.statusBar().showMessage(
+            tr("dialog.restore.success", label=chosen.display_label()),
+            5000,
+        )
 
     def _show_about_dialog(self) -> None:
         from views.dialogs.about_dialog import AboutDialog

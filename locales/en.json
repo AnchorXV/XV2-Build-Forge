@@ -8,6 +8,7 @@
       "title": "File",
       "new_sheet": "New Sheet",
       "save": "Save / Backup",
+      "restore_backup": "Restore from Backup...",
       "recent_sheets": "Recent Sheets",
       "no_recent": "(No recent sheets)"
     },
@@ -300,6 +301,16 @@
       "impact": "Merge '{source}' into '{target}'? {count} preset(s) will be updated.",
       "no_impact": "No preset uses '{source}'. Entry will be removed.",
       "invalid_target": "Choose a different target."
+    },
+    "restore": {
+      "title": "Restore from Backup",
+      "info": "Select a backup to restore:",
+      "warning": "Restoring will overwrite current data. A new backup of current data will be created first.",
+      "restore_button": "Restore",
+      "no_backups": "No backups found in the backups folder.",
+      "confirm": "Restore from backup '{label}'?\n\nCurrent data will be overwritten.",
+      "failed": "Restore failed. Check log for details.",
+      "success": "Data restored from backup: {label}"
     },
     "sheet_detail": {
       "close": "Close",

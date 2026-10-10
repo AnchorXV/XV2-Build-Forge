@@ -78,6 +78,28 @@ class AppDataStore:
         payload["sheets_meta"] = self.sheets_meta
         self._persistence.save(target, payload)
 
+    def restore_from_backup(self, backup_path: Path) -> bool:
+        import shutil
+
+        try:
+            self._persistence.backup()
+        except Exception as exc:
+            logger.warning("Backup current data failed before restore: %s", exc)
+
+        try:
+            shutil.copy2(str(backup_path), str(self.data_file))
+        except OSError as exc:
+            logger.error("Failed to copy backup to data file: %s", exc)
+            return False
+
+        try:
+            self.load()
+        except Exception as exc:
+            logger.exception("Reload after restore failed: %s", exc)
+            return False
+
+        return True
+
     # ── Roster Sheet Operations ────────────────────────────────────────
 
     def get_all_sheets(self) -> dict[str, list[PresetEntry]]:

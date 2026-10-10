@@ -775,3 +775,38 @@ QLabel#mergePreviewLabel {
     font-size: 12px;
     padding: 12px 4px;
 }
+
+QListWidget#backupList {
+    background-color: #16171a;
+    border: 1px solid #232428;
+    border-radius: 8px;
+    padding: 4px;
+    outline: none;
+}
+
+QListWidget#backupList::item {
+    color: #d8d8dc;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+QListWidget#backupList::item:selected {
+    background-color: #6366f1;
+    color: #ffffff;
+}
+
+QListWidget#backupList::item:hover {
+    background-color: #1a1b1f;
+}
+
+QLabel#restorePreview {
+    color: #b0b0b8;
+    font-size: 12px;
+    padding: 8px 4px;
+}
+
+QLabel#restoreWarning {
+    color: #f5b066;
+    font-size: 11px;
+    padding: 4px;
+}
