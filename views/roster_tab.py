@@ -268,7 +268,11 @@ class RosterTab(QWidget):
         header = self._preset_view.table_view.horizontalHeader()
         header.setContextMenuPolicy(Qt.CustomContextMenu)
         header.customContextMenuRequested.connect(self._on_header_context_menu)
+        header.sectionResized.connect(self._on_section_resized)
+        header.sortIndicatorChanged.connect(self._on_sort_indicator_changed)
         self._apply_column_visibility()
+        self._apply_column_widths()
+        self._restore_sort_state()
 
     def _on_header_context_menu(self, pos) -> None:
         header = self._preset_view.table_view.horizontalHeader()
@@ -332,6 +336,75 @@ class RosterTab(QWidget):
         table = self._preset_view.table_view
         for i, col_name in enumerate(TABLE_COLUMNS):
             table.setColumnHidden(i, col_name in hidden)
+
+    def _update_drag_drop_state_after_sort(self) -> None:
+        try:
+            self._preset_view._update_drag_drop_state()
+        except AttributeError:
+            pass
+
+    def _get_column_widths(self) -> dict:
+        raw = self._store.settings.get("roster_column_widths", {})
+        if not isinstance(raw, dict):
+            return {}
+        return {k: int(v) for k, v in raw.items() if k in TABLE_COLUMNS and isinstance(v, (int, float))}
+
+    def _set_column_widths(self, widths: dict) -> None:
+        self._store.settings["roster_column_widths"] = dict(widths)
+        self._store.save()
+
+    def _apply_column_widths(self) -> None:
+        widths = self._get_column_widths()
+        if not widths:
+            return
+        header = self._preset_view.table_view.horizontalHeader()
+        header.blockSignals(True)
+        for i, col_name in enumerate(TABLE_COLUMNS):
+            if col_name in widths:
+                w = max(60, widths[col_name])
+                header.resizeSection(i, w)
+        header.blockSignals(False)
+
+    def _on_section_resized(self, logical_index: int, _old_size: int, new_size: int) -> None:
+        if logical_index < 0 or logical_index >= len(TABLE_COLUMNS):
+            return
+        col_name = TABLE_COLUMNS[logical_index]
+        widths = self._get_column_widths()
+        widths[col_name] = int(new_size)
+        self._set_column_widths(widths)
+
+    def _on_sort_indicator_changed(self, column: int, order: Qt.SortOrder) -> None:
+        if column < 0 or column >= len(TABLE_COLUMNS):
+            self._store.settings["roster_sort_state"] = None
+            self._store.save()
+            return
+        self._store.settings["roster_sort_state"] = {
+            "column": TABLE_COLUMNS[column],
+            "order": "asc" if order == Qt.AscendingOrder else "desc",
+        }
+        self._store.save()
+
+    def _restore_sort_state(self) -> None:
+        state = self._store.settings.get("roster_sort_state")
+        if not isinstance(state, dict):
+            return
+        col_name = state.get("column")
+        if col_name not in TABLE_COLUMNS:
+            return
+        idx = TABLE_COLUMNS.index(col_name)
+        order = Qt.AscendingOrder if state.get("order") == "asc" else Qt.DescendingOrder
+
+    def _update_drag_drop_state_after_sort(self) -> None:
+        try:
+            self._preset_view._update_drag_drop_state()
+        except AttributeError:
+            pass
+
+        header = self._preset_view.table_view.horizontalHeader()
+        header.blockSignals(True)
+        self._preset_view.table_view.sortByColumn(idx, order)
+        header.blockSignals(False)
+        self._update_drag_drop_state_after_sort()
 
     # ── Navigation ─────────────────────────────────────────────────────
 
