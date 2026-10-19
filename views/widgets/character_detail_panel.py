@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -25,12 +26,14 @@ class CharacterDetailPanel(QFrame):
 
     edit_requested = Signal()
     delete_requested = Signal()
+    playable_changed = Signal(bool)
 
     def __init__(self, store: "AppDataStore", parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setObjectName("characterDetailPanel")
         self._store = store
         self._current_row: int = -1
+        self._current_data: Optional[dict] = None
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -90,14 +93,10 @@ class CharacterDetailPanel(QFrame):
 
         code_row.addStretch()
 
-        self._playable_label = self._make_field_label(
-            tr("database.character_panel.playable")
-        )
-        code_row.addWidget(self._playable_label)
-
-        self._playable_value = QLabel("")
-        self._playable_value.setObjectName("panelValueInline")
-        code_row.addWidget(self._playable_value)
+        self._playable_cb = QCheckBox(tr("database.character_panel.playable"))
+        self._playable_cb.setObjectName("panelPlayableCheck")
+        self._playable_cb.toggled.connect(self._on_playable_toggled)
+        code_row.addWidget(self._playable_cb)
 
         layout.addLayout(code_row)
 
@@ -157,7 +156,9 @@ class CharacterDetailPanel(QFrame):
         self._character_value.setText("")
         self._episodes_list.clear()
         self._code_value.setText("")
-        self._playable_value.setText("")
+        self._playable_cb.blockSignals(True)
+        self._playable_cb.setChecked(False)
+        self._playable_cb.blockSignals(False)
         self._skills_label.setText("")
         self._skills_list.clear()
         self._souls_label.setText("")
@@ -166,6 +167,7 @@ class CharacterDetailPanel(QFrame):
 
     def set_character(self, row: int, data: dict) -> None:
         self._current_row = row
+        self._current_data = data
 
         name = data.get("name", "") or "—"
         self._title.setText(name)
@@ -181,9 +183,9 @@ class CharacterDetailPanel(QFrame):
             self._episodes_list.addItem(ep)
 
         self._code_value.setText(data.get("code", "") or "—")
-        self._playable_value.setText(
-            tr("dialog.common.yes") if data.get("is_playable", True) else tr("dialog.common.no")
-        )
+        self._playable_cb.blockSignals(True)
+        self._playable_cb.setChecked(data.get("is_playable", True))
+        self._playable_cb.blockSignals(False)
 
         char_name = data.get("name", "")
         skills = find_character_skills(self._store, char_name)
@@ -217,6 +219,13 @@ class CharacterDetailPanel(QFrame):
     def _set_buttons_enabled(self, enabled: bool) -> None:
         self._edit_btn.setEnabled(enabled)
         self._delete_btn.setEnabled(enabled)
+
+    def _on_playable_toggled(self, checked: bool) -> None:
+        if self._current_row < 0 or self._current_data is None:
+            return
+        if self._current_data.get("is_playable", True) == checked:
+            return
+        self.playable_changed.emit(checked)
 
     def current_row(self) -> int:
         return self._current_row

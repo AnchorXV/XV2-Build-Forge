@@ -224,7 +224,8 @@
       "cache_migrated": "Cache migrated successfully to dictionary schema.",
       "cache_already_ok": "No legacy string items found. Cache is already using dictionary schema.",
       "cascade_rename": "There are {count} variant(s) based on '{old}'. Rename them too to '{new}'?",
-      "merge_no_target": "No other entry to merge with."
+      "merge_no_target": "No other entry to merge with.",
+      "confirm_delete_with_usage": "Delete '{name}'? {count} preset(s) use this {type}."
     },
     "character_panel": {
       "no_selection": "Select a character",

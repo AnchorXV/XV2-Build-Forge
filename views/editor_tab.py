@@ -336,6 +336,8 @@ class EditorTab(QWidget):
 
     def _refresh_soft_warnings(self, *_args) -> None:
         entry = self._collect_entry()
+        if self._editing_entry_id:
+            entry.entry_id = self._editing_entry_id
         self._update_duplicate_skill_warning(entry)
         self._update_identical_preset_warning(entry)
 

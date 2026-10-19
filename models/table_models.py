@@ -147,14 +147,6 @@ class DatabaseTableModel(QAbstractTableModel):
                 )
             else:
                 val = "—"
-
-        if (
-            role == Qt.CheckStateRole
-            and self._entry_type == "char"
-            and col_name == "Playable Character"
-            and isinstance(entry, dict)
-        ):
-            return Qt.Checked if entry.get("is_playable", True) else Qt.Unchecked
         
         if role in (Qt.DisplayRole, Qt.EditRole):
             return str(val)
@@ -171,33 +163,7 @@ class DatabaseTableModel(QAbstractTableModel):
         return None
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
-        base = Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        if not index.isValid():
-            return base
-        if self._entry_type == "char" and self._columns[index.column()] == "Playable Character":
-            return base | Qt.ItemIsUserCheckable
-        return base
-
-    def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
-        if not index.isValid():
-            return False
-        if role != Qt.CheckStateRole:
-            return False
-        if self._entry_type != "char":
-            return False
-        col_name = self._columns[index.column()]
-        if col_name != "Playable Character":
-            return False
-        row = index.row()
-        if row >= len(self._entries):
-            return False
-        entry = self._entries[row]
-        if not isinstance(entry, dict):
-            return False
-        entry["is_playable"] = (value == Qt.Checked)
-        self._store.save()
-        self.dataChanged.emit(index, index, [Qt.CheckStateRole])
-        return True
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
     def refresh(self) -> None:
         self.beginResetModel()

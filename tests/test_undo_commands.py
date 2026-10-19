@@ -427,3 +427,79 @@ class TestAddPresetWithAutoRegisterCommand:
         assert len(store.rosters["Sheet"]) == 1
         assert any(c.get("name") == "CycleChar" for c in store.dropdown_cache["characters"])
         assert any(s.get("name") == "CycleSkill" for s in store.dropdown_cache["super_skills"])
+
+class TestEditPresetWithAutoRegisterCommand:
+
+    def test_update_registers_new_skill(self, store):
+        from controllers.undo_commands import EditPresetWithAutoRegisterCommand
+        store.create_sheet("Sheet")
+        original = PresetEntry(character_name="Goku", super_skills=["OldSkill", "", "", ""])
+        store.add_preset_entry("Sheet", original)
+
+        updated = PresetEntry(
+            character_name="Goku",
+            super_skills=["NewSkill", "", "", ""],
+            entry_id=original.entry_id,
+        )
+        cmd = EditPresetWithAutoRegisterCommand(store, "Sheet", original, updated)
+        cmd.redo()
+
+        assert any(s.get("name") == "NewSkill" for s in store.dropdown_cache["super_skills"])
+
+    def test_update_registers_new_soul_with_owner(self, store):
+        from controllers.undo_commands import EditPresetWithAutoRegisterCommand
+        store.create_sheet("Sheet")
+        original = PresetEntry(character_name="Goku")
+        store.add_preset_entry("Sheet", original)
+
+        updated = PresetEntry(
+            character_name="Goku",
+            super_soul="NewSoul",
+            entry_id=original.entry_id,
+        )
+        cmd = EditPresetWithAutoRegisterCommand(store, "Sheet", original, updated)
+        cmd.redo()
+
+        souls = store.dropdown_cache["super_souls"]
+        soul = next((s for s in souls if s.get("name") == "NewSoul"), None)
+        assert soul is not None
+        assert soul.get("owner") == "Goku"
+
+    def test_update_does_not_overwrite_existing_soul_owner(self, store):
+        from controllers.undo_commands import EditPresetWithAutoRegisterCommand
+        store.create_sheet("Sheet")
+        store.dropdown_cache["super_souls"] = [
+            {"name": "ExistingSoul", "owner": "Vegeta", "effect_1": "", "effect_2": "", "limit_burst": ""}
+        ]
+        original = PresetEntry(character_name="Goku")
+        store.add_preset_entry("Sheet", original)
+
+        updated = PresetEntry(
+            character_name="Goku",
+            super_soul="ExistingSoul",
+            entry_id=original.entry_id,
+        )
+        cmd = EditPresetWithAutoRegisterCommand(store, "Sheet", original, updated)
+        cmd.redo()
+
+        souls = store.dropdown_cache["super_souls"]
+        soul = next(s for s in souls if s.get("name") == "ExistingSoul")
+        assert soul.get("owner") == "Vegeta"
+
+    def test_update_undo_restores_cache(self, store):
+        from controllers.undo_commands import EditPresetWithAutoRegisterCommand
+        store.create_sheet("Sheet")
+        original = PresetEntry(character_name="Goku", super_skills=["Old", "", "", ""])
+        store.add_preset_entry("Sheet", original)
+        initial_skills = list(store.dropdown_cache["super_skills"])
+
+        updated = PresetEntry(
+            character_name="Goku",
+            super_skills=["BrandNew", "", "", ""],
+            entry_id=original.entry_id,
+        )
+        cmd = EditPresetWithAutoRegisterCommand(store, "Sheet", original, updated)
+        cmd.redo()
+        cmd.undo()
+
+        assert store.dropdown_cache["super_skills"] == initial_skills

@@ -40,6 +40,7 @@ from views.dialogs.db_entry_dialog import (
     SourceDialog,
     SuperSoulDialog,
 )
+from views.widgets.character_detail_panel import CharacterDetailPanel
 from views.widgets.searchable_table_view import SearchableTableView
 from views.widgets.toolbar_widget import ToolbarWidget
 from views.widgets.database_detail_panel import DatabaseDetailPanel
@@ -48,6 +49,7 @@ from views.widgets.multi_field_filter_proxy import MultiFieldFilterProxy
 logger = logging.getLogger(__name__)
 
 SPLIT_MODE_KEYS: set[str] = {
+    "characters",
     "super_skills",
     "ultimate_skills",
     "awoken_skills",
@@ -77,7 +79,15 @@ class DatabaseTab(QWidget):
         self._split_mode = category_key in SPLIT_MODE_KEYS
 
         if self._split_mode:
-            if category_key == "super_souls":
+            if category_key == "characters":
+                self._model = DatabaseTableModel(
+                    data_store,
+                    category_key,
+                    columns=["Name"],
+                    entry_type="char",
+                )
+                filter_fields = ["name", "code", "base_character"]
+            elif category_key == "super_souls":
                 self._model = DatabaseTableModel(
                     data_store,
                     category_key,
@@ -172,8 +182,7 @@ class DatabaseTab(QWidget):
         )
         self._stv.set_source_model(self._model)
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
-        if self._key != "characters":
-            self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
+        self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
         parent_layout.addWidget(self._stv, 1)
 
     def _build_split_ui(self, parent_layout: QVBoxLayout) -> None:
@@ -207,14 +216,20 @@ class DatabaseTab(QWidget):
         left_layout.addWidget(self._stv)
         splitter.addWidget(left)
 
-        self._detail_panel = DatabaseDetailPanel(
-            self._store, self._undo_stack, self._key, self
-        )
-        self._detail_panel.edit_requested.connect(self._on_edit_panel)
-        self._detail_panel.delete_requested.connect(self._on_delete_panel)
-        self._detail_panel.navigate_requested.connect(
-            lambda sheet, eid: signal_bus.navigate_to_preset.emit(sheet, eid)
-        )
+        if self._key == "characters":
+            self._detail_panel = CharacterDetailPanel(self._store, self)
+            self._detail_panel.edit_requested.connect(self._on_edit_panel)
+            self._detail_panel.delete_requested.connect(self._on_delete_panel)
+            self._detail_panel.playable_changed.connect(self._on_playable_changed)
+        else:
+            self._detail_panel = DatabaseDetailPanel(
+                self._store, self._undo_stack, self._key, self
+            )
+            self._detail_panel.edit_requested.connect(self._on_edit_panel)
+            self._detail_panel.delete_requested.connect(self._on_delete_panel)
+            self._detail_panel.navigate_requested.connect(
+                lambda sheet, eid: signal_bus.navigate_to_preset.emit(sheet, eid)
+            )
         splitter.addWidget(self._detail_panel)
 
         splitter.setStretchFactor(0, 0)
@@ -266,9 +281,19 @@ class DatabaseTab(QWidget):
     # ── Data refresh ────────────────────────────────────────────────────
 
     def _on_data_changed(self) -> None:
-        self._model.refresh()
-        if self._split_mode:
-            self._refresh_detail_panel()
+        if not self._split_mode:
+            self._model.refresh()
+            return
+
+        old_count = self._model.rowCount()
+        new_count = len(self._store.get_cache(self._key))
+
+        if old_count == new_count:
+            self._model.layoutChanged.emit()
+        else:
+            self._model.refresh()
+        
+        self._refresh_detail_panel()
 
     def _on_selection_changed(self, *_args) -> None:
         self._refresh_detail_panel()
@@ -285,10 +310,16 @@ class DatabaseTab(QWidget):
             self._detail_panel.clear()
             return
 
-        if len(valid_rows) == 1:
-            self._detail_panel.set_single(valid_rows[0], items[valid_rows[0]])
+        if self._key == "characters":
+            if len(valid_rows) >= 1:
+                self._detail_panel.set_character(valid_rows[0], items[valid_rows[0]])
+            else:
+                self._detail_panel.clear()
         else:
-            self._detail_panel.set_multi([items[r] for r in valid_rows])
+            if len(valid_rows) == 1:
+                self._detail_panel.set_single(valid_rows[0], items[valid_rows[0]])
+            else:
+                self._detail_panel.set_multi([items[r] for r in valid_rows])
 
     def _on_edit_panel(self) -> None:
         if self._detail_panel is None:
@@ -297,6 +328,17 @@ class DatabaseTab(QWidget):
         if row < 0:
             return
         self._on_edit_for_row(row)
+
+    def _on_playable_changed(self, checked: bool) -> None:
+        items = self._store.get_cache("characters")
+        row = self._detail_panel.current_row()
+        if row < 0 or row >= len(items):
+            return
+        old_entry = items[row]
+        new_entry = dict(old_entry)
+        new_entry["is_playable"] = checked
+        cmd = EditCacheItemCommand(self._store, "characters", row, old_entry, new_entry)
+        self._undo_stack.push(cmd)
 
     def _on_delete_panel(self) -> None:
         if self._detail_panel is None:
@@ -399,15 +441,29 @@ class DatabaseTab(QWidget):
         if row >= len(items):
             return
         name = items[row].get("name", "???")
+
+        impact = count_merge_impact(self._store, self._key, name)
+        if impact > 0:
+            type_key = self._key
+            if type_key in ("super_skills", "ultimate_skills", "awoken_skills", "evasive_skills"):
+                type_key = "skill"
+            elif type_key == "super_souls":
+                type_key = "super_soul"
+            elif type_key == "characters":
+                type_key = "character"
+            elif type_key == "sources":
+                type_key = "source"
+
+            msg = tr("database.message.confirm_delete_with_usage",
+                     name=name, count=impact, type=type_key)
+        else:
+            msg = tr("database.message.confirm_delete", name=name)
+
         reply = QMessageBox.question(
             self,
             tr("dialog.common.confirm"),
-            tr("database.message.confirm_delete", name=name),
+            msg,
         )
-        if reply == QMessageBox.Yes:
-            item = items[row]
-            cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
-            self._undo_stack.push(cmd)
 
     # ── Handlers ────────────────────────────────────────────────────────
 
