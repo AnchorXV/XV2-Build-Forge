@@ -110,6 +110,51 @@ class TestFindSkillUsage:
         results = find_skill_usage(store, "Kamehameha", "super_skills")
         assert results[0].display_label() == "Goku · — · Super 1"
 
+    def test_slot_label_all_categories(self, store):
+        from models.character_usage import SKILL_CATEGORIES
+
+        _add_preset(
+            store, "S", "Goku",
+            super_skills=["A", "", "", ""],
+            ultimate_skills=["B", ""],
+            awoken="C",
+            evasive="D",
+        )
+        cases = {
+            "super_skills": "A",
+            "ultimate_skills": "B",
+            "awoken_skills": "C",
+            "evasive_skills": "D",
+        }
+        for category, skill in cases.items():
+            results = find_skill_usage(store, skill, category)
+            assert len(results) == 1, category
+            expected = SKILL_CATEGORIES[category]["slots"][0]
+            assert results[0].slot_label == expected, category
+
+    def test_slot_label_out_of_range_uses_fallback(self, store):
+        entry = PresetEntry(
+            character_name="Goku",
+            super_skills=["", "", "", "", "Extra"],
+        )
+        store.add_preset_entry("S", entry)
+
+        results = find_skill_usage(store, "Extra", "super_skills")
+        assert len(results) == 1
+        assert results[0].slot_label == "Slot 5"
+
+    def test_case_sensitive_match(self, store):
+        _add_preset(store, "S", "Goku", super_skills=["Kamehameha", "", "", ""])
+        assert find_skill_usage(store, "kamehameha", "super_skills") == []
+
+    def test_whitespace_stripped_in_match(self, store):
+        _add_preset(store, "S", "Goku", super_skills=["Kamehameha", "", "", ""])
+        assert len(find_skill_usage(store, "  Kamehameha  ", "super_skills")) == 1
+
+    def test_no_cross_category_match(self, store):
+        _add_preset(store, "S", "Goku", super_skills=["X", "", "", ""])
+        assert find_skill_usage(store, "X", "ultimate_skills") == []
+
 
 class TestFindSoulUsage:
 
@@ -128,6 +173,24 @@ class TestFindSoulUsage:
 
     def test_empty_soul(self, store):
         assert find_soul_usage(store, "") == []
+
+    def test_display_label_with_costume(self, store):
+        _add_preset(store, "S", "Goku", soul="Hope", costume="Turtle Gi")
+        results = find_soul_usage(store, "Hope")
+        assert results[0].display_label() == "Goku · Turtle Gi · Super Soul"
+
+    def test_display_label_without_costume(self, store):
+        _add_preset(store, "S", "Goku", soul="Hope")
+        results = find_soul_usage(store, "Hope")
+        assert results[0].display_label() == "Goku · — · Super Soul"
+
+    def test_case_sensitive_match(self, store):
+        _add_preset(store, "S", "Goku", soul="Hope")
+        assert find_soul_usage(store, "hope") == []
+
+    def test_whitespace_stripped_in_match(self, store):
+        _add_preset(store, "S", "Goku", soul="Hope")
+        assert len(find_soul_usage(store, "  Hope  ")) == 1
 
 
 class TestFindCharacterSkills:
