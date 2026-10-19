@@ -126,7 +126,10 @@
     },
     "warning": {
       "new_text": "'{value}' is not in the Database yet. It will be added when you save.",
-"new_text_with_suggestions": "'{value}' is not in the Database yet. It will be added when you save.<br><br>Did you mean: <b>{suggestions}</b>?"
+      "new_text_with_suggestions": "'{value}' is not in the Database yet. It will be added when you save.<br><br>Did you mean: <b>{suggestions}</b>?",
+      "duplicate_super_skill": "Same Super Skill is used in slots {slots}.",
+      "duplicate_ultimate_skill": "Same Ultimate Skill is used in slots {slots}.",
+      "identical_preset": "A preset with the same character, costume, and skills already exists in this sheet ({count})."
     }
   },
   "roster": {

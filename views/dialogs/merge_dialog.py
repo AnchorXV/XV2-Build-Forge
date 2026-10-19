@@ -1,11 +1,7 @@
 from __future__ import annotations
-
 from typing import Optional
-
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
-    QCompleter,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -13,9 +9,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
 from locales.i18n_manager import tr
-
+from views.widgets.searchable_combo import setup_searchable_combo
 
 class MergeDialog(QDialog):
 
@@ -43,14 +38,7 @@ class MergeDialog(QDialog):
         form.addRow(QLabel(tr("dialog.merge.source")), source_label)
 
         self._target_combo = QComboBox()
-        self._target_combo.setEditable(True)
-        self._target_combo.setInsertPolicy(QComboBox.NoInsert)
-        completer = QCompleter(self._target_combo.model(), self._target_combo)
-        completer.setCompletionMode(QCompleter.PopupCompletion)
-        completer.setFilterMode(Qt.MatchContains)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setMaxVisibleItems(15)
-        self._target_combo.setCompleter(completer)
+        setup_searchable_combo(self._target_combo)
 
         for name in target_candidates:
             self._target_combo.addItem(name)

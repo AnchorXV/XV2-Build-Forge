@@ -1,12 +1,8 @@
 from __future__ import annotations
-
 from typing import Optional
-
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
-    QCompleter,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -20,8 +16,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
 from locales.i18n_manager import tr
+from views.widgets.searchable_combo import populate_combo, setup_searchable_combo
 
 
 SKILL_TYPES_BY_CATEGORY: dict[str, list[str]] = {
@@ -90,14 +86,7 @@ class CharacterDialog(QDialog):
         add_row.setSpacing(6)
 
         self.episodes_combo = QComboBox()
-        self.episodes_combo.setEditable(True)
-        self.episodes_combo.setInsertPolicy(QComboBox.NoInsert)
-        completer = QCompleter(self.episodes_combo.model(), self.episodes_combo)
-        completer.setCompletionMode(QCompleter.PopupCompletion)
-        completer.setFilterMode(Qt.MatchContains)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setMaxVisibleItems(15)
-        self.episodes_combo.setCompleter(completer)
+        setup_searchable_combo(self.episodes_combo)
         add_row.addWidget(self.episodes_combo, 1)
 
         add_btn = QPushButton(tr("dialog.character.button_add_episode"))
@@ -148,8 +137,8 @@ class CharacterDialog(QDialog):
             eps = self._episodes_provider()
         except Exception:
             eps = []
-        names = sorted([e.get("name", "") for e in eps if e.get("name")])
-        self.episodes_combo.addItems(names)
+        names = [e.get("name", "") for e in eps if e.get("name")]
+        populate_combo(self.episodes_combo, names, sorted_items=True)
 
     def _on_name_changed(self, new_name: str) -> None:
         self._sync_base_from_name()
@@ -323,15 +312,8 @@ class SuperSoulDialog(QDialog):
         form.addRow(QLabel(tr("dialog.super_soul.label_name")), self.name_input)
 
         self.owner_combo = QComboBox()
-        self.owner_combo.setEditable(True)
-        self.owner_combo.setInsertPolicy(QComboBox.NoInsert)
+        setup_searchable_combo(self.owner_combo)
         self.owner_combo.setPlaceholderText(tr("dialog.super_soul.placeholder_owner"))
-        completer = QCompleter(self.owner_combo.model(), self.owner_combo)
-        completer.setCompletionMode(QCompleter.PopupCompletion)
-        completer.setFilterMode(Qt.MatchContains)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setMaxVisibleItems(15)
-        self.owner_combo.setCompleter(completer)
         self._populate_owners()
         form.addRow(QLabel(tr("dialog.super_soul.label_owner")), self.owner_combo)
 
@@ -367,7 +349,7 @@ class SuperSoulDialog(QDialog):
         except Exception:
             chars = []
         names = [c.get("name", "") for c in chars if c.get("name")]
-        self.owner_combo.addItems(sorted(names))
+        populate_combo(self.owner_combo, names, sorted_items=True)
 
     def get_data(self) -> dict:
         return {

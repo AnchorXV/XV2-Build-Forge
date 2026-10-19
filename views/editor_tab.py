@@ -7,7 +7,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QComboBox,
-    QCompleter,
     QFrame,
     QGridLayout,
     QHBoxLayout,
@@ -30,8 +29,13 @@ from locales.i18n_manager import tr
 from models.data_store import AppDataStore
 from models.field_validator import check_field
 from models.schemas import PresetEntry
-from models.validators import validate_preset_entry
+from models.validators import (
+    find_duplicate_skill_slots,
+    find_identical_presets,
+    validate_preset_entry,
+)
 from views.widgets.section_header import SectionHeader
+from views.widgets.searchable_combo import setup_searchable_combo
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +56,7 @@ class EditorTab(QWidget):
         self._connect_signals()
         self._refresh_combos()
         self._setup_field_watchers()
+        self._setup_soft_warnings()
 
     # ── UI Construction ────────────────────────────────────────────────
 
@@ -119,21 +124,21 @@ class EditorTab(QWidget):
         grid.setColumnStretch(1, 1)
 
         self.char_name_combo = QComboBox()
-        self._setup_searchable_combo(self.char_name_combo)
+        setup_searchable_combo(self.char_name_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.character_name"), self.char_name_combo),
             0, 0, 1, 2,
         )
 
         self.source_combo = QComboBox()
-        self._setup_searchable_combo(self.source_combo)
+        setup_searchable_combo(self.source_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.source"), self.source_combo),
             1, 0, 1, 2,
         )
 
         self.char_id_input = QComboBox()
-        self._setup_searchable_combo(self.char_id_input)
+        setup_searchable_combo(self.char_id_input)
         grid.addWidget(
             self._make_field(tr("editor.label.character_id"), self.char_id_input),
             2, 0,
@@ -176,7 +181,7 @@ class EditorTab(QWidget):
         self.super_combos: list[QComboBox] = []
         for i in range(4):
             combo = QComboBox()
-            self._setup_searchable_combo(combo)
+            setup_searchable_combo(combo)
             self.super_combos.append(combo)
             grid.addWidget(
                 self._make_field(tr("editor.label.super_skill", n=i + 1), combo),
@@ -186,7 +191,7 @@ class EditorTab(QWidget):
         self.ult_combos: list[QComboBox] = []
         for i in range(2):
             combo = QComboBox()
-            self._setup_searchable_combo(combo)
+            setup_searchable_combo(combo)
             self.ult_combos.append(combo)
             grid.addWidget(
                 self._make_field(tr("editor.label.ultimate_skill", n=i + 1), combo),
@@ -194,25 +199,31 @@ class EditorTab(QWidget):
             )
 
         self.awoken_combo = QComboBox()
-        self._setup_searchable_combo(self.awoken_combo)
+        setup_searchable_combo(self.awoken_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.awoken_skill"), self.awoken_combo),
             2, 1,
         )
 
         self.evasive_combo = QComboBox()
-        self._setup_searchable_combo(self.evasive_combo)
+        setup_searchable_combo(self.evasive_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.evasive_skill"), self.evasive_combo),
             3, 1,
         )
 
         self.super_soul_combo = QComboBox()
-        self._setup_searchable_combo(self.super_soul_combo)
+        setup_searchable_combo(self.super_soul_combo)
         grid.addWidget(
             self._make_field(tr("editor.label.super_soul"), self.super_soul_combo),
             4, 0, 1, 2,
         )
+
+        self._duplicate_warning_label = QLabel()
+        self._duplicate_warning_label.setObjectName("inlineWarning")
+        self._duplicate_warning_label.setWordWrap(True)
+        self._duplicate_warning_label.hide()
+        grid.addWidget(self._duplicate_warning_label, 5, 0, 1, 2)
 
         return card
 
@@ -224,7 +235,7 @@ class EditorTab(QWidget):
         layout.setSpacing(18)
 
         self.target_sheet_combo = QComboBox()
-        self._setup_searchable_combo(self.target_sheet_combo)
+        setup_searchable_combo(self.target_sheet_combo)
         self.target_sheet_combo.setPlaceholderText(tr("editor.placeholder.target_sheet"))
         layout.addWidget(
             self._make_field(tr("editor.label.target_sheet"), self.target_sheet_combo)
@@ -250,6 +261,12 @@ class EditorTab(QWidget):
         self.update_entry_btn.hide()
         btn_row.addWidget(self.update_entry_btn)
 
+        self._identical_warning_label = QLabel()
+        self._identical_warning_label.setObjectName("formWarning")
+        self._identical_warning_label.setWordWrap(True)
+        self._identical_warning_label.hide()
+        layout.addWidget(self._identical_warning_label)
+
         layout.addLayout(btn_row)
         return card
 
@@ -266,21 +283,6 @@ class EditorTab(QWidget):
         layout.addWidget(widget)
 
         return container
-
-    @staticmethod
-    def _setup_searchable_combo(combo: QComboBox) -> None:
-        combo.setEditable(True)
-        combo.setInsertPolicy(QComboBox.NoInsert)
-
-        completer = combo.completer()
-        if completer is None:
-            completer = QCompleter(combo.model(), combo)
-            combo.setCompleter(completer)
-
-        completer.setCompletionMode(QCompleter.PopupCompletion)
-        completer.setFilterMode(Qt.MatchContains)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setMaxVisibleItems(15)
 
     # ── Signal wiring ──────────────────────────────────────────────────
 
@@ -321,6 +323,55 @@ class EditorTab(QWidget):
         ]
         for _, combo in self._watched_fields:
             combo.currentTextChanged.connect(self._update_field_warnings)
+
+    def _setup_soft_warnings(self) -> None:
+        for combo in self.super_combos + self.ult_combos:
+            combo.currentTextChanged.connect(self._refresh_soft_warnings)
+        self.char_name_combo.currentTextChanged.connect(self._refresh_soft_warnings)
+        self.super_soul_combo.currentTextChanged.connect(self._refresh_soft_warnings)
+        self.costume_name_input.textChanged.connect(self._refresh_soft_warnings)
+        self.costume_index_spin.valueChanged.connect(self._refresh_soft_warnings)
+        self.target_sheet_combo.currentTextChanged.connect(self._refresh_soft_warnings)
+        signal_bus.data_changed.connect(self._refresh_soft_warnings)
+
+    def _refresh_soft_warnings(self, *_args) -> None:
+        entry = self._collect_entry()
+        self._update_duplicate_skill_warning(entry)
+        self._update_identical_preset_warning(entry)
+
+    def _update_duplicate_skill_warning(self, entry) -> None:
+        dups = find_duplicate_skill_slots(entry)
+        if not dups:
+            self._duplicate_warning_label.hide()
+            return
+        parts: list[str] = []
+        if "super_skill" in dups:
+            parts.append(tr(
+                "editor.warning.duplicate_super_skill",
+                slots=", ".join(str(i + 1) for i in dups["super_skill"]),
+            ))
+        if "ultimate_skill" in dups:
+            parts.append(tr(
+                "editor.warning.duplicate_ultimate_skill",
+                slots=", ".join(str(i + 1) for i in dups["ultimate_skill"]),
+            ))
+        self._duplicate_warning_label.setText("\n".join(parts))
+        self._duplicate_warning_label.show()
+
+    def _update_identical_preset_warning(self, entry) -> None:
+        target = self.target_sheet_combo.currentText().strip()
+        if not target:
+            self._identical_warning_label.hide()
+            return
+        existing = self._store.get_sheet_entries(target)
+        matches = find_identical_presets(entry, existing)
+        if not matches:
+            self._identical_warning_label.hide()
+            return
+        self._identical_warning_label.setText(
+            tr("editor.warning.identical_preset", count=len(matches))
+        )
+        self._identical_warning_label.show()
 
     def _update_field_warnings(self, *_args) -> None:
         for field_key, combo in self._watched_fields:
@@ -384,6 +435,7 @@ class EditorTab(QWidget):
         self._editing_entry_name = None
         self._last_auto_target = ""
         self._update_edit_banner()
+        self._refresh_soft_warnings()
 
     def load_entry(self, entry: PresetEntry, sheet_name: str) -> None:
         self.char_name_combo.setCurrentText(entry.character_name)
@@ -587,6 +639,7 @@ class EditorTab(QWidget):
         self._refill_combo(self.target_sheet_combo, sheets)
 
         self._update_field_warnings()
+        self._refresh_soft_warnings()
 
     @staticmethod
     def _refill_combo(combo: QComboBox, items: list[str]) -> None:

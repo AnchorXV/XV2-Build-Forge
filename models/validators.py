@@ -52,3 +52,61 @@ def validate_preset_entry(preset: Any) -> list[str]:
     if not char_name or not str(char_name).strip():
         errors.append("Character name must not be empty.")
     return errors
+
+def _strip(value: str) -> str:
+    return (value or "").strip()
+
+
+def find_duplicate_skill_slots(entry) -> dict[str, list[int]]:
+    result: dict[str, list[int]] = {}
+
+    def _collect(values: list[str]) -> list[int]:
+        groups: dict[str, list[int]] = {}
+        for i, v in enumerate(values or []):
+            v = _strip(v)
+            if v:
+                groups.setdefault(v, []).append(i)
+        dup: set[int] = set()
+        for slots in groups.values():
+            if len(slots) > 1:
+                dup.update(slots)
+        return sorted(dup)
+
+    super_dups = _collect(list(entry.super_skills or []))
+    if super_dups:
+        result["super_skill"] = super_dups
+
+    ult_dups = _collect(list(entry.ultimate_skills or []))
+    if ult_dups:
+        result["ultimate_skill"] = ult_dups
+
+    return result
+
+
+def _preset_signature(entry) -> tuple:
+    return (
+        _strip(entry.character_name),
+        _strip(entry.costume_name),
+        int(entry.costume_index or 0),
+        tuple(_strip(s) for s in (entry.super_skills or [])),
+        tuple(_strip(s) for s in (entry.ultimate_skills or [])),
+        _strip(entry.awoken_skill),
+        _strip(entry.evasive_skill),
+        _strip(entry.super_soul),
+    )
+
+
+def find_identical_presets(entry, existing) -> list:
+    if not _strip(entry.character_name):
+        return []
+
+    target_sig = _preset_signature(entry)
+    target_id = getattr(entry, "entry_id", None)
+
+    matches = []
+    for other in existing:
+        if getattr(other, "entry_id", None) == target_id:
+            continue
+        if _preset_signature(other) == target_sig:
+            matches.append(other)
+    return matches

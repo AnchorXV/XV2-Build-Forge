@@ -820,3 +820,18 @@ QComboBox[warningState="true"]:focus {
     border: 1px solid #e68a1a;
     background-color: #251a12;
 }
+
+QLabel#inlineWarning {
+    color: #f5b066;
+    font-size: 12px;
+    padding: 6px 4px;
+}
+
+QLabel#formWarning {
+    color: #f5b066;
+    font-size: 12px;
+    padding: 8px 12px;
+    background-color: #1e1610;
+    border: 1px solid #d4740a;
+    border-radius: 6px;
+}
