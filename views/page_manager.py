@@ -59,6 +59,7 @@ class PageManager(QWidget):
         self._sidebar.about_clicked.connect(self.about_requested.emit)
 
         signal_bus.load_entry_to_editor.connect(self._on_load_entry)
+        signal_bus.navigate_to_preset.connect(self._on_navigate_to_preset)
 
         self.set_current_page(self.PAGE_EDITOR)
 
@@ -70,3 +71,7 @@ class PageManager(QWidget):
     def _on_load_entry(self, entry, sheet_name: str) -> None:
         self.set_current_page(self.PAGE_EDITOR)
         self.editor_tab.load_entry(entry, sheet_name)
+
+    def _on_navigate_to_preset(self, sheet_name: str, entry_id: str) -> None:
+        self.set_current_page(self.PAGE_ROSTER)
+        self.roster_tab.open_preset_by_id(sheet_name, entry_id)

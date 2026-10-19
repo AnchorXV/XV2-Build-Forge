@@ -238,7 +238,10 @@
       "soul_used_by": "Super Soul used by {name}",
       "list_item": "{name}    ({count})",
       "edit": "Edit",
-      "delete": "Delete"
+      "delete": "Delete",
+      "multi_selected": "{count} item(s) selected",
+      "soul_title_with_owner": "{owner}'s Super Soul",
+      "soul_title_empty": "Select or Fill the Character"
     }
   },
   "dialog": {

@@ -1,8 +1,6 @@
 from __future__ import annotations
-
 import logging
 from typing import Optional
-
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
@@ -13,7 +11,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
 from controllers.signal_bus import signal_bus
 from controllers.undo_commands import (
     AddCacheItemCommand,
@@ -43,14 +40,23 @@ from views.dialogs.db_entry_dialog import (
     SourceDialog,
     SuperSoulDialog,
 )
-from views.widgets.character_detail_panel import CharacterDetailPanel
 from views.widgets.searchable_table_view import SearchableTableView
 from views.widgets.toolbar_widget import ToolbarWidget
+from views.widgets.database_detail_panel import DatabaseDetailPanel
+from views.widgets.multi_field_filter_proxy import MultiFieldFilterProxy
 
 logger = logging.getLogger(__name__)
 
+SPLIT_MODE_KEYS: set[str] = {
+    "super_skills",
+    "ultimate_skills",
+    "awoken_skills",
+    "evasive_skills",
+    "super_souls",
+}
 
-SPLIT_MODE_KEYS: set[str] = {"characters"}
+SKILL_FILTER_FIELDS = ["name", "skill_type", "ki_used", "note"]
+SUPER_SOUL_FILTER_FIELDS = ["name", "owner", "effect_1", "effect_2", "limit_burst"]
 
 
 class DatabaseTab(QWidget):
@@ -71,13 +77,28 @@ class DatabaseTab(QWidget):
         self._split_mode = category_key in SPLIT_MODE_KEYS
 
         if self._split_mode:
-            self._model = DatabaseTableModel(
-                data_store, category_key, columns=["Name"], entry_type="char"
-            )
+            if category_key == "super_souls":
+                self._model = DatabaseTableModel(
+                    data_store,
+                    category_key,
+                    columns=["Super Soul"],
+                    entry_type="supersoul",
+                )
+                filter_fields = SUPER_SOUL_FILTER_FIELDS
+            else:
+                self._model = DatabaseTableModel(
+                    data_store,
+                    category_key,
+                    columns=["Skill Name"],
+                    entry_type="skill",
+                )
+                filter_fields = SKILL_FILTER_FIELDS
+            self._filter_fields = filter_fields
         else:
             self._model = DatabaseTableModel(data_store, category_key)
+            self._filter_fields = ["name"]
 
-        self._detail_panel: Optional[CharacterDetailPanel] = None
+        self._detail_panel: Optional[DatabaseDetailPanel] = None
 
         self._build_ui()
         self._connect_signals()
@@ -151,7 +172,8 @@ class DatabaseTab(QWidget):
         )
         self._stv.set_source_model(self._model)
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
-        self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
+        if self._key != "characters":
+            self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
         parent_layout.addWidget(self._stv, 1)
 
     def _build_split_ui(self, parent_layout: QVBoxLayout) -> None:
@@ -167,10 +189,15 @@ class DatabaseTab(QWidget):
         self._stv = SearchableTableView(
             self,
             sortable=True,
-            selection_mode=QAbstractItemView.SingleSelection,
+            selection_mode=QAbstractItemView.ExtendedSelection,
             stretch_columns=False,
         )
-        self._stv.set_source_model(self._model)
+
+        proxy = MultiFieldFilterProxy(self._filter_fields, self)
+        proxy.setSourceModel(self._model)
+        self._stv.table_view.setModel(proxy)
+        self._stv._proxy = proxy
+
         self._stv.table_view.setContextMenuPolicy(Qt.CustomContextMenu)
         self._stv.set_edit_triggers(QAbstractItemView.NoEditTriggers)
 
@@ -180,14 +207,19 @@ class DatabaseTab(QWidget):
         left_layout.addWidget(self._stv)
         splitter.addWidget(left)
 
-        self._detail_panel = CharacterDetailPanel(self._store)
+        self._detail_panel = DatabaseDetailPanel(
+            self._store, self._undo_stack, self._key, self
+        )
         self._detail_panel.edit_requested.connect(self._on_edit_panel)
         self._detail_panel.delete_requested.connect(self._on_delete_panel)
+        self._detail_panel.navigate_requested.connect(
+            lambda sheet, eid: signal_bus.navigate_to_preset.emit(sheet, eid)
+        )
         splitter.addWidget(self._detail_panel)
 
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
-        splitter.setSizes([320, 700])
+        splitter.setSizes([300, 700])
 
         parent_layout.addWidget(splitter, 1)
 
@@ -196,17 +228,23 @@ class DatabaseTab(QWidget):
     def _connect_signals(self) -> None:
         self._toolbar.add_clicked.connect(self._on_add)
         self._toolbar.sort_changed.connect(self._apply_sort_mode)
-        self._toolbar.search_changed.connect(self._stv.set_filter_text)
+        if self._split_mode:
+            self._toolbar.search_changed.connect(self._on_search_changed)
+        else:
+            self._toolbar.search_changed.connect(self._stv.set_filter_text)
         self._toolbar.fix_cache_clicked.connect(self._on_fix_cache)
         self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
         self._stv.table_view.doubleClicked.connect(self._on_edit)
-
-        if self._split_mode:
-            self._stv.table_view.selectionModel().selectionChanged.connect(
-                self._on_selection_changed
-            )
+        self._stv.table_view.selectionModel().selectionChanged.connect(
+            self._on_selection_changed
+        )
 
         signal_bus.data_changed.connect(self._on_data_changed)
+
+    def _on_search_changed(self, text: str) -> None:
+        proxy = self._stv.table_view.model()
+        if hasattr(proxy, "set_filter_text"):
+            proxy.set_filter_text(text)
 
     def _setup_shortcuts(self) -> None:
         QShortcut(
@@ -241,12 +279,16 @@ class DatabaseTab(QWidget):
 
         rows = self._stv.selected_source_rows()
         items = self._store.get_cache(self._key)
-        if not rows or rows[0] >= len(items):
+        valid_rows = [r for r in rows if 0 <= r < len(items)]
+
+        if not valid_rows:
             self._detail_panel.clear()
             return
 
-        row = rows[0]
-        self._detail_panel.set_character(row, items[row])
+        if len(valid_rows) == 1:
+            self._detail_panel.set_single(valid_rows[0], items[valid_rows[0]])
+        else:
+            self._detail_panel.set_multi([items[r] for r in valid_rows])
 
     def _on_edit_panel(self) -> None:
         if self._detail_panel is None:
