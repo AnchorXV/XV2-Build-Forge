@@ -16,7 +16,6 @@ from PySide6.QtWidgets import (
 class SidebarWidget(QWidget):
 
     page_changed = Signal(int)
-    about_clicked = Signal()
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
@@ -49,16 +48,6 @@ class SidebarWidget(QWidget):
             layout.addWidget(btn)
 
         layout.addSpacing(16)
-
-        tools_label = QLabel("TOOLS")
-        tools_label.setObjectName("sidebarSection")
-        layout.addWidget(tools_label)
-
-        self._about_btn = self._make_nav_button("?", "About")
-        self._about_btn.setCheckable(False)
-        self._about_btn.clicked.connect(self.about_clicked.emit)
-        layout.addWidget(self._about_btn)
-
         layout.addStretch()
 
         self._version_label = QLabel("")

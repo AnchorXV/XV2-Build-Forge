@@ -465,6 +465,11 @@ class DatabaseTab(QWidget):
             msg,
         )
 
+        if reply == QMessageBox.Yes:
+            item = items[row]
+            cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
+            self._undo_stack.push(cmd)
+
     # ── Handlers ────────────────────────────────────────────────────────
 
     def _on_add(self) -> None:

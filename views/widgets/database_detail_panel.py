@@ -226,6 +226,7 @@ class DatabaseDetailPanel(QFrame):
         self._current_row = -1
         self._current_entry = None
         self._stack.setCurrentIndex(1)
+        self._edit_btn.show()
         self._title_label.setText(tr("database.character_panel.no_selection"))
         if self._is_soul:
             self._title_stack.setCurrentIndex(0)
@@ -246,6 +247,7 @@ class DatabaseDetailPanel(QFrame):
         self._current_row = row
         self._current_entry = entry
         self._stack.setCurrentIndex(1)
+        self._edit_btn.show()
         name = entry.get("name", "") or "—"
 
         if self._is_soul:

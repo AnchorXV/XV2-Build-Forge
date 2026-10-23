@@ -1,15 +1,11 @@
 from __future__ import annotations
-
 from typing import Optional
-
-from PySide6.QtCore import Signal
 from PySide6.QtGui import QUndoStack
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QStackedWidget,
     QWidget,
 )
-
 from app_config import APP_VERSION
 from controllers.signal_bus import signal_bus
 from models.data_store import AppDataStore
@@ -24,8 +20,6 @@ class PageManager(QWidget):
     PAGE_EDITOR = 0
     PAGE_ROSTER = 1
     PAGE_DATABASE = 2
-
-    about_requested = Signal()
 
     def __init__(
         self,
@@ -56,7 +50,6 @@ class PageManager(QWidget):
         self._stack.addWidget(self.database_page)
 
         self._sidebar.page_changed.connect(self.set_current_page)
-        self._sidebar.about_clicked.connect(self.about_requested.emit)
 
         signal_bus.load_entry_to_editor.connect(self._on_load_entry)
         signal_bus.navigate_to_preset.connect(self._on_navigate_to_preset)
