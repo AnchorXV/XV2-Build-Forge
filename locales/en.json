@@ -23,9 +23,10 @@
       "language": "Language",
       "theme": "Theme:"
     },
-    "about": {
-      "title": "About",
-      "description": "Roster & Moveset Planner for DBXV2 Modding"
+    "help": {
+      "title": "Help",
+      "shortcuts": "Keyboard Shortcuts",
+      "about": "About"
     }
   },
   "status": {
@@ -371,6 +372,24 @@
       "cancel": "Cancel",
       "confirm": "Confirm",
       "warning": "Warning"
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "action": "Action",
+      "shortcut": "Shortcut",
+      "cmd_palette": "Command Palette",
+      "find_replace": "Find & Replace",
+      "copy": "Copy selected preset(s)",
+      "cut": "Cut selected preset(s)",
+      "paste": "Paste preset(s)",
+      "select_all": "Select all",
+      "extend_sel": "Extend selection",
+      "undo": "Undo",
+      "redo": "Redo",
+      "new_sheet": "New Sheet",
+      "save": "Save and Backup",
+      "delete": "Delete selected item",
+      "esc": "Close dialog"
     }
   }
 }

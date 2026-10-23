@@ -85,8 +85,13 @@ class MainWindow(QMainWindow):
         self._menu_edit.addSeparator()
         self._menu_edit.addAction(self._act_palette)
 
-        self._menu_help = menubar.addMenu(tr("menu.about.title", default="About"))
-        self._act_about = QAction(tr("menu.about.title", default="About"), self)
+        self._menu_help = menubar.addMenu(tr("menu.help.title", default="Help"))
+
+        self._act_shortcuts = QAction(tr("menu.help.shortcuts", default="Keyboard Shortcuts"), self)
+        self._act_shortcuts.triggered.connect(self._show_shortcuts_dialog)
+        self._menu_help.addAction(self._act_shortcuts)
+
+        self._act_about = QAction(tr("menu.help.about", default="About"), self)
         self._act_about.triggered.connect(self._show_about_dialog)
         self._menu_help.addAction(self._act_about)
 
@@ -259,6 +264,11 @@ class MainWindow(QMainWindow):
     def _show_about_dialog(self) -> None:
         from views.dialogs.about_dialog import AboutDialog
         dlg = AboutDialog(self)
+        dlg.exec()
+
+    def _show_shortcuts_dialog(self) -> None:
+        from views.dialogs.keyboard_shortcuts_dialog import KeyboardShortcutsDialog
+        dlg = KeyboardShortcutsDialog(self)
         dlg.exec()
 
     def closeEvent(self, event: QCloseEvent) -> None:
