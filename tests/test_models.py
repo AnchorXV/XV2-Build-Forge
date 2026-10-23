@@ -356,3 +356,19 @@ class TestModels:
         ts = utc_now_iso()
         assert "T" in ts
         assert ts.endswith("+00:00")
+
+    def test_database_table_model_not_editable(self):
+        from PySide6.QtCore import Qt
+        from models.table_models import DatabaseTableModel
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            file_path = Path(tmpdir) / "test.json"
+            store = AppDataStore(data_file=file_path)
+
+            model = DatabaseTableModel(store, "super_skills")
+            
+            index = model.index(0, 4)
+            flags = model.flags(index)
+
+            assert not (flags & Qt.ItemIsEditable)
+            assert model.setData(index, "new value", Qt.EditRole) is False
