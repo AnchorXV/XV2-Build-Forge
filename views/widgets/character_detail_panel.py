@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -64,6 +65,7 @@ class CharacterDetailPanel(QFrame):
         self._character_value = QLabel("")
         self._character_value.setObjectName("panelValue")
         self._character_value.setWordWrap(True)
+        self._character_value.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         layout.addWidget(self._character_value)
 
         # Appear on Source
@@ -89,6 +91,7 @@ class CharacterDetailPanel(QFrame):
 
         self._code_value = QLabel("")
         self._code_value.setObjectName("panelValueInline")
+        self._code_value.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         code_row.addWidget(self._code_value)
 
         code_row.addStretch()
