@@ -229,7 +229,7 @@
       "confirm_delete_with_usage": "Delete '{name}'? {count} preset(s) use this {type}."
     },
     "character_panel": {
-      "no_selection": "Select a character",
+      "no_selection": "Select an item from the left panel",
       "code": "Code",
       "base": "Base",
       "character": "Character",

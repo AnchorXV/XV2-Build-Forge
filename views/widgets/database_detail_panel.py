@@ -235,7 +235,7 @@ class DatabaseDetailPanel(QFrame):
     def clear(self) -> None:
         self._current_row = -1
         self._current_entry = None
-        self._stack.setCurrentIndex(1)
+        self._stack.setCurrentIndex(2)
         self._edit_btn.show()
         self._title_label.setText(tr("database.character_panel.no_selection"))
         if self._is_soul:

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
     QFrame,
@@ -15,7 +16,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
+from app_config import get_resource_path
 from locales.i18n_manager import tr
 from models.character_usage import find_character_skills, find_character_souls
 
@@ -121,11 +122,13 @@ class CharacterDetailPanel(QFrame):
         btn_row.setSpacing(8)
         btn_row.addStretch()
         self._edit_btn = QPushButton(tr("database.character_panel.edit"))
-        self._edit_btn.setObjectName("secondaryButton")
+        self._edit_btn.setObjectName("primaryButton")
+        self._edit_btn.setIcon(QIcon(str(get_resource_path("assets/icons/square-pen.svg"))))
         self._edit_btn.clicked.connect(self.edit_requested.emit)
         btn_row.addWidget(self._edit_btn)
         self._delete_btn = QPushButton(tr("database.character_panel.delete"))
         self._delete_btn.setObjectName("dangerButton")
+        self._delete_btn.setIcon(QIcon(str(get_resource_path("assets/icons/trash.svg"))))
         self._delete_btn.clicked.connect(self.delete_requested.emit)
         btn_row.addWidget(self._delete_btn)
         layout.addLayout(btn_row)

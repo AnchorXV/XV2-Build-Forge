@@ -66,13 +66,6 @@ class ToolbarWidget(QWidget):
             self.sort_combo.currentIndexChanged.connect(self._on_sort_changed)
             layout.addWidget(self.sort_combo)
 
-        self.fix_cache_btn = None
-        if fix_cache_label is not None:
-            self.fix_cache_btn = QPushButton(fix_cache_label)
-            self.fix_cache_btn.setObjectName("fixCacheButton")
-            self.fix_cache_btn.clicked.connect(self.fix_cache_clicked.emit)
-            layout.addWidget(self.fix_cache_btn)
-
         layout.addStretch()
 
         self._search_label = QLabel(search_label)

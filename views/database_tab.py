@@ -248,7 +248,6 @@ class DatabaseTab(QWidget):
             self._toolbar.search_changed.connect(self._on_search_changed)
         else:
             self._toolbar.search_changed.connect(self._stv.set_filter_text)
-        self._toolbar.fix_cache_clicked.connect(self._on_fix_cache)
         self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
         self._stv.table_view.doubleClicked.connect(self._on_edit)
         self._stv.table_view.selectionModel().selectionChanged.connect(
@@ -483,22 +482,6 @@ class DatabaseTab(QWidget):
                 return
             cmd = AddCacheItemCommand(self._store, self._key, data)
             self._undo_stack.push(cmd)
-
-    def _on_fix_cache(self) -> None:
-        migrated = self._store.force_migrate_cache(self._key)
-        if migrated:
-            signal_bus.data_changed.emit()
-            QMessageBox.information(
-                self,
-                tr("dialog.common.ok"),
-                tr("database.message.cache_migrated"),
-            )
-        else:
-            QMessageBox.information(
-                self,
-                tr("dialog.common.ok"),
-                tr("database.message.cache_already_ok"),
-            )
 
     def _on_edit(self, proxy_index=None) -> None:
         if proxy_index is not None and proxy_index.isValid():
