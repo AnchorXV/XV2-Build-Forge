@@ -106,8 +106,8 @@ QPushButton#sidebarButton:checked:hover {
 
 /* ── Section Header ─────────────────────────────────────────────────── */
 QLabel#sectionHeaderTitle {
-    color: #6366f1;
-    font-size: 11px;
+    color: #7c7ef5;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 1.5px;
 }
@@ -225,8 +225,8 @@ QPushButton#addButton:hover {
 /* ── Inputs ──────────────────────────────────────────────────────────── */
 QLineEdit, QComboBox, QSpinBox {
     background-color: #131418;
-    color: #e8e8ec;
-    border: 1px solid #232428;
+    color: #f0f0f0;
+    border: 1px solid #3a3c42;
     border-radius: 8px;
     padding: 7px 12px;
     font-size: 13px;
@@ -354,10 +354,10 @@ QAbstractItemView {
 QTableView, QTableWidget {
     background-color: #0f1013;
     alternate-background-color: #131418;
-    gridline-color: transparent;
+    gridline-color: #2a2c31;
     border: 1px solid #1a1b1f;
     border-radius: 10px;
-    color: #d8d8dc;
+    color: #f0f0f0;
     selection-background-color: #6366f1;
     selection-color: #ffffff;
     outline: none;

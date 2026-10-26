@@ -38,7 +38,7 @@ class ToolbarWidget(QWidget):
         self.add_btn = QPushButton("+")
         self.add_btn.setObjectName("addButton")
         self.add_btn.setToolTip(add_tooltip)
-        self.add_btn.setFixedSize(34, 30)
+        self.add_btn.setFixedSize(32, 32)
         self.add_btn.clicked.connect(self.add_clicked.emit)
         layout.addWidget(self.add_btn)
 
@@ -50,6 +50,7 @@ class ToolbarWidget(QWidget):
 
             self.sort_combo = QComboBox()
             self.sort_combo.setMinimumWidth(150)
+            self.sort_combo.setFixedHeight(32)
             for display, value in sort_options:
                 self.sort_combo.addItem(display, value)
             self.sort_combo.currentIndexChanged.connect(self._on_sort_changed)

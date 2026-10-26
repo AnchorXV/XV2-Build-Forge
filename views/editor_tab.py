@@ -72,9 +72,9 @@ class EditorTab(QWidget):
         scroll.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
 
         container = QWidget()
-        container.setMaximumWidth(920)
+        container.setMaximumWidth(840)
         main_layout = QVBoxLayout(container)
-        main_layout.setContentsMargins(28, 24, 28, 32)
+        main_layout.setContentsMargins(20, 16, 20, 16)
         main_layout.setSpacing(20)
 
         main_layout.addWidget(SectionHeader(tr("editor.group.character_info")))

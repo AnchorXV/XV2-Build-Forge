@@ -65,6 +65,16 @@ class DatabaseDetailPanel(QFrame):
         self._single_page = self._build_single_page()
         self._stack.addWidget(self._single_page)
 
+        self._empty_page = QWidget()
+        empty_layout = QVBoxLayout(self._empty_page)
+        self._empty_label = QLabel(tr("database.character_panel.no_selection"))
+        self._empty_label.setObjectName("emptyStateLabel")
+        self._empty_label.setAlignment(Qt.AlignCenter)
+        empty_layout.addWidget(self._empty_label)
+        self._stack.addWidget(self._empty_page)
+
+        self.clear()
+
     def _build_multi_page(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)

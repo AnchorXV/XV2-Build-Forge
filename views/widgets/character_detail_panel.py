@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QFrame,
@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QPushButton,
     QScrollArea,
-    QSizePolicy,
+    QStackedWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -40,6 +40,19 @@ class CharacterDetailPanel(QFrame):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(0)
 
+        self._stack = QStackedWidget()
+        outer.addWidget(self._stack)
+
+        # --- EMPTY STATE ---
+        self._empty_page = QWidget()
+        empty_layout = QVBoxLayout(self._empty_page)
+        self._empty_label = QLabel(tr("database.character_panel.no_selection"))
+        self._empty_label.setObjectName("emptyStateLabel")
+        self._empty_label.setAlignment(Qt.AlignCenter)
+        empty_layout.addWidget(self._empty_label)
+        self._stack.addWidget(self._empty_page)
+
+        # --- CONTENT DETAIL ---
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
@@ -50,28 +63,20 @@ class CharacterDetailPanel(QFrame):
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(16)
 
-        # Title
         self._title = QLabel("")
         self._title.setObjectName("panelTitle")
         self._title.setWordWrap(True)
         layout.addWidget(self._title)
 
-        # Character (base)
-        self._character_label = self._make_field_label(
-            tr("database.character_panel.character")
-        )
+        self._character_label = self._make_field_label(tr("database.character_panel.character"))
         layout.addWidget(self._character_label)
 
         self._character_value = QLabel("")
         self._character_value.setObjectName("panelValue")
         self._character_value.setWordWrap(True)
-        self._character_value.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         layout.addWidget(self._character_value)
 
-        # Appear on Source
-        self._episodes_label = self._make_field_label(
-            tr("database.character_panel.episodes")
-        )
+        self._episodes_label = self._make_field_label(tr("database.character_panel.episodes"))
         layout.addWidget(self._episodes_label)
 
         self._episodes_list = QListWidget()
@@ -80,43 +85,30 @@ class CharacterDetailPanel(QFrame):
         self._episodes_list.setMaximumHeight(140)
         layout.addWidget(self._episodes_list)
 
-        # Code + Playable row
         code_row = QHBoxLayout()
         code_row.setSpacing(12)
-
-        self._code_label = self._make_field_label(
-            tr("database.character_panel.code")
-        )
+        self._code_label = self._make_field_label(tr("database.character_panel.code"))
         code_row.addWidget(self._code_label)
-
         self._code_value = QLabel("")
         self._code_value.setObjectName("panelValueInline")
-        self._code_value.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         code_row.addWidget(self._code_value)
-
         code_row.addStretch()
-
         self._playable_cb = QCheckBox(tr("database.character_panel.playable"))
         self._playable_cb.setObjectName("panelPlayableCheck")
         self._playable_cb.toggled.connect(self._on_playable_toggled)
         code_row.addWidget(self._playable_cb)
-
         layout.addLayout(code_row)
 
-        # Skill used by
         self._skills_label = self._make_field_label("")
         layout.addWidget(self._skills_label)
-
         self._skills_list = QListWidget()
         self._skills_list.setObjectName("panelList")
         self._skills_list.setMinimumHeight(100)
         self._skills_list.setMaximumHeight(180)
         layout.addWidget(self._skills_list)
 
-        # Super Soul used by
         self._souls_label = self._make_field_label("")
         layout.addWidget(self._souls_label)
-
         self._souls_list = QListWidget()
         self._souls_list.setObjectName("panelList")
         self._souls_list.setMinimumHeight(80)
@@ -125,25 +117,21 @@ class CharacterDetailPanel(QFrame):
 
         layout.addStretch()
 
-        # Buttons
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
         btn_row.addStretch()
-
         self._edit_btn = QPushButton(tr("database.character_panel.edit"))
         self._edit_btn.setObjectName("secondaryButton")
         self._edit_btn.clicked.connect(self.edit_requested.emit)
         btn_row.addWidget(self._edit_btn)
-
         self._delete_btn = QPushButton(tr("database.character_panel.delete"))
         self._delete_btn.setObjectName("dangerButton")
         self._delete_btn.clicked.connect(self.delete_requested.emit)
         btn_row.addWidget(self._delete_btn)
-
         layout.addLayout(btn_row)
 
         scroll.setWidget(container)
-        outer.addWidget(scroll)
+        self._stack.addWidget(scroll)
 
         self.clear()
 
@@ -155,26 +143,17 @@ class CharacterDetailPanel(QFrame):
 
     def clear(self) -> None:
         self._current_row = -1
-        self._title.setText(tr("database.character_panel.no_selection"))
-        self._character_value.setText("")
-        self._episodes_list.clear()
-        self._code_value.setText("")
-        self._playable_cb.blockSignals(True)
-        self._playable_cb.setChecked(False)
-        self._playable_cb.blockSignals(False)
-        self._skills_label.setText("")
-        self._skills_list.clear()
-        self._souls_label.setText("")
-        self._souls_list.clear()
+        self._current_data = None
+        self._stack.setCurrentIndex(0)
         self._set_buttons_enabled(False)
 
     def set_character(self, row: int, data: dict) -> None:
         self._current_row = row
         self._current_data = data
+        self._stack.setCurrentIndex(1)
 
         name = data.get("name", "") or "—"
         self._title.setText(name)
-
         self._character_value.setText(data.get("base_character", "") or "—")
 
         episodes = data.get("episodes", [])
@@ -192,29 +171,17 @@ class CharacterDetailPanel(QFrame):
 
         char_name = data.get("name", "")
         skills = find_character_skills(self._store, char_name)
-        self._skills_label.setText(
-            tr("database.character_panel.skill_used_by", name=name)
-        )
+        self._skills_label.setText(tr("database.character_panel.skill_used_by", name=name))
         self._skills_list.clear()
         for skill_display, count in skills:
-            label = tr(
-                "database.character_panel.list_item",
-                name=skill_display,
-                count=count,
-            )
+            label = tr("database.character_panel.list_item", name=skill_display, count=count)
             self._skills_list.addItem(label)
 
         souls = find_character_souls(self._store, char_name)
-        self._souls_label.setText(
-            tr("database.character_panel.soul_used_by", name=name)
-        )
+        self._souls_label.setText(tr("database.character_panel.soul_used_by", name=name))
         self._souls_list.clear()
         for soul_name, count in souls:
-            label = tr(
-                "database.character_panel.list_item",
-                name=soul_name,
-                count=count,
-            )
+            label = tr("database.character_panel.list_item", name=soul_name, count=count)
             self._souls_list.addItem(label)
 
         self._set_buttons_enabled(True)

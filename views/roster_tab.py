@@ -8,6 +8,7 @@ from PySide6.QtGui import QCursor, QKeySequence, QShortcut, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
+    QFrame,
     QHBoxLayout,
     QHeaderView,
     QInputDialog,
@@ -110,6 +111,12 @@ class RosterTab(QWidget):
 
         left_layout.addWidget(self._sheet_view, 1)
 
+        divider_left = QFrame()
+        divider_left.setFrameShape(QFrame.HLine)
+        divider_left.setStyleSheet("background-color: #232428; border: none;")
+        divider_left.setFixedHeight(1)
+        left_layout.addWidget(divider_left)
+
         left_btn_row = QHBoxLayout()
         left_btn_row.setSpacing(6)
 
@@ -172,13 +179,25 @@ class RosterTab(QWidget):
         preset_header.setMinimumSectionSize(60)
         preset_header.setSectionResizeMode(QHeaderView.Interactive)
         for i in range(1, len(TABLE_COLUMNS)):
-            preset_header.resizeSection(i, 105)
+            col_name = TABLE_COLUMNS[i]
+            if col_name in ("Costume Index", "Model Preset"):
+                preset_header.resizeSection(i, 60)
+            elif col_name == "Character ID":
+                preset_header.resizeSection(i, 80)
+            else:
+                preset_header.resizeSection(i, 130)
         preset_header.setSectionResizeMode(0, QHeaderView.Interactive)
-        preset_header.resizeSection(0, 170)
+        preset_header.resizeSection(0, 180)
 
         self._right_stack.addWidget(self._preset_view)
 
         right_layout.addWidget(self._right_stack, 1)
+
+        divider_right = QFrame()
+        divider_right.setFrameShape(QFrame.HLine)
+        divider_right.setStyleSheet("background-color: #232428; border: none;")
+        divider_right.setFixedHeight(1)
+        right_layout.addWidget(divider_right)
 
         right_btn_row = QHBoxLayout()
         right_btn_row.setSpacing(6)
