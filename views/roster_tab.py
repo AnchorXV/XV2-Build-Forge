@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor, QKeySequence, QShortcut, QUndoStack
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QCursor, QKeySequence, QShortcut, QUndoStack, QIcon
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from app_config import TABLE_COLUMNS
+from app_config import TABLE_COLUMNS, get_resource_path
 from controllers.signal_bus import signal_bus
 from controllers.undo_commands import (
     AddPresetEntryCommand,
@@ -120,23 +120,17 @@ class RosterTab(QWidget):
         left_btn_row = QHBoxLayout()
         left_btn_row.setSpacing(6)
 
-        self._new_sheet_btn = QPushButton(tr("roster.button.new_sheet", default="+ New"))
+        self._new_sheet_btn = QPushButton(tr("roster.button.new_sheet", default="New"))
         self._new_sheet_btn.setObjectName("secondaryButton")
+        self._new_sheet_btn.setIcon(QIcon(str(get_resource_path("assets/icons/action-add.svg"))))
+        self._new_sheet_btn.setIconSize(QSize(14, 14))
         self._new_sheet_btn.clicked.connect(self._on_add_sheet)
         left_btn_row.addWidget(self._new_sheet_btn)
 
-        self._note_btn = QPushButton(tr("roster.button.edit_note_tags"))
-        self._note_btn.setObjectName("secondaryButton")
-        self._note_btn.clicked.connect(self._on_edit_note_tags_clicked)
-        left_btn_row.addWidget(self._note_btn)
-
-        self._delete_sheet_btn = QPushButton(tr("roster.context_menu.delete"))
-        self._delete_sheet_btn.setObjectName("dangerButton")
-        self._delete_sheet_btn.clicked.connect(self._on_delete_sheet_clicked)
-        left_btn_row.addWidget(self._delete_sheet_btn)
-
         self._export_btn = QPushButton(tr("roster.button.export_selected"))
-        self._export_btn.setObjectName("exportButton")
+        self._export_btn.setObjectName("secondaryButton")
+        self._export_btn.setIcon(QIcon(str(get_resource_path("assets/icons/action-export.svg"))))
+        self._export_btn.setIconSize(QSize(14, 14))
         self._export_btn.clicked.connect(self._on_export)
         left_btn_row.addWidget(self._export_btn)
 
@@ -199,26 +193,6 @@ class RosterTab(QWidget):
         divider_right.setFixedHeight(1)
         right_layout.addWidget(divider_right)
 
-        right_btn_row = QHBoxLayout()
-        right_btn_row.setSpacing(6)
-        right_btn_row.addStretch()
-
-        self._load_btn = QPushButton(tr("dialog.sheet_detail.load_into_editor"))
-        self._load_btn.setObjectName("secondaryButton")
-        self._load_btn.clicked.connect(self._on_load_clicked)
-        right_btn_row.addWidget(self._load_btn)
-
-        self._open_detail_btn = QPushButton(tr("roster.button.open_detail", default="Open Detail Dialog"))
-        self._open_detail_btn.setObjectName("secondaryButton")
-        self._open_detail_btn.clicked.connect(self._on_open_detail_clicked)
-        right_btn_row.addWidget(self._open_detail_btn)
-
-        self._delete_preset_btn = QPushButton(tr("roster.context_menu.delete_preset"))
-        self._delete_preset_btn.setObjectName("dangerButton")
-        self._delete_preset_btn.clicked.connect(self._on_delete_preset_clicked)
-        right_btn_row.addWidget(self._delete_preset_btn)
-
-        right_layout.addLayout(right_btn_row)
         splitter.addWidget(right)
 
         splitter.setStretchFactor(0, 0)
@@ -525,7 +499,6 @@ class RosterTab(QWidget):
         if sheet_name is None:
             self._preset_header.setText(tr("roster.panel.select_sheet", default="Select a sheet"))
             self._right_stack.setCurrentIndex(0)
-            self._set_right_buttons_enabled(False)
             return
 
         entries = self._store.get_sheet_entries(sheet_name)
@@ -536,12 +509,6 @@ class RosterTab(QWidget):
             label += "s"
         self._preset_header.setText(label)
         self._right_stack.setCurrentIndex(1)
-        self._set_right_buttons_enabled(True)
-
-    def _set_right_buttons_enabled(self, enabled: bool) -> None:
-        self._load_btn.setEnabled(enabled)
-        self._open_detail_btn.setEnabled(enabled)
-        self._delete_preset_btn.setEnabled(enabled)
 
     # ── Sheet operations ───────────────────────────────────────────────
 
@@ -635,6 +602,8 @@ class RosterTab(QWidget):
         duplicate_action = menu.addAction(tr("roster.context_menu.duplicate", default="Duplicate Sheet"))
         note_tags_action = menu.addAction(tr("roster.context_menu.edit_note_tags", default="Edit Note & Tags"))
         menu.addSeparator()
+        detail_action = menu.addAction(tr("roster.button.open_detail", default="Open Detail Dialog"))
+        menu.addSeparator()
         delete_action = menu.addAction(tr("roster.context_menu.delete"))
 
         action = menu.exec(self._sheet_view.table_view.viewport().mapToGlobal(pos))
@@ -644,6 +613,8 @@ class RosterTab(QWidget):
             self._duplicate_sheet(name)
         elif action == note_tags_action:
             self._on_edit_note_tags_clicked()
+        elif action == detail_action:
+            self._on_open_detail_clicked()
         elif action == delete_action:
             self._on_delete_sheet_clicked()
 
@@ -682,14 +653,6 @@ class RosterTab(QWidget):
         self._undo_stack.push(cmd)
 
     # ── Preset operations ──────────────────────────────────────────────
-
-    def _on_load_clicked(self) -> None:
-        if not self._current_sheet:
-            return
-        rows = self._preset_view.selected_source_rows()
-        if not rows:
-            return
-        self._load_entry(self._current_sheet, rows[0])
 
     def _on_open_detail_clicked(self) -> None:
         name = self._get_selected_sheet_name()

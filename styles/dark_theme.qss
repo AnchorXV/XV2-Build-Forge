@@ -175,6 +175,7 @@ QPushButton#secondaryButton {
     font-weight: 500;
     padding: 7px 12px;
     font-size: 12px;
+    text-align: center;
 }
 
 QPushButton#secondaryButton:hover {

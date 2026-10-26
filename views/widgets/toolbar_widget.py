@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QSize
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -11,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
 )
-
+from app_config import get_resource_path
 
 class ToolbarWidget(QWidget):
 
@@ -35,10 +36,13 @@ class ToolbarWidget(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        self.add_btn = QPushButton("+")
+        self.add_btn = QPushButton()
         self.add_btn.setObjectName("addButton")
         self.add_btn.setToolTip(add_tooltip)
         self.add_btn.setFixedSize(32, 32)
+        icon_add = get_resource_path("assets/icons/action-add.svg")
+        self.add_btn.setIcon(QIcon(str(icon_add)))
+        self.add_btn.setIconSize(QSize(16, 16))
         self.add_btn.clicked.connect(self.add_clicked.emit)
         layout.addWidget(self.add_btn)
 
@@ -71,6 +75,11 @@ class ToolbarWidget(QWidget):
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText(search_placeholder)
         self.search_input.setFixedWidth(240)
+        self.search_input.setFixedHeight(32)
+        
+        icon_search = get_resource_path("assets/icons/action-search.svg")
+        self.search_input.addAction(QIcon(str(icon_search)), QLineEdit.LeadingPosition)
+        
         self.search_input.textChanged.connect(self.search_changed.emit)
         layout.addWidget(self.search_input)
 

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QButtonGroup,
     QLabel,
@@ -11,7 +12,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
+from app_config import get_resource_path
 
 class SidebarWidget(QWidget):
 
@@ -36,12 +37,12 @@ class SidebarWidget(QWidget):
         self._page_buttons: list[QPushButton] = []
 
         pages = [
-            ("◈", "Editor", 0),
-            ("▤", "Roster", 1),
-            ("▦", "Database", 2),
+            ("sidebar-editor.svg", "Editor", 0),
+            ("sidebar-roster.svg", "Roster", 1),
+            ("sidebar-database.svg", "Database", 2),
         ]
-        for icon_text, label_text, index in pages:
-            btn = self._make_nav_button(icon_text, label_text)
+        for icon_file, label_text, index in pages:
+            btn = self._make_nav_button(icon_file, label_text)
             btn.clicked.connect(lambda _checked=False, i=index: self.page_changed.emit(i))
             self._button_group.addButton(btn, index)
             self._page_buttons.append(btn)
@@ -57,13 +58,18 @@ class SidebarWidget(QWidget):
 
         self.set_current_page(0)
 
-    def _make_nav_button(self, icon_text: str, label_text: str) -> QPushButton:
-        btn = QPushButton(f"  {icon_text}   {label_text}")
+    def _make_nav_button(self, icon_file: str, label_text: str) -> QPushButton:
+        btn = QPushButton(f"  {label_text}")
         btn.setObjectName("sidebarButton")
         btn.setCheckable(True)
         btn.setCursor(Qt.PointingHandCursor)
         btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         btn.setMinimumHeight(34)
+        
+        icon_path = get_resource_path(f"assets/icons/{icon_file}")
+        btn.setIcon(QIcon(str(icon_path)))
+        btn.setIconSize(QSize(18, 18))
+        
         return btn
 
     def set_current_page(self, index: int) -> None:
