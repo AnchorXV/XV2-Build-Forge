@@ -9,12 +9,8 @@ FIELD_KEYS: list[str] = [
     "character_name",
     "costume_name",
     "source",
-    "super_skill_1",
-    "super_skill_2",
-    "super_skill_3",
-    "super_skill_4",
-    "ultimate_skill_1",
-    "ultimate_skill_2",
+    "super_skill_0", "super_skill_1", "super_skill_2", "super_skill_3",
+    "ultimate_skill_0", "ultimate_skill_1",
     "awoken_skill",
     "evasive_skill",
     "super_soul",
@@ -25,12 +21,12 @@ FIELD_LABELS: dict[str, str] = {
     "character_name": "Character Name",
     "costume_name": "Costume Name",
     "source": "Source",
-    "super_skill_1": "Super Skill 1",
-    "super_skill_2": "Super Skill 2",
-    "super_skill_3": "Super Skill 3",
-    "super_skill_4": "Super Skill 4",
-    "ultimate_skill_1": "Ultimate Skill 1",
-    "ultimate_skill_2": "Ultimate Skill 2",
+    "super_skill_0": "Super Skill 1",
+    "super_skill_1": "Super Skill 2",
+    "super_skill_2": "Super Skill 3",
+    "super_skill_3": "Super Skill 4",
+    "ultimate_skill_0": "Ultimate Skill 1",
+    "ultimate_skill_1": "Ultimate Skill 2",
     "awoken_skill": "Awoken Skill",
     "evasive_skill": "Evasive Skill",
     "super_soul": "Super Soul",
@@ -45,10 +41,10 @@ def get_field_value(entry: PresetEntry, field_key: str) -> str:
     if field_key == "source":
         return entry.source
     if field_key.startswith("super_skill_"):
-        i = int(field_key.split("_")[-1]) - 1
+        i = int(field_key.split("_")[-1])
         return entry.super_skills[i] if 0 <= i < len(entry.super_skills) else ""
     if field_key.startswith("ultimate_skill_"):
-        i = int(field_key.split("_")[-1]) - 1
+        i = int(field_key.split("_")[-1])
         return entry.ultimate_skills[i] if 0 <= i < len(entry.ultimate_skills) else ""
     if field_key == "awoken_skill":
         return entry.awoken_skill
@@ -66,7 +62,7 @@ def set_field_value(entry: PresetEntry, field_key: str, value: str) -> None:
     elif field_key == "source":
         entry.source = value
     elif field_key.startswith("super_skill_"):
-        i = int(field_key.split("_")[-1]) - 1
+        i = int(field_key.split("_")[-1])
         if 0 <= i < len(entry.super_skills):
             skills = list(entry.super_skills)
             skills[i] = value

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import csv
 import logging
 from pathlib import Path
@@ -56,6 +57,9 @@ def _row_for_columns(entry: PresetEntry, columns: list[str]) -> list[str]:
 def _truncate_sheet_name(name: str) -> str:
     return name[:31] if name else "Sheet"
 
+def _sanitize_filename(name: str) -> str:
+    name = re.sub(r'[\\/:*?"<>|]', '_', name)
+    return name.strip() or "Sheet"
 
 def _resolve_columns(columns: Optional[list[str]]) -> list[str]:
     if not columns:
@@ -129,7 +133,7 @@ def write_xlsx_multi(
             for col_idx, value in enumerate(_row_for_columns(entry, cols), start=1):
                 ws.cell(row=row_idx, column=col_idx, value=value)
 
-        wb.save(str(folder / f"{sheet_name}.xlsx"))
+        wb.save(str(folder / f"{_sanitize_filename(sheet_name)}.xlsx"))
         count += 1
     return count
 
@@ -162,7 +166,7 @@ def write_csv_multi(
     cols = _resolve_columns(columns)
     count = 0
     for sheet_name, entries in sheets.items():
-        path = folder / f"{sheet_name}.csv"
+        path = folder / f"{_sanitize_filename(sheet_name)}.csv"
         with open(path, "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
             writer.writerow(cols)
@@ -172,7 +176,7 @@ def write_csv_multi(
     return count
 
 
-# ── TEXT (Discord / Forum) ────────────────────────────────────────────
+# ── TEXT ────────────────────────────────────────────
 
 
 def _render_text_sheet(sheet_name: str, entries: list[PresetEntry], cols: list[str], is_multi: bool) -> str:
@@ -215,7 +219,7 @@ def write_text_multi(
     count = 0
     for sheet_name, entries in sheets.items():
         content = _render_text_sheet(sheet_name, entries, cols, is_multi=False)
-        with open(folder / f"{sheet_name}.txt", "w", encoding="utf-8") as f:
+        with open(folder / f"{_sanitize_filename(sheet_name)}.txt", "w", encoding="utf-8") as f:
             f.write(content)
         count += 1
     return count
@@ -268,7 +272,7 @@ def write_md_multi(
     count = 0
     for sheet_name, entries in sheets.items():
         content = _render_md_sheet(sheet_name, entries, cols, is_multi=False)
-        with open(folder / f"{sheet_name}.md", "w", encoding="utf-8") as f:
+        with open(folder / f"{_sanitize_filename(sheet_name)}.md", "w", encoding="utf-8") as f:
             f.write(content)
         count += 1
     return count

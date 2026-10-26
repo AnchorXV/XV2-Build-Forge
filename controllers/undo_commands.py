@@ -403,7 +403,6 @@ class AddCacheItemCommand(QUndoCommand):
     def undo(self) -> None:
         items = self._store.dropdown_cache.get(self._category, [])
         for i in range(len(items) - 1, -1, -1):
-            if items[i] is self._item or items[i] == self._item:
                 items.pop(i)
                 break
         self._store.save()
@@ -425,8 +424,8 @@ class EditCacheItemCommand(QUndoCommand):
         self._store = data_store
         self._category = category
         self._index = index
-        self._old = old_item
-        self._new = new_item
+        self._old = copy.deepcopy(old_item)
+        self._new = copy.deepcopy(new_item)
 
     def redo(self) -> None:
         items = self._store.dropdown_cache.get(self._category, [])
@@ -573,13 +572,13 @@ class BulkEditCommand(QUndoCommand):
     def _set_field(self, entry: PresetEntry, value: str) -> None:
         field = self._field
         if field.startswith("super_skill_"):
-            idx = int(field.split("_")[-1]) - 1
+            idx = int(field.split("_")[-1])
             skills = list(entry.super_skills)
             if 0 <= idx < len(skills):
                 skills[idx] = value
                 entry.super_skills = skills
         elif field.startswith("ultimate_skill_"):
-            idx = int(field.split("_")[-1]) - 1
+            idx = int(field.split("_")[-1])
             skills = list(entry.ultimate_skills)
             if 0 <= idx < len(skills):
                 skills[idx] = value
@@ -602,10 +601,10 @@ class BulkEditCommand(QUndoCommand):
     @staticmethod
     def get_field_value(entry: PresetEntry, field_name: str) -> str:
         if field_name.startswith("super_skill_"):
-            idx = int(field_name.split("_")[-1]) - 1
+            idx = int(field_name.split("_")[-1])
             return entry.super_skills[idx] if idx < len(entry.super_skills) else ""
         elif field_name.startswith("ultimate_skill_"):
-            idx = int(field_name.split("_")[-1]) - 1
+            idx = int(field_name.split("_")[-1])
             return entry.ultimate_skills[idx] if idx < len(entry.ultimate_skills) else ""
         elif field_name == "awoken_skill":
             return entry.awoken_skill

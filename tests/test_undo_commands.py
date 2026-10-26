@@ -244,7 +244,7 @@ class TestBulkEditCommand:
         cmd = BulkEditCommand(
             store, "Sheet",
             entry_ids=[a.entry_id, b.entry_id],
-            field_name="super_skill_1",
+            field_name="super_skill_0",
             new_value="NewSkill",
             old_values=old_values,
         )
