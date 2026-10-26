@@ -55,7 +55,10 @@ def _row_for_columns(entry: PresetEntry, columns: list[str]) -> list[str]:
 
 
 def _truncate_sheet_name(name: str) -> str:
-    return name[:31] if name else "Sheet"
+    if not name:
+        return "Sheet"
+    clean_name = re.sub(r'[\\/:*?"<>|\[\]]', '_', name)
+    return clean_name[:31]
 
 def _sanitize_filename(name: str) -> str:
     name = re.sub(r'[\\/:*?"<>|]', '_', name)
