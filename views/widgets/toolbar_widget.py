@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PySide6.QtCore import Signal, QSize
+from PySide6.QtCore import Signal, Qt, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QComboBox,
@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
 )
+
 from app_config import get_resource_path
 
 class ToolbarWidget(QWidget):
@@ -53,10 +54,15 @@ class ToolbarWidget(QWidget):
             layout.addWidget(self._sort_label)
 
             self.sort_combo = QComboBox()
-            self.sort_combo.setMinimumWidth(150)
+            self.sort_combo.setMinimumWidth(60)
             self.sort_combo.setFixedHeight(32)
-            for display, value in sort_options:
-                self.sort_combo.addItem(display, value)
+
+            for display, value, icon_name in sort_options:
+                icon_path = get_resource_path(f"assets/icons/{icon_name}")
+                self.sort_combo.addItem(QIcon(str(icon_path)), "", value)
+                index = self.sort_combo.count() - 1
+                self.sort_combo.setItemData(index, display, Qt.ToolTipRole)
+
             self.sort_combo.currentIndexChanged.connect(self._on_sort_changed)
             layout.addWidget(self.sort_combo)
 

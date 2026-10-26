@@ -598,13 +598,18 @@ class RosterTab(QWidget):
             return
 
         menu = QMenu(self)
-        rename_action = menu.addAction(tr("roster.context_menu.rename"))
-        duplicate_action = menu.addAction(tr("roster.context_menu.duplicate", default="Duplicate Sheet"))
-        note_tags_action = menu.addAction(tr("roster.context_menu.edit_note_tags", default="Edit Note & Tags"))
+        
+        icon_dir = get_resource_path("assets/icons")
+        
+        rename_action = menu.addAction(QIcon(str(icon_dir / "folder-pen.svg")), tr("roster.context_menu.rename"))
+        duplicate_action = menu.addAction(QIcon(str(icon_dir / "copy-plus.svg")), tr("roster.context_menu.duplicate"))
+        note_tags_action = menu.addAction(QIcon(str(icon_dir / "notebook-pen.svg")), tr("roster.context_menu.edit_note_tags"))
+        
         menu.addSeparator()
-        detail_action = menu.addAction(tr("roster.button.open_detail", default="Open Detail Dialog"))
+        detail_action = menu.addAction(QIcon(str(icon_dir / "info.svg")), tr("roster.button.open_detail"))
+        
         menu.addSeparator()
-        delete_action = menu.addAction(tr("roster.context_menu.delete"))
+        delete_action = menu.addAction(QIcon(str(icon_dir / "trash.svg")), tr("roster.context_menu.delete"))
 
         action = menu.exec(self._sheet_view.table_view.viewport().mapToGlobal(pos))
         if action == rename_action:
@@ -724,12 +729,15 @@ class RosterTab(QWidget):
         selected_rows = self._preset_view.selected_source_rows()
 
         menu = QMenu(self)
-        load_action = menu.addAction(tr("dialog.sheet_detail.load_into_editor"))
+        
+        icon_dir = get_resource_path("assets/icons")
+        
+        load_action = menu.addAction(QIcon(str(icon_dir / "square-pen.svg")), tr("dialog.sheet_detail.load_into_editor"))
         menu.addSeparator()
-        copy_action = menu.addAction(tr("roster.context_menu.preset_copy"))
-        cut_action = menu.addAction(tr("roster.context_menu.preset_cut"))
-        paste_action = menu.addAction(tr("roster.context_menu.preset_paste"))
-        duplicate_action = menu.addAction(tr("roster.context_menu.preset_duplicate"))
+        copy_action = menu.addAction(QIcon(str(icon_dir / "copy.svg")), tr("roster.context_menu.preset_copy"))
+        cut_action = menu.addAction(QIcon(str(icon_dir / "scissors.svg")), tr("roster.context_menu.preset_cut"))
+        paste_action = menu.addAction(QIcon(str(icon_dir / "clipboard.svg")), tr("roster.context_menu.preset_paste"))
+        duplicate_action = menu.addAction(QIcon(str(icon_dir / "copy-plus.svg")), tr("roster.context_menu.preset_duplicate"))
 
         bulk_edit_action = None
         if len(selected_rows) > 1:
@@ -738,7 +746,7 @@ class RosterTab(QWidget):
             )
 
         menu.addSeparator()
-        delete_action = menu.addAction(tr("roster.context_menu.delete_preset"))
+        delete_action = menu.addAction(QIcon(str(icon_dir / "trash.svg")), tr("roster.context_menu.delete_preset"))
 
         action = menu.exec(self._preset_view.table_view.viewport().mapToGlobal(pos))
         if action == load_action:

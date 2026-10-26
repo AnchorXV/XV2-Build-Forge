@@ -39,11 +39,17 @@ QMenu {
     border: 1px solid #232428;
     border-radius: 8px;
     padding: 6px;
+    icon-size: 14px;
 }
 
 QMenu::item {
-    padding: 7px 14px;
+    padding: 6px 24px 6px 12px;
     border-radius: 6px;
+}
+
+QMenu::icon {
+    padding-left: 8px;
+    padding-right: 2px;
 }
 
 QMenu::item:selected {

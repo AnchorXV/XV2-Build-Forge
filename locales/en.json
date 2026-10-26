@@ -6,10 +6,10 @@
   "menu": {
     "file": {
       "title": "File",
-      "new_sheet": "New Sheet",
-      "save": "Save / Backup",
-      "restore_backup": "Restore from Backup...",
-      "recent_sheets": "Recent Sheets",
+      "new_sheet": "New",
+      "save": "Save",
+      "restore_backup": "Restore",
+      "recent_sheets": "Recent",
       "no_recent": "(No recent sheets)"
     },
     "edit": {
@@ -25,7 +25,7 @@
     },
     "help": {
       "title": "Help",
-      "shortcuts": "Keyboard Shortcuts",
+      "shortcuts": "Shortcuts",
       "about": "About"
     }
   },
@@ -144,7 +144,7 @@
       "sort_az": "Sort A-Z",
       "edit_note_tags": "Edit Note and Tags",
       "new_sheet": "New",
-      "open_detail": "Open Detail Dialog"
+      "open_detail": "Detail"
     },
     "label": {
       "search": "Search Sheet:",
@@ -154,15 +154,15 @@
       "search": "Search sheet/character name..."
     },
     "context_menu": {
-      "rename": "Rename Sheet",
-      "duplicate": "Duplicate Sheet",
-      "delete": "Delete Sheet",
-      "delete_preset": "Delete Preset",
-      "edit_note_tags": "Edit Note and Tags",
-      "preset_copy": "Copy Preset",
-      "preset_cut": "Cut Preset",
-      "preset_paste": "Paste Preset",
-      "preset_duplicate": "Duplicate Preset"
+      "rename": "Rename",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "delete_preset": "Delete",
+      "edit_note_tags": "Note && Tags",
+      "preset_copy": "Copy",
+      "preset_cut": "Cut",
+      "preset_paste": "Paste",
+      "preset_duplicate": "Duplicate"
     },
     "dialog": {
       "create_title": "Create New Roster Sheet",
@@ -332,7 +332,7 @@
     },
     "sheet_detail": {
       "close": "Close",
-      "load_into_editor": "Load into Editor"
+      "load_into_editor": "Edit"
     },
     "duplicate_sheet": {
       "title": "Duplicate Sheet",

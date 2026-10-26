@@ -3,14 +3,14 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from PySide6.QtGui import QAction, QCloseEvent, QUndoStack
+from PySide6.QtGui import QAction, QCloseEvent, QUndoStack, QIcon
 from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QWidget,
 )
 
-from app_config import APP_NAME, APP_VERSION
+from app_config import APP_NAME, APP_VERSION, get_resource_path
 from controllers.signal_bus import signal_bus
 from locales.i18n_manager import tr
 from models.data_store import AppDataStore
@@ -50,36 +50,40 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
         menubar.clear()
 
+        icon_dir = get_resource_path("assets/icons")
+
         self._menu_file = menubar.addMenu(tr("menu.file.title", default="File"))
 
-        self._act_new_sheet = QAction(tr("menu.file.new_sheet", default="New Sheet"), self)
+        self._act_new_sheet = QAction(QIcon(str(icon_dir / "sticky-note-plus.svg")), tr("menu.file.new_sheet", default="New"), self)
         self._act_new_sheet.setShortcut("Ctrl+N")
         self._act_new_sheet.triggered.connect(self._on_new_sheet)
         self._menu_file.addAction(self._act_new_sheet)
 
-        self._act_save = QAction(tr("menu.file.save", default="Save / Backup"), self)
+        self._act_save = QAction(QIcon(str(icon_dir / "save.svg")), tr("menu.file.save", default="Save"), self)
         self._act_save.setShortcut("Ctrl+S")
         self._act_save.triggered.connect(self._on_save)
         self._menu_file.addAction(self._act_save)
 
-        self._act_restore = QAction(tr("menu.file.restore_backup", default="Restore from Backup..."), self)
+        self._act_restore = QAction(QIcon(str(icon_dir / "archive-restore.svg")), tr("menu.file.restore_backup", default="Restore"), self)
         self._act_restore.triggered.connect(self._on_restore_backup)
         self._menu_file.addAction(self._act_restore)
 
         self._menu_recent = self._menu_file.addMenu(
             tr("menu.file.recent_sheets", default="Recent Sheets")
         )
-        self._menu_recent.aboutToShow.connect(self._update_recent_menu)
+        self._menu_recent.setIcon(QIcon(str(icon_dir / "list-clock.svg")))
 
         self._menu_edit = menubar.addMenu(tr("menu.edit.title", default="Edit"))
         self._act_undo = self._undo_stack.createUndoAction(self, tr("menu.edit.undo", default="Undo"))
+        self._act_undo.setIcon(QIcon(str(icon_dir / "undo.svg")))
         self._act_undo.setShortcut("Ctrl+Z")
         self._act_redo = self._undo_stack.createRedoAction(self, tr("menu.edit.redo", default="Redo"))
+        self._act_redo.setIcon(QIcon(str(icon_dir / "redo.svg")))
         self._act_redo.setShortcut("Ctrl+Y")
         self._menu_edit.addAction(self._act_undo)
         self._menu_edit.addAction(self._act_redo)
 
-        self._act_palette = QAction(tr("menu.edit.command_palette", default="Command Palette"), self)
+        self._act_palette = QAction(QIcon(str(icon_dir / "command.svg")), tr("menu.edit.command_palette", default="Command Palette"), self)
         self._act_palette.setShortcut("Ctrl+P")
         self._act_palette.triggered.connect(self._open_command_palette)
         self._menu_edit.addSeparator()
@@ -87,11 +91,11 @@ class MainWindow(QMainWindow):
 
         self._menu_help = menubar.addMenu(tr("menu.help.title", default="Help"))
 
-        self._act_shortcuts = QAction(tr("menu.help.shortcuts", default="Keyboard Shortcuts"), self)
+        self._act_shortcuts = QAction(QIcon(str(icon_dir / "square-slash.svg")), tr("menu.help.shortcuts", default="Shortcuts"), self)
         self._act_shortcuts.triggered.connect(self._show_shortcuts_dialog)
         self._menu_help.addAction(self._act_shortcuts)
 
-        self._act_about = QAction(tr("menu.help.about", default="About"), self)
+        self._act_about = QAction(QIcon(str(icon_dir / "info.svg")), tr("menu.help.about", default="About"), self)
         self._act_about.triggered.connect(self._show_about_dialog)
         self._menu_help.addAction(self._act_about)
 

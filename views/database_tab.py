@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack
+from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack, QIcon
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QMenu,
@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from app_config import get_resource_path
 from controllers.signal_bus import signal_bus
 from controllers.undo_commands import (
     AddCacheItemCommand,
@@ -114,28 +115,28 @@ class DatabaseTab(QWidget):
         self._connect_signals()
         self._setup_shortcuts()
 
-    def _sort_options(self) -> list[tuple[str, str]]:
+    def _sort_options(self) -> list[tuple[str, str, str]]:
         az = tr("database.sort.az")
         za = tr("database.sort.za")
         if self._key == "sources":
             return [
-                (az, SORT_AZ),
-                (za, SORT_ZA),
-                (tr("database.sort.date"), SORT_DATE),
+                (az, SORT_AZ, "arrow-up-a-z.svg"),
+                (za, SORT_ZA, "arrow-down-a-z.svg"),
+                (tr("database.sort.date"), SORT_DATE, "calendar-plus.svg"),
             ]
         if self._key == "characters":
             return [
-                (az, SORT_AZ),
-                (za, SORT_ZA),
-                (tr("database.sort.date_created"), SORT_DATE_CREATED),
-                (tr("database.sort.date_modified"), SORT_DATE_MODIFIED),
-                (tr("database.sort.source"), SORT_SOURCE),
+                (az, SORT_AZ, "arrow-up-a-z.svg"),
+                (za, SORT_ZA, "arrow-down-a-z.svg"),
+                (tr("database.sort.date_created"), SORT_DATE_CREATED, "calendar-plus.svg"),
+                (tr("database.sort.date_modified"), SORT_DATE_MODIFIED, "rotate-cw-clock.svg"),
+                (tr("database.sort.source"), SORT_SOURCE, "list-clock.svg"),
             ]
         return [
-            (az, SORT_AZ),
-            (za, SORT_ZA),
-            (tr("database.sort.date_created"), SORT_DATE_CREATED),
-            (tr("database.sort.date_modified"), SORT_DATE_MODIFIED),
+            (az, SORT_AZ, "arrow-up-a-z.svg"),
+            (za, SORT_ZA, "arrow-down-a-z.svg"),
+            (tr("database.sort.date_created"), SORT_DATE_CREATED, "calendar-plus.svg"),
+            (tr("database.sort.date_modified"), SORT_DATE_MODIFIED, "rotate-cw-clock.svg"),
         ]
 
     def _apply_sort_mode(self, mode: str) -> None:
@@ -525,9 +526,11 @@ class DatabaseTab(QWidget):
             self._stv.table_view.setCurrentIndex(index)
 
         menu = QMenu(self)
-        edit_action = menu.addAction(tr("database.context_menu.edit"))
-        merge_action = menu.addAction(tr("database.context_menu.merge"))
-        delete_action = menu.addAction(tr("database.context_menu.delete"))
+        icon_dir = get_resource_path("assets/icons")
+        
+        edit_action = menu.addAction(QIcon(str(icon_dir / "pencil.svg")), tr("database.context_menu.edit"))
+        merge_action = menu.addAction(QIcon(str(icon_dir / "merge.svg")), tr("database.context_menu.merge"))
+        delete_action = menu.addAction(QIcon(str(icon_dir / "trash.svg")), tr("database.context_menu.delete"))
 
         action = menu.exec(self._stv.table_view.viewport().mapToGlobal(pos))
         if action == edit_action:
