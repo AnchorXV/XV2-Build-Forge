@@ -121,7 +121,9 @@ class MainWindow(QMainWindow):
         for sheet_name in self._store.get_all_sheets().keys():
             count = len(self._store.get_sheet_entries(sheet_name))
             commands.append({
-                "label": f"▸  Open Roster: {sheet_name}  ({count})",
+                "label": f"{sheet_name}  ({count})",
+                "section": "Roster Sheets",
+                "icon": "sidebar-roster.svg",
                 "search": f"roster sheet {sheet_name}",
                 "action": "open_sheet",
                 "data": {"sheet": sheet_name},
@@ -132,19 +134,18 @@ class MainWindow(QMainWindow):
                 char = preset.character_name or tr("command_palette.unnamed")
                 costume = preset.costume_name
                 if costume:
-                    label = f"{sheet_name} → {char} · {costume}"
+                    label = f"{char} · {costume}"
                     search_blob = f"preset {char} {costume} {sheet_name}"
                 else:
-                    label = f"{sheet_name} → {char}"
+                    label = f"{char}"
                     search_blob = f"preset {char} {sheet_name}"
                 commands.append({
                     "label": label,
+                    "section": f"Presets in {sheet_name}",
+                    "icon": "square-pen.svg",
                     "search": search_blob,
                     "action": "open_preset",
-                    "data": {
-                        "sheet": sheet_name,
-                        "entry_id": preset.entry_id,
-                    },
+                    "data": {"sheet": sheet_name, "entry_id": preset.entry_id},
                 })
 
         for char in self._store.get_cache("characters"):
@@ -152,20 +153,26 @@ class MainWindow(QMainWindow):
             if not name:
                 continue
             commands.append({
-                "label": f"⌕  Find Character: {name}",
+                "label": name,
+                "section": "Characters",
+                "icon": "users.svg",
                 "search": f"character db {name}",
                 "action": "find_character",
                 "data": {"name": name},
             })
 
         commands.append({
-            "label": "+  New Sheet",
+            "label": "New Sheet",
+            "section": "Actions",
+            "icon": "sticky-note-plus.svg",
             "search": "new sheet create",
             "action": "new_sheet",
             "data": {},
         })
         commands.append({
-            "label": "↓  Save / Backup",
+            "label": "Save / Backup",
+            "section": "Actions",
+            "icon": "save.svg",
             "search": "save backup",
             "action": "save",
             "data": {},

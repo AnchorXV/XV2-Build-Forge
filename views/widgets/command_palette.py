@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QKeyEvent
+from PySide6.QtGui import QKeyEvent, QIcon
 from PySide6.QtWidgets import (
     QDialog,
     QFrame,
@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
+from app_config import get_resource_path
 
 class CommandPalette(QDialog):
 
@@ -37,6 +37,7 @@ class CommandPalette(QDialog):
         self._input = QLineEdit()
         self._input.setObjectName("commandPaletteInput")
         self._input.setPlaceholderText("Type a command or sheet name...")
+        self._input.addAction(QIcon(str(get_resource_path("assets/icons/action-search.svg"))), QLineEdit.LeadingPosition)
         self._input.textChanged.connect(self._on_text_changed)
         layout.addWidget(self._input)
 
@@ -81,14 +82,37 @@ class CommandPalette(QDialog):
         self._list.clear()
 
         matched = 0
+        current_section = ""
+        icon_dir = get_resource_path("assets/icons")
+
         for cmd in self._all_commands:
             label = cmd.get("label", "")
             search_blob = cmd.get("search", label).lower()
+            section = cmd.get("section", "")
+
             if query and query not in search_blob:
                 continue
 
+            if section != current_section:
+                current_section = section
+                header_item = QListWidgetItem(section.upper())
+                header_item.setFlags(Qt.NoItemFlags) # Non-clickable
+                header_item.setForeground(QBrush(QColor("#6a737d")))
+                font = header_item.font()
+                font.setBold(True)
+                font.setPointSize(9)
+                header_item.setFont(font)
+                self._list.addItem(header_item)
+
             item = QListWidgetItem(f"  {label}")
+            icon_name = cmd.get("icon")
+            if icon_name:
+                item.setIcon(QIcon(str(icon_dir / icon_name)))
             item.setData(Qt.UserRole, cmd)
+            
+            if query:
+                item.setBackground(QBrush(QColor("#1e1e1e")))
+                
             self._list.addItem(item)
             matched += 1
 
@@ -98,7 +122,10 @@ class CommandPalette(QDialog):
         else:
             self._list.show()
             self._empty_label.hide()
-            self._list.setCurrentRow(0)
+            for i in range(self._list.count()):
+                if self._list.item(i).flags() & Qt.ItemIsSelectable:
+                    self._list.setCurrentRow(i)
+                    break
 
     def _on_text_changed(self, _text: str) -> None:
         self._refresh()

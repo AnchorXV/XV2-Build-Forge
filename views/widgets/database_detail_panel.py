@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QUndoStack
+from PySide6.QtGui import QUndoStack, QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from app_config import get_resource_path
 from controllers.undo_commands import EditCacheItemCommand
 from locales.i18n_manager import tr
 from models.character_usage import find_skill_usage
@@ -201,13 +202,17 @@ class DatabaseDetailPanel(QFrame):
         btn_row.setSpacing(8)
         btn_row.addStretch()
 
+        icon_dir = get_resource_path("assets/icons")
+
         self._edit_btn = QPushButton(tr("database.character_panel.edit"))
-        self._edit_btn.setObjectName("secondaryButton")
+        self._edit_btn.setObjectName("primaryButton")
+        self._edit_btn.setIcon(QIcon(str(icon_dir / "square-pen.svg")))
         self._edit_btn.clicked.connect(self.edit_requested.emit)
         btn_row.addWidget(self._edit_btn)
 
         self._delete_btn = QPushButton(tr("database.character_panel.delete"))
         self._delete_btn.setObjectName("dangerButton")
+        self._delete_btn.setIcon(QIcon(str(icon_dir / "trash.svg")))
         self._delete_btn.clicked.connect(self.delete_requested.emit)
         btn_row.addWidget(self._delete_btn)
 

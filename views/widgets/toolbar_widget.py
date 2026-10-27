@@ -55,8 +55,8 @@ class ToolbarWidget(QWidget):
 
             self.sort_combo = QComboBox()
             self.sort_combo.setMinimumWidth(60)
-            self.sort_combo.setFixedHeight(32)
-
+            self.sort_combo.setFixedHeight(36)
+            self.sort_combo.setToolTip("Sort by...")
             for display, value, icon_name in sort_options:
                 icon_path = get_resource_path(f"assets/icons/{icon_name}")
                 self.sort_combo.addItem(QIcon(str(icon_path)), "", value)
@@ -86,7 +86,7 @@ class ToolbarWidget(QWidget):
         if self.sort_combo is None:
             return
         value = self.sort_combo.currentData()
-        if value:
+        if value is not None:
             self.sort_changed.emit(str(value))
 
     def set_sort_value(self, value: str) -> None:
