@@ -68,7 +68,7 @@ def set_field_value(entry: PresetEntry, field_key: str, value: str) -> None:
             skills[i] = value
             entry.super_skills = skills
     elif field_key.startswith("ultimate_skill_"):
-        i = int(field_key.split("_")[-1]) - 1
+        i = int(field_key.split("_")[-1])
         if 0 <= i < len(entry.ultimate_skills):
             skills = list(entry.ultimate_skills)
             skills[i] = value

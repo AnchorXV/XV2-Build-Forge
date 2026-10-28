@@ -1,13 +1,10 @@
 from __future__ import annotations
-
 from typing import Any, Optional, TYPE_CHECKING
-
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
-from PySide6.QtGui import QBrush, QColor
-
+from PySide6.QtGui import QBrush, QColor, QIcon
 from app_config import TABLE_COLUMNS
-
 from locales.i18n_manager import tr
+from app_config import TABLE_COLUMNS, get_resource_path, SKILL_TYPE_ICON_MAP
 
 SORT_ROLE = Qt.UserRole + 1
 
@@ -150,6 +147,12 @@ class DatabaseTableModel(QAbstractTableModel):
         
         if role in (Qt.DisplayRole, Qt.EditRole):
             return str(val)
+        if role == Qt.DecorationRole and col_name == "Skill Type" and self._entry_type == "skill":
+                    if isinstance(entry, dict):
+                        st = entry.get("skill_type", "")
+                        if st in SKILL_TYPE_ICON_MAP:
+                            return QIcon(str(get_resource_path(f"assets/icons/skills/{SKILL_TYPE_ICON_MAP[st]}")))
+                    return None
         if role == Qt.TextAlignmentRole:
             return int(Qt.AlignCenter)
         if role == SORT_ROLE:

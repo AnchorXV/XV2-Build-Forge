@@ -267,15 +267,23 @@
       "label_cac": "Is CaC Skill?",
       "label_description": "Description:",
       "placeholder_description": "Optional description or notes",
-      "type": {
+    "type": {
         "none": "—",
         "strike": "Strike Skill",
         "ki_blast": "Ki Blast Skill",
         "buff": "Power Up",
         "other": "Other",
+        "strike_dual": "Strike Skill (DUAL)",
+        "ki_blast_dual": "Ki Blast Skill (DUAL)",
+        "buff_dual": "Power Up (DUAL)",
+        "other_dual": "Other (DUAL)",
         "strike_raid": "Strike Skill (Crystal Raid)",
         "ki_blast_raid": "Ki Blast Skill (Crystal Raid)",
-        "transformation": "Transformation"
+        "buff_raid": "Power Up (Crystal Raid)",
+        "other_raid": "Other (Crystal Raid)",
+        "transformation": "Transformation",
+        "transformation_dual": "Transformation (DUAL)",
+        "transformation_raid": "Transformation (Crystal Raid)"
       }
     },
     "super_soul": {

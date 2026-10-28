@@ -31,6 +31,37 @@ CACHE_KEYS: Final[list[str]] = [
 
 DEFAULT_LANGUAGE: Final[str] = "en"
 
+SKILL_TYPE_ICON_MAP: Final[dict[str, str]] = {
+    "strike": "strike-skill.png",
+    "ki_blast": "ki-blast-skill.png",
+    "buff": "power-up.png",
+    "other": "other.png",
+    "strike_dual": "strike-skill-dual.png",
+    "ki_blast_dual": "ki-blast-skill-dual.png",
+    "buff_dual": "power-up-dual.png",
+    "other_dual": "other-dual.png",
+    "strike_raid": "strike-skill-crystal-raid.png",
+    "ki_blast_raid": "ki-blast-skill-crystal-raid.png",
+    "buff_raid": "power-up-crystal-raid.png",
+    "other_raid": "other-crystal-raid.png",
+    "transformation": "transformation.png",
+    "transformation_dual": "transformation-dual.png",
+    "transformation_raid": "transformation-crystal-raid.png",
+}
+
+NON_AWOKEN_TYPES = [
+    "strike", "ki_blast", "buff", "other",
+    "strike_dual", "ki_blast_dual", "buff_dual", "other_dual",
+    "strike_raid", "ki_blast_raid", "buff_raid", "other_raid"
+]
+
+SKILL_TYPES_BY_CATEGORY: Final[dict[str, list[str]]] = {
+    "super_skills": NON_AWOKEN_TYPES,
+    "ultimate_skills": NON_AWOKEN_TYPES,
+    "evasive_skills": NON_AWOKEN_TYPES,
+    "awoken_skills": ["transformation", "transformation_dual", "transformation_raid"],
+}
+
 
 def is_compiled() -> bool:
     return getattr(sys, "frozen", False) or "__compiled__" in globals()

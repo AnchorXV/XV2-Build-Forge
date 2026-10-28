@@ -403,6 +403,7 @@ class AddCacheItemCommand(QUndoCommand):
     def undo(self) -> None:
         items = self._store.dropdown_cache.get(self._category, [])
         for i in range(len(items) - 1, -1, -1):
+            if items[i] is self._item:
                 items.pop(i)
                 break
         self._store.save()
@@ -694,5 +695,28 @@ class ReorderSheetsCommand(QUndoCommand):
                 new_tnames.append(name)
         self._store.dropdown_cache["table_names"] = new_tnames
 
+        self._store.save()
+        signal_bus.data_changed.emit()
+
+class DeleteMultipleCacheItemsCommand(QUndoCommand):
+    def __init__(self, data_store, category: str, items_to_delete: list[tuple[int, dict]]) -> None:
+        super().__init__(f"Delete {len(items_to_delete)} {category} items")
+        self._store = data_store
+        self._category = category
+        self._items = items_to_delete
+
+    def redo(self) -> None:
+        items = self._store.dropdown_cache.get(self._category, [])
+        for idx, _ in sorted(self._items, key=lambda x: x[0], reverse=True):
+            if 0 <= idx < len(items):
+                items.pop(idx)
+        self._store.save()
+        signal_bus.data_changed.emit()
+
+    def undo(self) -> None:
+        items = self._store.dropdown_cache.get(self._category, [])
+        for idx, item in sorted(self._items, key=lambda x: x[0]):
+            if idx <= len(items):
+                items.insert(idx, item)
         self._store.save()
         signal_bus.data_changed.emit()

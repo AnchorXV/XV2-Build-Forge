@@ -17,6 +17,7 @@ from controllers.undo_commands import (
     AddCacheItemCommand,
     CascadeRenameCharacterCommand,
     DeleteCacheItemCommand,
+    DeleteMultipleCacheItemsCommand,
     EditCacheItemCommand,
     MergeEntryCommand,
 )
@@ -253,14 +254,22 @@ class DatabaseTab(QWidget):
             self._model.refresh()
             return
 
-        old_count = self._model.rowCount()
-        new_count = len(self._store.get_cache(self._key))
+        sel_model = self._stv.table_view.selectionModel()
+        if sel_model is not None:
+            sel_model.blockSignals(True)
 
-        if old_count == new_count:
-            self._model.layoutChanged.emit()
-        else:
-            self._model.refresh()
-        
+        try:
+            old_count = self._model.rowCount()
+            new_count = len(self._store.get_cache(self._key))
+
+            if old_count == new_count:
+                self._model.layoutChanged.emit()
+            else:
+                self._model.refresh()
+        finally:
+            if sel_model is not None:
+                sel_model.blockSignals(False)
+
         self._refresh_detail_panel()
 
     def _on_selection_changed(self, *_args) -> None:
@@ -509,15 +518,12 @@ class DatabaseTab(QWidget):
                 tr("database.message.confirm_delete_multiple", count=len(valid_rows)),
             )
             if reply == QMessageBox.Yes:
-                self._undo_stack.beginMacro(
-                    tr("undo.macro.delete_items", count=len(valid_rows), category=self._key)
-                )
-                for row in valid_rows:
-                    if row < len(items):
-                        item = items[row]
-                        cmd = DeleteCacheItemCommand(self._store, self._key, row, item)
-                        self._undo_stack.push(cmd)
-                self._undo_stack.endMacro()
+                self._stv.table_view.clearSelection()
+                
+                items_to_delete = [(row, items[row]) for row in valid_rows]
+                
+                cmd = DeleteMultipleCacheItemsCommand(self._store, self._key, items_to_delete)
+                self._undo_stack.push(cmd)
 
     def _make_dialog(self, edit_data: Optional[dict] = None):
         if self._key == "characters":

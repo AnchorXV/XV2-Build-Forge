@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QUndoStack, QIcon
+from PySide6.QtGui import QUndoStack, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from app_config import get_resource_path
+from app_config import get_resource_path, SKILL_TYPE_ICON_MAP
 from controllers.undo_commands import EditCacheItemCommand
 from locales.i18n_manager import tr
 from models.character_usage import find_skill_usage
@@ -140,15 +140,28 @@ class DatabaseDetailPanel(QFrame):
 
         if self._is_skill:
             self._skill_type_label = self._make_field_label(tr("dialog.skill.label_skill_type"))
+            layout.addWidget(self._skill_type_label)
+            
+            skill_type_row = QHBoxLayout()
+            skill_type_row.setSpacing(8)
+            skill_type_row.setContentsMargins(0, 0, 0, 0)
+            
+            self._skill_type_icon = QLabel()
+            self._skill_type_icon.setFixedSize(32, 32)
+            self._skill_type_icon.hide()
+            
             self._skill_type_value = QLabel("")
             self._skill_type_value.setObjectName("panelValue")
-            layout.addWidget(self._skill_type_label)
-            layout.addWidget(self._skill_type_value)
+            
+            skill_type_row.addWidget(self._skill_type_icon)
+            skill_type_row.addWidget(self._skill_type_value)
+            skill_type_row.addStretch()
+            layout.addLayout(skill_type_row)
 
             self._ki_label = self._make_field_label(tr("dialog.skill.label_ki_used"))
+            layout.addWidget(self._ki_label)
             self._ki_value = QLabel("")
             self._ki_value.setObjectName("panelValue")
-            layout.addWidget(self._ki_label)
             layout.addWidget(self._ki_value)
 
             self._cac_cb = QCheckBox(tr("dialog.skill.label_cac"))
@@ -245,17 +258,19 @@ class DatabaseDetailPanel(QFrame):
         self._title_label.setText(tr("database.character_panel.no_selection"))
         if self._is_soul:
             self._title_stack.setCurrentIndex(0)
+            self._effect1_value.setPlainText("")
+            self._effect2_value.setPlainText("")
+            self._limit_value.setPlainText("")
+            
         if self._is_skill:
             self._skill_type_value.setText("")
+            self._skill_type_icon.hide()
             self._ki_value.setText("")
             self._cac_cb.setChecked(False)
             self._desc_value.setPlainText("")
             self._usage_label.setText("")
             self._usage_list.clear()
-        if self._is_soul:
-            self._effect1_value.setPlainText("")
-            self._effect2_value.setPlainText("")
-            self._limit_value.setPlainText("")
+            
         self._set_buttons_enabled(False)
 
     def set_single(self, row: int, entry: dict) -> None:
@@ -279,9 +294,17 @@ class DatabaseDetailPanel(QFrame):
             self._skill_type_label.show()
             self._skill_type_value.show()
             skill_type = entry.get("skill_type", "")
+            
             self._skill_type_value.setText(
                 tr(f"dialog.skill.type.{skill_type}") if skill_type else "—"
             )
+            
+            if skill_type and skill_type in SKILL_TYPE_ICON_MAP:
+                pixmap = QPixmap(str(get_resource_path(f"assets/icons/skills/{SKILL_TYPE_ICON_MAP[skill_type]}")))
+                self._skill_type_icon.setPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                self._skill_type_icon.show()
+            else:
+                self._skill_type_icon.hide()
 
             ki = entry.get("ki_used")
             self._ki_value.setText(str(ki) if ki is not None else "—")

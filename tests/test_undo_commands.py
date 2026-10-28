@@ -389,6 +389,16 @@ class TestCacheItemCommands:
         stored = store.dropdown_cache["characters"][0]
         assert stored["created_at"] == first_created
 
+    def test_undo_removes_correct_item_when_another_added_after(self, store):
+        cmd1 = AddCacheItemCommand(store, "characters", {"name": "Goku", "code": "A"})
+        cmd1.redo()
+        cmd2 = AddCacheItemCommand(store, "characters", {"name": "Vegeta", "code": "B"})
+        cmd2.redo()
+
+        cmd1.undo()
+        names = [c["name"] for c in store.dropdown_cache["characters"]]
+        assert names == ["Vegeta"], f"Expected only Vegeta left, got {names}"
+
 
 class TestAddPresetWithAutoRegisterCommand:
 

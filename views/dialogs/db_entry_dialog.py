@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Optional
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import QSize
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -19,14 +21,7 @@ from PySide6.QtWidgets import (
 )
 from locales.i18n_manager import tr
 from views.widgets.searchable_combo import populate_combo, setup_searchable_combo
-
-
-SKILL_TYPES_BY_CATEGORY: dict[str, list[str]] = {
-    "super_skills": ["strike", "ki_blast", "buff", "other", "strike_raid", "ki_blast_raid"],
-    "ultimate_skills": ["strike", "ki_blast", "buff", "other", "strike_raid", "ki_blast_raid"],
-    "evasive_skills": ["strike", "ki_blast", "buff", "other", "strike_raid", "ki_blast_raid"],
-    "awoken_skills": ["transformation"],
-}
+from app_config import get_resource_path, SKILL_TYPE_ICON_MAP, SKILL_TYPES_BY_CATEGORY
 
 
 class CharacterDialog(QDialog):
@@ -227,8 +222,13 @@ class SkillDialog(QDialog):
         if self._skill_types:
             self.type_combo = QComboBox()
             self.type_combo.addItem(tr("dialog.skill.type.none"), "")
+            
             for code in self._skill_types:
-                self.type_combo.addItem(tr(f"dialog.skill.type.{code}"), code)
+                icon_file = SKILL_TYPE_ICON_MAP.get(code)
+                icon = QIcon(str(get_resource_path(f"assets/icons/skills/{icon_file}"))) if icon_file else QIcon()
+                self.type_combo.addItem(icon, tr(f"dialog.skill.type.{code}"), code)
+                
+            self.type_combo.setIconSize(QSize(24, 24))
             form.addRow(QLabel(tr("dialog.skill.label_skill_type")), self.type_combo)
 
         self.ki_used_spin = QSpinBox()

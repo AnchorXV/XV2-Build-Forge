@@ -61,63 +61,37 @@ class TestMergeCharacters:
         ssj = next(c for c in chars if c["name"] == "Gokou (SSJ)")
         assert ssj["base_character"] == "Goku"
 
-
+@pytest.mark.parametrize("category,field_name,old,new", [
+    ("super_skills", "super_skills", "Kamehamehaa", "Kamehameha"),
+    ("ultimate_skills", "ultimate_skills", "Super Kamehamehaa", "Super Kamehameha"),
+    ("awoken_skills", "awoken_skill", "Super Saiyajin", "Super Saiyan"),
+    ("evasive_skills", "evasive_skill", "Spirit Explossion", "Spirit Explosion"),
+])
 class TestMergeSkills:
-
-    def test_merges_super_skill(self, store):
-        _add(store, "S1", character_name="X", super_skills=["Kamehamehaa", "", "", ""])
-        store.dropdown_cache["super_skills"] = [
-            {"name": "Kamehamehaa", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-            {"name": "Kamehameha", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
+    def test_merges_skill_category(self, store, category, field_name, old, new):
+        kwargs = {}
+        if field_name == "super_skills":
+            kwargs[field_name] = [old, "", "", ""]
+        elif field_name == "ultimate_skills":
+            kwargs[field_name] = [old, ""]
+        else:
+            kwargs[field_name] = old
+            
+        _add(store, "S1", character_name="X", **kwargs)
+        
+        store.dropdown_cache[category] = [
+            {"name": old, "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
+            {"name": new, "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
         ]
 
-        affected = merge_entry(store, "super_skills", "Kamehamehaa", "Kamehameha")
-        assert affected == 1
-        assert store.get_sheet_entries("S1")[0].super_skills[0] == "Kamehameha"
-        assert len(store.dropdown_cache["super_skills"]) == 1
+        merge_entry(store, category, old, new)
 
-    def test_merges_ultimate_skill(self, store):
-        _add(store, "S1", character_name="X", ultimate_skills=["Super Kamehamehaa", ""])
-        store.dropdown_cache["ultimate_skills"] = [
-            {"name": "Super Kamehamehaa", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-            {"name": "Super Kamehameha", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-        ]
-
-        merge_entry(store, "ultimate_skills", "Super Kamehamehaa", "Super Kamehameha")
-        assert store.get_sheet_entries("S1")[0].ultimate_skills[0] == "Super Kamehameha"
-
-    def test_merges_awoken_skill(self, store):
-        _add(store, "S1", character_name="X", awoken_skill="Super Saiyajin")
-        store.dropdown_cache["awoken_skills"] = [
-            {"name": "Super Saiyajin", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-            {"name": "Super Saiyan", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-        ]
-
-        merge_entry(store, "awoken_skills", "Super Saiyajin", "Super Saiyan")
-        assert store.get_sheet_entries("S1")[0].awoken_skill == "Super Saiyan"
-
-    def test_merges_evasive_skill(self, store):
-        _add(store, "S1", character_name="X", evasive_skill="Spirit Explossion")
-        store.dropdown_cache["evasive_skills"] = [
-            {"name": "Spirit Explossion", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-            {"name": "Spirit Explosion", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-        ]
-
-        merge_entry(store, "evasive_skills", "Spirit Explossion", "Spirit Explosion")
-        assert store.get_sheet_entries("S1")[0].evasive_skill == "Spirit Explosion"
-
-    def test_merges_skill_multiple_occurrences_same_preset(self, store):
-        _add(store, "S1", character_name="X",
-             super_skills=["Kamehamehaa", "", "", "Kamehamehaa"])
-        store.dropdown_cache["super_skills"] = [
-            {"name": "Kamehamehaa", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-            {"name": "Kamehameha", "is_cac": False, "skill_type": "", "ki_used": None, "note": ""},
-        ]
-
-        merge_entry(store, "super_skills", "Kamehamehaa", "Kamehameha")
         entry = store.get_sheet_entries("S1")[0]
-        assert entry.super_skills[0] == "Kamehameha"
-        assert entry.super_skills[3] == "Kamehameha"
+        value = getattr(entry, field_name)
+        actual = value[0] if isinstance(value, list) else value
+        
+        assert actual == new
+        assert len(store.dropdown_cache[category]) == 1
 
 
 class TestMergeSuperSouls:
