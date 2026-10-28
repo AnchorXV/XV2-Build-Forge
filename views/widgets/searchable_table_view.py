@@ -8,23 +8,60 @@ from PySide6.QtCore import (
     QTimer,
     Qt,
 )
+from PySide6.QtGui import QColor, QBrush
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHeaderView,
+    QStyledItemDelegate,
+    QStyle,
+    QStyleOptionViewItem,
+    QApplication,
     QTableView,
     QVBoxLayout,
     QWidget,
 )
 
+class RowHoverDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        opt = QStyleOptionViewItem(option)
+        self.initStyleOption(opt, index)
+        
+        view = option.widget
+        is_hovered = getattr(view, "_hovered_row", -1) == index.row()
+        
+        if is_hovered:
+            opt.backgroundBrush = QBrush(QColor("#2d2d2d"))
+            opt.palette.setColor(opt.palette.ColorRole.Text, QColor("#ffffff"))
+            opt.palette.setColor(opt.palette.ColorRole.HighlightedText, QColor("#ffffff"))
+            opt.state &= ~QStyle.State_MouseOver
+            opt.state &= ~QStyle.State_Selected
+            
+        widget = opt.widget
+        style = widget.style() if widget else QApplication.style()
+        style.drawControl(QStyle.CE_ItemViewItem, opt, painter, widget)
+
+class HoverTableView(QTableView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.viewport()._hovered_row = -1
+        self.setMouseTracking(True)
+        self.viewport().setMouseTracking(True)
+
+    def mouseMoveEvent(self, event):
+        index = self.indexAt(event.pos())
+        row = index.row() if index.isValid() else -1
+        if row != self.viewport()._hovered_row:
+            self.viewport()._hovered_row = row
+            self.viewport().update()
+        super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event):
+        if self.viewport()._hovered_row != -1:
+            self.viewport()._hovered_row = -1
+            self.viewport().update()
+        super().leaveEvent(event)
 
 class DragDropProxyModel(QSortFilterProxyModel):
-    """Proxy model yang meneruskan operasi drag-drop ke source model.
-
-    QSortFilterProxyModel default tidak selalu meneruskan supportedDropActions
-    dari source dengan benar, yang menyebabkan InternalMove gagal pada beberapa
-    kombinasi model/view. Class ini menambal semua method drag-drop yang
-    dibutuhkan agar berjalan lewat source.
-    """
 
     def supportedDropActions(self) -> Qt.DropActions:
         source = self.sourceModel()
@@ -72,7 +109,9 @@ class SearchableTableView(QWidget):
         self._proxy.setFilterKeyColumn(-1)
 
         self._table = QTableView(self)
+        self._table = HoverTableView(self)
         self._table.setModel(self._proxy)
+        self._table.setItemDelegate(RowHoverDelegate(self._table))
         self._table.setSelectionBehavior(selection_behavior)
         self._table.setSelectionMode(selection_mode)
         self._table.setAlternatingRowColors(True)

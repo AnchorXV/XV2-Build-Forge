@@ -77,13 +77,18 @@ class CharacterDetailPanel(QFrame):
         self._character_value.setWordWrap(True)
         layout.addWidget(self._character_value)
 
+        self._playable_cb = QCheckBox(tr("database.character_panel.playable"))
+        self._playable_cb.setObjectName("panelPlayableCheck")
+        self._playable_cb.toggled.connect(self._on_playable_toggled)
+        layout.addWidget(self._playable_cb)
+
         self._episodes_label = self._make_field_label(tr("database.character_panel.episodes"))
         layout.addWidget(self._episodes_label)
 
         self._episodes_list = QListWidget()
         self._episodes_list.setObjectName("panelList")
         self._episodes_list.setMinimumHeight(80)
-        self._episodes_list.setMaximumHeight(140)
+        self._episodes_list.setMaximumHeight(100)
         layout.addWidget(self._episodes_list)
 
         code_row = QHBoxLayout()
@@ -94,18 +99,13 @@ class CharacterDetailPanel(QFrame):
         self._code_value.setObjectName("panelValueInline")
         code_row.addWidget(self._code_value)
         code_row.addStretch()
-        self._playable_cb = QCheckBox(tr("database.character_panel.playable"))
-        self._playable_cb.setObjectName("panelPlayableCheck")
-        self._playable_cb.toggled.connect(self._on_playable_toggled)
-        code_row.addWidget(self._playable_cb)
-        layout.addLayout(code_row)
 
         self._skills_label = self._make_field_label("")
         layout.addWidget(self._skills_label)
         self._skills_list = QListWidget()
         self._skills_list.setObjectName("panelList")
         self._skills_list.setMinimumHeight(100)
-        self._skills_list.setMaximumHeight(180)
+        self._skills_list.setMaximumHeight(120)
         layout.addWidget(self._skills_list)
 
         self._souls_label = self._make_field_label("")
@@ -113,7 +113,7 @@ class CharacterDetailPanel(QFrame):
         self._souls_list = QListWidget()
         self._souls_list.setObjectName("panelList")
         self._souls_list.setMinimumHeight(80)
-        self._souls_list.setMaximumHeight(140)
+        self._souls_list.setMaximumHeight(100)
         layout.addWidget(self._souls_list)
 
         layout.addStretch()

@@ -121,11 +121,15 @@ QFrame#sectionHeaderLine {
 
 /* ── Panel Header ───────────────────────────────────────────────────── */
 QLabel#panelHeader {
-    color: #6a737d;
+    color: #a0a0a8;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
-    padding: 4px 2px;
+    padding-top: 14px;  
+    padding-bottom: 6px;
+    padding-left: 2px;
+    padding-right: 2px;
+    min-height: 24px;
 }
 
 QLabel#emptyStateLabel {
@@ -224,8 +228,8 @@ QPushButton#addButton:hover {
 /* ── Inputs ──────────────────────────────────────────────────────────── */
 QLineEdit, QComboBox, QSpinBox {
     background-color: #1e1e1e;
-    color: #e0e0e0;
-    border: 1px solid #333333;
+    color: #ffffff;
+    border: 1px solid #4a4a55;
     border-radius: 8px;
     padding: 7px 12px;
     font-size: 13px;
@@ -268,7 +272,7 @@ QComboBox::down-arrow {
 QComboBox QAbstractItemView {
     background-color: #1e1e1e;
     color: #e0e0e0;
-    border: 1px solid #333333;
+    border: 1px solid #4a4a55;
     border-radius: 8px;
     padding: 4px;
     outline: none;
@@ -285,7 +289,7 @@ QComboBox QAbstractItemView::item {
 QAbstractItemView {
     background-color: #1e1e1e;
     color: #e0e0e0;
-    border: 1px solid #333333;
+    border: 1px solid #4a4a55;
     border-radius: 8px;
     selection-background-color: #6366f1;
     selection-color: #ffffff;
@@ -297,9 +301,9 @@ QTableView, QTableWidget {
     background-color: #121212;
     alternate-background-color: #181818;
     gridline-color: transparent;
-    border: 1px solid #333333;
+    border: 1px solid #4a4a55;
     border-radius: 8px;
-    color: #e0e0e0;
+    color: #ffffff;
     selection-background-color: #6366f1;
     selection-color: #ffffff;
     outline: none;
@@ -315,10 +319,6 @@ QTableView::item:selected, QTableWidget::item:selected {
     color: #ffffff;
 }
 
-QTableView::item:hover, QTableWidget::item:hover {
-    background-color: #2d2d2d;
-}
-
 QHeaderView {
     background-color: transparent;
     border: none;
@@ -326,7 +326,7 @@ QHeaderView {
 
 QHeaderView::section {
     background-color: #1e1e1e;
-    color: #8b8c93;
+    color: #a0a0a8;
     font-size: 11px;
     font-weight: 600;
     padding: 10px 12px;
@@ -345,22 +345,17 @@ QTableView#sheetList {
     border: none;
     border-radius: 0;
     outline: none;
+    color: #a0a0a8;
 }
 
 QTableView#sheetList::item {
     padding: 8px 12px;
-    color: #8b8c93;
     border: none;
 }
 
 QTableView#sheetList::item:selected {
     background-color: #6366f1;
     color: #ffffff;
-}
-
-QTableView#sheetList::item:hover {
-    background-color: #2d2d2d;
-    color: #e0e0e0;
 }
 
 /* ── Labels ──────────────────────────────────────────────────────────── */
@@ -465,7 +460,7 @@ QFrame#cardFrame {
 
 /* ── Field Label ────────────────────────────────────────────────────── */
 QLabel#fieldLabel {
-    color: #8b8c93;
+    color: #a0a0a8;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.3px;
@@ -536,7 +531,7 @@ QPushButton#updateButton:pressed {
 QPlainTextEdit, QTextEdit {
     background-color: #1e1e1e;
     color: #e0e0e0;
-    border: 1px solid #333333;
+    border: 1px solid #4a4a55;
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 13px;
@@ -552,7 +547,7 @@ QPlainTextEdit:focus, QTextEdit:focus {
 /* ── Panels ─────────────────────────────────────────────────────────── */
 QFrame#characterDetailPanel, QFrame#databaseDetailPanel {
     background-color: #121212;
-    border: 1px solid #2d2d2d;
+    border: 1px solid #4a4a55;
     border-radius: 10px;
 }
 
@@ -564,13 +559,13 @@ QLabel#panelTitle {
 }
 
 QLabel#panelInfo {
-    color: #8b8c93;
+    color: #a0a0a8;
     font-size: 12px;
     padding: 4px 0;
 }
 
 QLabel#panelFieldLabel {
-    color: #8b8c93;
+    color: #a0a0a8;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.3px;
@@ -585,7 +580,7 @@ QLabel#panelValue, QLabel#panelValueInline {
 
 QListWidget#panelList {
     background-color: #1e1e1e;
-    border: 1px solid #333333;
+    border: 1px solid #4a4a55;
     border-radius: 6px;
     padding: 4px;
     outline: none;
@@ -638,14 +633,58 @@ QLabel#formWarning {
     border-radius: 6px;
 }
 
+/* ── SpinBox ───────────────────────────────────────────────────────── */
+QSpinBox {
+    border: 1px solid #4a4a55;
+    border-radius: 8px;
+    background-color: #1e1e1e;
+    padding: 7px 12px;
+    padding-right: 38px;
+    min-height: 18px;
+    color: #ffffff;
+}
+
+QSpinBox:focus {
+    border: 1px solid #6366f1;
+    background-color: #2d2d2d;
+}
+
+/* Tombol Atas */
+QSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 28px;
+    border: 1px solid #4a4a55;
+    border-radius: 6px;
+    background-color: #2d2d2d;
+    margin-top: 2px;
+    margin-right: 2px;
+}
+
+/* Tombol Bawah */
+QSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 28px;
+    border: 1px solid #4a4a55;
+    border-radius: 6px;
+    background-color: #2d2d2d;
+    margin-bottom: 2px;
+    margin-right: 2px;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #4a4a55;
+}
+
+/* Ikon Panah */
 QSpinBox::up-arrow {
-    image: url(assets/icons/chevron_up.svg); /* Harusnya UP */
+    image: url(assets/icons/chevron-down.svg); 
     width: 10px;
     height: 10px;
 }
-
 QSpinBox::down-arrow {
-    image: url(assets/icons/chevron_down.svg); /* Harusnya DOWN */
+    image: url(assets/icons/chevron-up.svg); 
     width: 10px;
     height: 10px;
 }

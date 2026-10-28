@@ -191,9 +191,6 @@
     }
   },
   "database": {
-    "button": {
-      "fix_cache": "Fix Cache"
-    },
     "label": {
       "search": "Search:",
       "category": "Category:",

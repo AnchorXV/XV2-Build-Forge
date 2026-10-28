@@ -20,16 +20,14 @@ class ToolbarWidget(QWidget):
     add_clicked = Signal()
     sort_changed = Signal(str)
     search_changed = Signal(str)
-    fix_cache_clicked = Signal()
 
     def __init__(
         self,
         *,
         add_tooltip: str = "",
         search_placeholder: str = "",
-        search_label: str = "Search:",
-        sort_options: Optional[list[tuple[str, str]]] = None,
-        fix_cache_label: Optional[str] = None,
+        search_label: str = "",
+        sort_options: Optional[list[tuple[str, str, str]]] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
@@ -47,29 +45,24 @@ class ToolbarWidget(QWidget):
         self.add_btn.clicked.connect(self.add_clicked.emit)
         layout.addWidget(self.add_btn)
 
-        self._sort_label = None
         self.sort_combo = None
         if sort_options:
-            self._sort_label = QLabel("Sort:")
-            layout.addWidget(self._sort_label)
-
             self.sort_combo = QComboBox()
-            self.sort_combo.setMinimumWidth(60)
+            self.sort_combo.setMinimumWidth(130)
             self.sort_combo.setFixedHeight(36)
-            self.sort_combo.setToolTip("Sort by...")
             for display, value, icon_name in sort_options:
                 icon_path = get_resource_path(f"assets/icons/{icon_name}")
-                self.sort_combo.addItem(QIcon(str(icon_path)), "", value)
-                index = self.sort_combo.count() - 1
-                self.sort_combo.setItemData(index, display, Qt.ToolTipRole)
+                self.sort_combo.addItem(QIcon(str(icon_path)), display, value)
 
             self.sort_combo.currentIndexChanged.connect(self._on_sort_changed)
             layout.addWidget(self.sort_combo)
 
         layout.addStretch()
 
-        self._search_label = QLabel(search_label)
-        layout.addWidget(self._search_label)
+        self._search_label = None
+        if search_label:
+            self._search_label = QLabel(search_label)
+            layout.addWidget(self._search_label)
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText(search_placeholder)
@@ -104,19 +97,23 @@ class ToolbarWidget(QWidget):
         data = self.sort_combo.currentData()
         return str(data) if data else ""
 
-    def retranslate(
-        self,
-        *,
-        add_tooltip: str = "",
-        search_placeholder: str = "",
-        search_label: str = "Search:",
-        sort_label: str = "Sort:",
-        fix_cache_label: Optional[str] = None,
-    ) -> None:
-        self.add_btn.setToolTip(add_tooltip)
-        if self._sort_label is not None:
-            self._sort_label.setText(sort_label)
-        if self.fix_cache_btn and fix_cache_label is not None:
-            self.fix_cache_btn.setText(fix_cache_label)
-        self._search_label.setText(search_label)
-        self.search_input.setPlaceholderText(search_placeholder)
+    def set_add_tooltip(self, text: str) -> None:
+        self.add_btn.setToolTip(text)
+
+    def set_search_placeholder(self, text: str) -> None:
+        self.search_input.setPlaceholderText(text)
+
+    def update_sort_options(self, sort_options: list[tuple[str, str, str]]) -> None:
+        if self.sort_combo is None:
+            return
+        current = self.current_sort_value()
+        self.sort_combo.blockSignals(True)
+        self.sort_combo.clear()
+        for display, value, icon_name in sort_options:
+            icon_path = get_resource_path(f"assets/icons/{icon_name}")
+            self.sort_combo.addItem(QIcon(str(icon_path)), display, value)
+        
+        idx = self.sort_combo.findData(current)
+        if idx >= 0:
+            self.sort_combo.setCurrentIndex(idx)
+        self.sort_combo.blockSignals(False)

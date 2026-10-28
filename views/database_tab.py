@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeySequence, QShortcut, QUndoStack, QIcon
+from PySide6.QtGui import QIcon, QUndoStack
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QMenu,
@@ -43,7 +43,6 @@ from views.dialogs.db_entry_dialog import (
 )
 from views.widgets.character_detail_panel import CharacterDetailPanel
 from views.widgets.searchable_table_view import SearchableTableView
-from views.widgets.toolbar_widget import ToolbarWidget
 from views.widgets.database_detail_panel import DatabaseDetailPanel
 from views.widgets.multi_field_filter_proxy import MultiFieldFilterProxy
 
@@ -113,7 +112,6 @@ class DatabaseTab(QWidget):
 
         self._build_ui()
         self._connect_signals()
-        self._setup_shortcuts()
 
     def _sort_options(self) -> list[tuple[str, str, str]]:
         az = tr("database.sort.az")
@@ -159,16 +157,7 @@ class DatabaseTab(QWidget):
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
-
-        self._toolbar = ToolbarWidget(
-            add_tooltip=tr("database.tooltip.add", type=self._display),
-            search_placeholder=tr("database.placeholder.search", type=self._display),
-            search_label=tr("database.label.search"),
-            sort_options=self._sort_options(),
-            fix_cache_label=tr("database.button.fix_cache"),
-            parent=self,
-        )
-        layout.addWidget(self._toolbar)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         if self._split_mode:
             self._build_split_ui(layout)
@@ -242,41 +231,20 @@ class DatabaseTab(QWidget):
     # ── Signals ─────────────────────────────────────────────────────────
 
     def _connect_signals(self) -> None:
-        self._toolbar.add_clicked.connect(self._on_add)
-        self._toolbar.sort_changed.connect(self._apply_sort_mode)
-        if self._split_mode:
-            self._toolbar.search_changed.connect(self._on_search_changed)
-        else:
-            self._toolbar.search_changed.connect(self._stv.set_filter_text)
         self._stv.table_view.customContextMenuRequested.connect(self._on_context_menu)
         self._stv.table_view.doubleClicked.connect(self._on_edit)
         self._stv.table_view.selectionModel().selectionChanged.connect(
             self._on_selection_changed
         )
-
         signal_bus.data_changed.connect(self._on_data_changed)
 
     def _on_search_changed(self, text: str) -> None:
-        proxy = self._stv.table_view.model()
-        if hasattr(proxy, "set_filter_text"):
-            proxy.set_filter_text(text)
-
-    def _setup_shortcuts(self) -> None:
-        QShortcut(
-            QKeySequence("Ctrl+F"),
-            self,
-            self._focus_search,
-        )
-        QShortcut(
-            QKeySequence("Ctrl+A"),
-            self._stv.table_view,
-            self._stv.table_view.selectAll,
-            context=Qt.WidgetWithChildrenShortcut,
-        )
-
-    def _focus_search(self) -> None:
-        self._toolbar.search_input.setFocus()
-        self._toolbar.search_input.selectAll()
+        if self._split_mode:
+            proxy = self._stv.table_view.model()
+            if hasattr(proxy, "set_filter_text"):
+                proxy.set_filter_text(text)
+        else:
+            self._stv.set_filter_text(text)
 
     # ── Data refresh ────────────────────────────────────────────────────
 
@@ -571,19 +539,3 @@ class DatabaseTab(QWidget):
 
     def retranslate_ui(self, display_title: str) -> None:
         self._display = display_title
-        current = self._toolbar.current_sort_value()
-        self._toolbar.sort_combo.blockSignals(True)
-        self._toolbar.sort_combo.clear()
-        for display, value in self._sort_options():
-            self._toolbar.sort_combo.addItem(display, value)
-        idx = self._toolbar.sort_combo.findData(current)
-        if idx >= 0:
-            self._toolbar.sort_combo.setCurrentIndex(idx)
-        self._toolbar.sort_combo.blockSignals(False)
-        self._toolbar.retranslate(
-            add_tooltip=tr("database.tooltip.add", type=display_title),
-            search_placeholder=tr("database.placeholder.search", type=display_title),
-            search_label=tr("database.label.search"),
-            sort_label=tr("database.label.sort", default="Sort:"),
-            fix_cache_label=tr("database.button.fix_cache"),
-        )

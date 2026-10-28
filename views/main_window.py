@@ -155,7 +155,7 @@ class MainWindow(QMainWindow):
             commands.append({
                 "label": name,
                 "section": "Characters",
-                "icon": "users.svg",
+                "icon": "sidebar-database.svg",
                 "search": f"character db {name}",
                 "action": "find_character",
                 "data": {"name": name},

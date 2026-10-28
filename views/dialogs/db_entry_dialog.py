@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QGridLayout,
     QFormLayout,
     QHBoxLayout,
     QLabel,
@@ -103,6 +104,8 @@ class CharacterDialog(QDialog):
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setObjectName("primaryButton")
+        buttons.button(QDialogButtonBox.Cancel).setObjectName("secondaryButton")
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -245,6 +248,8 @@ class SkillDialog(QDialog):
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setObjectName("primaryButton")
+        buttons.button(QDialogButtonBox.Cancel).setObjectName("secondaryButton")
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -317,21 +322,23 @@ class SuperSoulDialog(QDialog):
         self._populate_owners()
         form.addRow(QLabel(tr("dialog.super_soul.label_owner")), self.owner_combo)
 
-        self.effect1_input = QPlainTextEdit()
+        self.effect1_input = QLineEdit()
         self.effect1_input.setMinimumHeight(60)
         form.addRow(QLabel(tr("dialog.super_soul.label_effect1")), self.effect1_input)
 
-        self.effect2_input = QPlainTextEdit()
+        self.effect2_input = QLineEdit()
         self.effect2_input.setMinimumHeight(60)
         form.addRow(QLabel(tr("dialog.super_soul.label_effect2")), self.effect2_input)
 
-        self.limit_burst_input = QPlainTextEdit()
+        self.limit_burst_input = QLineEdit()
         self.limit_burst_input.setMinimumHeight(60)
         form.addRow(QLabel(tr("dialog.super_soul.label_limit_burst")), self.limit_burst_input)
 
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setObjectName("primaryButton")
+        buttons.button(QDialogButtonBox.Cancel).setObjectName("secondaryButton")
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -339,9 +346,9 @@ class SuperSoulDialog(QDialog):
         if edit_data:
             self.name_input.setText(edit_data.get("name", ""))
             self.owner_combo.setCurrentText(edit_data.get("owner", ""))
-            self.effect1_input.setPlainText(edit_data.get("effect_1", ""))
-            self.effect2_input.setPlainText(edit_data.get("effect_2", ""))
-            self.limit_burst_input.setPlainText(edit_data.get("limit_burst", ""))
+            self.effect1_input.setText(edit_data.get("effect_1", ""))
+            self.effect2_input.setText(edit_data.get("effect_2", ""))
+            self.limit_burst_input.setText(edit_data.get("limit_burst", ""))
 
     def _populate_owners(self) -> None:
         try:
@@ -355,9 +362,9 @@ class SuperSoulDialog(QDialog):
         return {
             "name": self.name_input.text().strip(),
             "owner": self.owner_combo.currentText().strip(),
-            "effect_1": self.effect1_input.toPlainText().strip(),
-            "effect_2": self.effect2_input.toPlainText().strip(),
-            "limit_burst": self.limit_burst_input.toPlainText().strip(),
+            "effect_1": self.effect1_input.text().strip(),
+            "effect_2": self.effect2_input.text().strip(),
+            "limit_burst": self.limit_burst_input.text().strip(),
         }
 
 SOURCE_TYPE_CODES: list[str] = [
@@ -395,7 +402,7 @@ class SourceDialog(QDialog):
         form.addRow(QLabel(tr("dialog.source.label_type")), self.type_combo)
 
         date_widget = QWidget()
-        date_layout = QHBoxLayout(date_widget)
+        date_layout = QGridLayout(date_widget)
         date_layout.setContentsMargins(0, 0, 0, 0)
         date_layout.setSpacing(8)
 
@@ -403,28 +410,30 @@ class SourceDialog(QDialog):
         self.year_spin.setMinimum(0)
         self.year_spin.setMaximum(9999)
         self.year_spin.setSpecialValueText("—")
-        date_layout.addWidget(QLabel(tr("dialog.source.label_year")))
-        date_layout.addWidget(self.year_spin, 1)
+        date_layout.addWidget(QLabel(tr("dialog.source.label_year")), 0, 0)
+        date_layout.addWidget(self.year_spin, 1, 0)
 
         self.month_combo = QComboBox()
         self.month_combo.addItem("—", 0)
         for i in range(1, 13):
             self.month_combo.addItem(tr(f"date.month.{i}"), i)
-        date_layout.addWidget(QLabel(tr("dialog.source.label_month")))
-        date_layout.addWidget(self.month_combo, 2)
+        date_layout.addWidget(QLabel(tr("dialog.source.label_month")), 0, 1)
+        date_layout.addWidget(self.month_combo, 1, 1)
 
         self.day_spin = QSpinBox()
         self.day_spin.setMinimum(0)
         self.day_spin.setMaximum(31)
         self.day_spin.setSpecialValueText("—")
-        date_layout.addWidget(QLabel(tr("dialog.source.label_day")))
-        date_layout.addWidget(self.day_spin, 1)
+        date_layout.addWidget(QLabel(tr("dialog.source.label_day")), 0, 2)
+        date_layout.addWidget(self.day_spin, 1, 2)
 
         form.addRow(QLabel(tr("dialog.source.label_date")), date_widget)
 
         layout.addLayout(form)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.button(QDialogButtonBox.Ok).setObjectName("primaryButton")
+        buttons.button(QDialogButtonBox.Cancel).setObjectName("secondaryButton")
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

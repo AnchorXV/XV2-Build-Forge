@@ -57,7 +57,7 @@ class SheetDetailDialog(QDialog):
 
         self._table = QTableView()
         self._table.setModel(model)
-        self._table.setSelectionBehavior(QTableView.SelectRows)
+        self._table.setSelectionBehavior(QAbstractItemView.SelectItems)
         self._table.setSelectionMode(QTableView.ExtendedSelection)
         self._table.setAlternatingRowColors(True)
         self._table.verticalHeader().setVisible(False)
