@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
-    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
@@ -35,6 +34,7 @@ from models.validators import (
     validate_preset_entry,
 )
 from views.widgets.section_header import SectionHeader
+from views.widgets.separated_spinbox import SeparatedSpinBox
 from views.widgets.searchable_combo import setup_searchable_combo
 
 logger = logging.getLogger(__name__)
@@ -150,17 +150,15 @@ class EditorTab(QWidget):
             2, 1,
         )
 
-        self.costume_index_spin = QSpinBox()
-        self.costume_index_spin.setMinimum(0)
-        self.costume_index_spin.setMaximum(99)
+        self.costume_index_spin = SeparatedSpinBox()
+        self.costume_index_spin.setRange(0, 99)
         grid.addWidget(
             self._make_field(tr("editor.label.costume_index"), self.costume_index_spin),
             3, 0,
         )
 
-        self.model_preset_spin = QSpinBox()
-        self.model_preset_spin.setMinimum(0)
-        self.model_preset_spin.setMaximum(9999)
+        self.model_preset_spin = SeparatedSpinBox()
+        self.model_preset_spin.setRange(0, 9999)
         grid.addWidget(
             self._make_field(tr("editor.label.model_preset"), self.model_preset_spin),
             3, 1,

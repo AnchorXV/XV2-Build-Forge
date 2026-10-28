@@ -161,6 +161,7 @@ class RosterTab(QWidget):
         self._preset_view = SearchableTableView(
             sortable=True,
             selection_mode=QAbstractItemView.ExtendedSelection,
+            selection_behavior=QAbstractItemView.SelectItems,
             drag_drop=True,
             stretch_columns=False,
         )

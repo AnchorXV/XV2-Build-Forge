@@ -119,20 +119,20 @@ class DatabaseTab(QWidget):
         if self._key == "sources":
             return [
                 (az, SORT_AZ, "arrow-up-a-z.svg"),
-                (za, SORT_ZA, "arrow-down-a-z.svg"),
+                (za, SORT_ZA, "arrow-down-z-a.svg"),
                 (tr("database.sort.date"), SORT_DATE, "calendar-plus.svg"),
             ]
         if self._key == "characters":
             return [
                 (az, SORT_AZ, "arrow-up-a-z.svg"),
-                (za, SORT_ZA, "arrow-down-a-z.svg"),
+                (za, SORT_ZA, "arrow-down-z-a.svg"),
                 (tr("database.sort.date_created"), SORT_DATE_CREATED, "calendar-plus.svg"),
                 (tr("database.sort.date_modified"), SORT_DATE_MODIFIED, "rotate-cw-clock.svg"),
                 (tr("database.sort.source"), SORT_SOURCE, "list-clock.svg"),
             ]
         return [
             (az, SORT_AZ, "arrow-up-a-z.svg"),
-            (za, SORT_ZA, "arrow-down-a-z.svg"),
+            (za, SORT_ZA, "arrow-down-z-a.svg"),
             (tr("database.sort.date_created"), SORT_DATE_CREATED, "calendar-plus.svg"),
             (tr("database.sort.date_modified"), SORT_DATE_MODIFIED, "rotate-cw-clock.svg"),
         ]

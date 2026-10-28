@@ -263,7 +263,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url(assets/icons/chevron_up.svg);
+    image: url(assets/icons/chevron_down.svg);
     width: 12px;
     height: 12px;
     margin-right: 10px;
@@ -304,8 +304,6 @@ QTableView, QTableWidget {
     border: 1px solid #4a4a55;
     border-radius: 8px;
     color: #ffffff;
-    selection-background-color: #6366f1;
-    selection-color: #ffffff;
     outline: none;
 }
 
@@ -633,58 +631,14 @@ QLabel#formWarning {
     border-radius: 6px;
 }
 
-/* ── SpinBox ───────────────────────────────────────────────────────── */
-QSpinBox {
-    border: 1px solid #4a4a55;
-    border-radius: 8px;
+/* ── Custom Separated SpinBox ── */
+#spinUpButton, #spinDownButton {
     background-color: #1e1e1e;
-    padding: 7px 12px;
-    padding-right: 38px;
-    min-height: 18px;
-    color: #ffffff;
-}
-
-QSpinBox:focus {
-    border: 1px solid #6366f1;
-    background-color: #2d2d2d;
-}
-
-/* Tombol Atas */
-QSpinBox::up-button {
-    subcontrol-origin: border;
-    subcontrol-position: top right;
-    width: 28px;
     border: 1px solid #4a4a55;
-    border-radius: 6px;
-    background-color: #2d2d2d;
-    margin-top: 2px;
-    margin-right: 2px;
+    border-radius: 4px;
 }
 
-/* Tombol Bawah */
-QSpinBox::down-button {
-    subcontrol-origin: border;
-    subcontrol-position: bottom right;
-    width: 28px;
-    border: 1px solid #4a4a55;
-    border-radius: 6px;
-    background-color: #2d2d2d;
-    margin-bottom: 2px;
-    margin-right: 2px;
-}
-
-QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-    background-color: #4a4a55;
-}
-
-/* Ikon Panah */
-QSpinBox::up-arrow {
-    image: url(assets/icons/chevron-down.svg); 
-    width: 10px;
-    height: 10px;
-}
-QSpinBox::down-arrow {
-    image: url(assets/icons/chevron-up.svg); 
-    width: 10px;
-    height: 10px;
+#spinUpButton:hover, #spinDownButton:hover {
+    background-color: #3a3a3a;
+    border-color: #6366f1;
 }

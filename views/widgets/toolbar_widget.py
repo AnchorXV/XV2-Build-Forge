@@ -48,8 +48,11 @@ class ToolbarWidget(QWidget):
         self.sort_combo = None
         if sort_options:
             self.sort_combo = QComboBox()
-            self.sort_combo.setMinimumWidth(130)
+            self.sort_combo.setMinimumWidth(140)
             self.sort_combo.setFixedHeight(36)
+            self.sort_combo.setEditable(False)
+            self.sort_combo.setIconSize(QSize(16, 16))
+            
             for display, value, icon_name in sort_options:
                 icon_path = get_resource_path(f"assets/icons/{icon_name}")
                 self.sort_combo.addItem(QIcon(str(icon_path)), display, value)

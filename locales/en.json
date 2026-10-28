@@ -264,7 +264,7 @@
       "label_name": "Skill Name:",
       "label_skill_type": "Skill Type:",
       "label_ki_used": "Ki Used:",
-      "label_cac": "Is CaC Skill?:",
+      "label_cac": "Is CaC Skill?",
       "label_description": "Description:",
       "placeholder_description": "Optional description or notes",
       "type": {
