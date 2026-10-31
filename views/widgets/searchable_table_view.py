@@ -8,7 +8,7 @@ from PySide6.QtCore import (
     QTimer,
     Qt,
 )
-from PySide6.QtGui import QColor, QBrush
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHeaderView,
@@ -108,7 +108,6 @@ class SearchableTableView(QWidget):
         self._proxy.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self._proxy.setFilterKeyColumn(-1)
 
-        self._table = QTableView(self)
         self._table = HoverTableView(self)
         self._table.setModel(self._proxy)
         self._table.setItemDelegate(RowHoverDelegate(self._table))

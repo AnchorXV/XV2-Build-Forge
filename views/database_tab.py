@@ -259,13 +259,7 @@ class DatabaseTab(QWidget):
             sel_model.blockSignals(True)
 
         try:
-            old_count = self._model.rowCount()
-            new_count = len(self._store.get_cache(self._key))
-
-            if old_count == new_count:
-                self._model.layoutChanged.emit()
-            else:
-                self._model.refresh()
+            self._model.refresh()
         finally:
             if sel_model is not None:
                 sel_model.blockSignals(False)

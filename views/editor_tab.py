@@ -377,9 +377,17 @@ class EditorTab(QWidget):
         for field_key, combo in self._watched_fields:
             value = combo.currentText().strip()
             suggestions = check_field(self._store, field_key, value)
+            
+            has_warning = bool(value and suggestions is not None)
+            current_warning = combo.property("warningState")
 
-            if value and suggestions is not None:
-                combo.setProperty("warningState", True)
+            if current_warning != has_warning:
+                combo.setProperty("warningState", has_warning)
+                style = combo.style()
+                style.unpolish(combo)
+                style.polish(combo)
+
+            if has_warning:
                 if suggestions:
                     tooltip = tr(
                         "editor.warning.new_text_with_suggestions",
@@ -393,15 +401,10 @@ class EditorTab(QWidget):
                 if le is not None:
                     le.setToolTip(tooltip)
             else:
-                combo.setProperty("warningState", False)
                 combo.setToolTip("")
                 le = combo.lineEdit()
                 if le is not None:
                     le.setToolTip("")
-
-            style = combo.style()
-            style.unpolish(combo)
-            style.polish(combo)
 
     def _update_all_field_warnings(self) -> None:
         self._update_field_warnings()
@@ -526,6 +529,8 @@ class EditorTab(QWidget):
             self._on_save_as_new()
 
     def _on_save_as_new(self) -> None:
+        self.target_sheet_combo.clearFocus()
+        
         target = self.target_sheet_combo.currentText().strip()
         if not target:
             QMessageBox.warning(self, tr("editor.message.validation_failed"), tr("editor.message.empty_target"))
@@ -539,11 +544,16 @@ class EditorTab(QWidget):
 
         self._save_new(target, entry)
         self._exit_edit_mode()
+        
+        self._identical_warning_label.hide()
+        self._duplicate_warning_label.hide()
 
     def _on_save_update(self) -> None:
         if not self._editing_entry_id:
             return
 
+        self.target_sheet_combo.clearFocus()
+        
         target = self.target_sheet_combo.currentText().strip()
         if not target:
             QMessageBox.warning(self, tr("editor.message.validation_failed"), tr("editor.message.empty_target"))
@@ -557,6 +567,9 @@ class EditorTab(QWidget):
 
         self._save_update(target, entry)
         self._update_edit_banner()
+        
+        self._identical_warning_label.hide()
+        self._duplicate_warning_label.hide()
 
     def _save_new(self, target: str, entry: PresetEntry) -> None:
         cmd = AddPresetWithAutoRegisterCommand(self._store, target, entry)
